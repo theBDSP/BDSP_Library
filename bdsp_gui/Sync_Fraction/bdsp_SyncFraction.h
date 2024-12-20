@@ -117,8 +117,8 @@ namespace bdsp
 		void lookAndFeelChanged() override;
 
 
-		void clearLookAndFeels() override;
-		void resetLookAndFeels(GUI_Universals* universalsToUse) override;
+
+
 
 
 

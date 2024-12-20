@@ -180,7 +180,7 @@ namespace bdsp
 		parent->hoverMenu->addInfluence(this);
 
 
-		parent->getControlParamter()->valueChanged(0);
+		parent->getControlParamter()->valueChanged();
 
 		if (index >= BDSP_NUMBER_OF_MACROS)
 		{
@@ -222,7 +222,7 @@ namespace bdsp
 
 
 
-		parent->getControlParamter()->valueChanged(0);
+		parent->getControlParamter()->valueChanged();
 
 
 		if (!parent->isLinkedToAnimatedControl())

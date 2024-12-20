@@ -8,7 +8,7 @@ namespace bdsp
 {
 	//provides basic double click functionality
 	//override showTextEditor fucntion to alter double click functionality
-	class BaseSlider : public juce::Slider, public ComponentCore, public GUI_Universals::Listener, juce::AudioParameterFloat::Listener
+	class BaseSlider : public juce::Slider, public ComponentCore, public GUI_Universals::Listener, public juce::Slider::Listener, public Parameter::LambdaListener
 	{
 	public:
 		BaseSlider(GUI_Universals* universalsToUse, const juce::String& baseName);
@@ -106,8 +106,6 @@ namespace bdsp
 
 			juce::TextEditor* createEditorComponent() override;
 
-			// textUp updated externally b/c of ranged sliders messing things up
-
 			void setHasNoTitle(bool state); // true to make them both invisible false to set title back to visible
 			bool getHasNoTitle(); 
 
@@ -142,7 +140,7 @@ namespace bdsp
 
 		};
 
-		;
+		
 
 
 		BaseSlider::Label* mainLabel = nullptr; // holds a pointer to the influenceLabel that is being used in place of the textBox
@@ -151,6 +149,7 @@ namespace bdsp
 
 
 		juce::RangedAudioParameter* param = nullptr;
+		Parameter* bdspParam = nullptr;
 
 		Type type = Normal;
 		KnobPlacement place;
@@ -172,11 +171,6 @@ namespace bdsp
 
 
 
-		// Inherited via Listener
-		void parameterValueChanged(int parameterIndex, float newValue) override;
-
-		void parameterGestureChanged(int parameterIndex, bool gestureIsStarting) override;
-
 
 
 	private:
@@ -185,12 +179,20 @@ namespace bdsp
 		double  catchEscape = 0.05;
 		int currentCatchRange = -1;
 		
+		double wheelProp = 0;
+		
 		double dragCatchCheck();
 
 		bool notifyOnRelease = false;
 
 		juce::Time lastMouseWheelTime;
-	};
+
+		// Inherited via Listener
+		void parameterLambdasUpdated() override;
+
+		// Inherited via Listener
+		void sliderValueChanged(juce::Slider* slider) override;
+};
 
 }// namnepace bdsp
 

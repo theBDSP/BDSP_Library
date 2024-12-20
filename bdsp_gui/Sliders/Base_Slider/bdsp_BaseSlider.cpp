@@ -7,6 +7,7 @@ namespace bdsp
 		:ComponentCore(this, universalsToUse),
 		GUI_Universals::Listener(universalsToUse)
 	{
+		addListener(this);
 		getValueFunction = [=]()
 		{
 			return getValue();
@@ -86,9 +87,10 @@ namespace bdsp
 	}
 	BaseSlider::~BaseSlider()
 	{
-		if (param != nullptr)
+
+		if (bdspParam != nullptr)
 		{
-			param->removeListener(this);
+			bdspParam->removeLambdaListener(this);
 		}
 	}
 
@@ -179,7 +181,9 @@ namespace bdsp
 	void BaseSlider::attach(juce::AudioProcessorValueTreeState& stateToUse, const juce::String& parameterID)
 	{
 		param = stateToUse.getParameter(parameterID);
+		bdspParam = dynamic_cast<Parameter*>(param);
 
+		jassert(param != nullptr);
 
 		attachment = std::make_unique<SliderAttachment>(stateToUse, parameterID, *this);
 		if (onAttach.operator bool())
@@ -190,7 +194,10 @@ namespace bdsp
 
 		setDoubleClickReturnValue(false, getDefaultValue(), juce::ModifierKeys::noModifiers);
 
-		param->addListener(this);
+		if (bdspParam != nullptr)
+		{
+			bdspParam->addLambdaListener(this);
+		}
 	}
 	juce::RangedAudioParameter* BaseSlider::getParameter()
 	{
@@ -483,14 +490,13 @@ namespace bdsp
 				auto wheelAmount = (std::abs(newMW.deltaX) > std::abs(newMW.deltaY) ? -newMW.deltaX : newMW.deltaY) * (newMW.isReversed ? -1.0f : 1.0f);
 
 				auto proportionDelta = wheelAmount * 0.15;
-				auto currentPos = valueToProportionOfLength(getValue());
-				auto newPos = currentPos + proportionDelta;
-				newPos = (isRotary() && !getRotaryParameters().stopAtEnd) ? newPos - std::floor(newPos) : juce::jlimit(0.0, 1.0, newPos);
+				wheelProp += proportionDelta;
+				wheelProp = (isRotary() && !getRotaryParameters().stopAtEnd) ? wheelProp - std::floor(wheelProp) : juce::jlimit(0.0, 1.0, wheelProp);
 
 
 
 
-				setValue(snapValue(proportionOfLengthToValue(newPos), notDragging), juce::sendNotificationSync);
+				setValue(snapValue(proportionOfLengthToValue(wheelProp), notDragging), juce::sendNotificationSync);
 
 
 
@@ -506,33 +512,6 @@ namespace bdsp
 						break;
 					}
 				}
-
-				double max = absMax(newMW.deltaX, newMW.deltaY);
-				if (prevValue == getValue())
-				{
-					if ((newPos != 0 || newPos != 1) || (newPos == 0 && proportionDelta > 0) || (newPos == 1 && proportionDelta < 0)) // need to use position values for comps b/c proportion and value directions could be flipped
-					{
-
-						if (getInterval() != 0)
-						{
-							setValue(snapValue(getValue() + signum(max) * getInterval(), juce::Slider::DragMode::notDragging));
-						}
-						else
-						{
-							while (prevValue == getValue() && newPos != 0 && newPos != 1)
-							{
-								newPos += proportionDelta;
-								newPos = (isRotary() && !getRotaryParameters().stopAtEnd) ? newPos - std::floor(newPos) : juce::jlimit(0.0, 1.0, newPos);
-
-								setValue(snapValue(proportionOfLengthToValue(newPos), juce::Slider::DragMode::notDragging));
-							}
-						}
-					}
-
-				}
-
-
-
 
 			}
 		}
@@ -623,14 +602,6 @@ namespace bdsp
 	}
 
 
-	void BaseSlider::parameterValueChanged(int parameterIndex, float newValue)
-	{
-	}
-
-	void BaseSlider::parameterGestureChanged(int parameterIndex, bool gestureIsStarting)
-	{
-	}
-
 
 	double BaseSlider::dragCatchCheck()
 	{
@@ -670,6 +641,22 @@ namespace bdsp
 		}
 		return newPos;
 
+	}
+
+	void BaseSlider::parameterLambdasUpdated()
+	{
+		if (universals->APVTS != nullptr)
+		{
+			attach(*universals->APVTS, param->getParameterID()); // rebuilds the attachment with the updated lambdas and range
+		}
+	}
+
+	void BaseSlider::sliderValueChanged(juce::Slider* slider)
+	{
+		if (slider == this)
+		{
+			wheelProp = valueToProportionOfLength(getValue());
+		}
 	}
 
 

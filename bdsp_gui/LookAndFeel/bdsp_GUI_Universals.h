@@ -35,15 +35,8 @@ namespace bdsp
 	{
 		GUI_Universals()
 		{
-
-
 			listeners.clear();
 			lnf.universals = this;
-
-			//#if JUCE_WINDOWS
-			//			EnumDisplaySettingsA
-			//			expectedFrameTimeMS = juce::Desktop::getInstance().getDisplays().getPrimaryDisplay()->verticalFrequencyHz.value();
-			//#endif
 		}
 
 		~GUI_Universals()

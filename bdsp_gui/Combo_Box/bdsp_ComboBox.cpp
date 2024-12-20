@@ -5,8 +5,8 @@ namespace bdsp
 	ComboBox::ComboBox(juce::AudioParameterChoice* param, GUI_Universals* universalsToUse, const juce::StringArray& dispNames, const std::function<void(int)>& changFunc)
 		:ComboBoxBase(param, universalsToUse, dispNames, changFunc)
 	{
-		Listuniversals = std::make_unique<PopupMenu>(this, universals, true);
-		List = &dynamic_cast<PopupMenu*>(Listuniversals.get())->List;
+		ListHolder = std::make_unique<PopupMenu>(this, universals, true);
+		List = &dynamic_cast<PopupMenu*>(ListHolder.get())->List;
 
 		initMenuComponents();
 
@@ -40,7 +40,7 @@ namespace bdsp
 
 	void ComboBox::setHeightRatio(float newRatio)
 	{
-		dynamic_cast<PopupMenu*>(Listuniversals.get())->setHeightRatio(newRatio);
+		dynamic_cast<PopupMenu*>(ListHolder.get())->setHeightRatio(newRatio);
 	}
 
 
@@ -132,19 +132,18 @@ namespace bdsp
 	{
 		setFontIndex(0);
 
-		resetLookAndFeels(universals);
 
 
 		setColorSchemeClassic(BDSP_COLOR_WHITE, BDSP_COLOR_DARK, NamedColorsIdentifier(BDSP_COLOR_BLACK), NamedColorsIdentifier(BDSP_COLOR_COLOR).withMultipliedAlpha(universals->lowOpacity));
 
-		Listuniversals->setLossOfFocusClosesWindow(true, this);
+		ListHolder->setLossOfFocusClosesWindow(true, this);
 
-		Listuniversals->onHide = [this]()
+		ListHolder->onHide = [this]()
 		{
 			repaint();
 		};
 
-		Listuniversals->onShow = [this]()
+		ListHolder->onShow = [this]()
 		{
 			resized();
 			repaint();
@@ -160,7 +159,7 @@ namespace bdsp
 			button->mouseWheelMove(e, mw);
 		};
 
-		Listuniversals->setLossOfFocusClosesWindow(true, button.get());
+		ListHolder->setLossOfFocusClosesWindow(true, button.get());
 
 
 	}
@@ -168,7 +167,7 @@ namespace bdsp
 
 	DesktopComponent* ComboBoxBase::getListuniversals()
 	{
-		return Listuniversals.get();
+		return ListHolder.get();
 	}
 
 	ListComponent* ComboBoxBase::getListComponent()
@@ -193,17 +192,17 @@ namespace bdsp
 
 	void ComboBoxBase::showList()
 	{
-		Listuniversals->show();
+		ListHolder->show();
 	}
 
 	void ComboBoxBase::hideList()
 	{
-		Listuniversals->hide();
+		ListHolder->hide();
 	}
 
 	bool ComboBoxBase::isListVisible()
 	{
-		return Listuniversals->isVisible();
+		return ListHolder->isVisible();
 	}
 
 	void ComboBoxBase::resized()
@@ -234,8 +233,8 @@ namespace bdsp
 				x = universals->desktopManager.getWidth() - w;
 			}
 
-			Listuniversals->setBounds(juce::Rectangle<int>(x, y, w, h));
-			List->setBounds(Listuniversals->getLocalBounds());
+			ListHolder->setBounds(juce::Rectangle<int>(x, y, w, h));
+			List->setBounds(ListHolder->getLocalBounds());
 			List->resized();
 		}
 	}
@@ -312,22 +311,13 @@ namespace bdsp
 	{
 	}
 
-	void ComboBoxBase::clearLookAndFeels()
-	{
-		setLookAndFeel(nullptr);
-		Listuniversals->clearLookAndFeels();
-	}
 
-	void ComboBoxBase::resetLookAndFeels(GUI_Universals* universalsToUse)
-	{
-//		setLookAndFeel(&universalsToUse->MasterComboLNF);
-		Listuniversals->resetLookAndFeels(universalsToUse);
-	}
+
 
 	void ComboBoxBase::setFontIndex(int idx)
 	{
 		ComponentCore::setFontIndex(idx);
-		Listuniversals->setFontIndex(idx);
+		ListHolder->setFontIndex(idx);
 		List->setFontIndex(idx);
 	}
 
@@ -417,8 +407,8 @@ namespace bdsp
 
 		//================================================================================================================================================================================================
 
-		auto bkgd = universals->hoverAdjustmentFunc(getColor(Listuniversals->isVisible() ? backgroundDown : backgroundUp), hover).withMultipliedAlpha(alpha);
-		auto txt = universals->hoverAdjustmentFunc(getColor(Listuniversals->isVisible() ? textDown : textUp), hover).withMultipliedAlpha(alpha);
+		auto bkgd = universals->hoverAdjustmentFunc(getColor(ListHolder->isVisible() ? backgroundDown : backgroundUp), hover).withMultipliedAlpha(alpha);
+		auto txt = universals->hoverAdjustmentFunc(getColor(ListHolder->isVisible() ? textDown : textUp), hover).withMultipliedAlpha(alpha);
 
 		//drawContainer(g, s, bkgd.withMultipliedSaturation(Menu.isVisible() ? 1.0 :universals->buttonDesaturation), bkgd.withMultipliedBrightness(1.25f).withAlpha(0.5f), universals->hoverAdjustmentFunc(getColor(background), hover).withMultipliedAlpha(alpha), borderColor * 1.5, borderColor, !Menu.isVisible());
 
@@ -503,7 +493,7 @@ namespace bdsp
 		List->highlightItem(idx);
 
 		updateColors();
-		Listuniversals->repaintThreadChecked();
+		ListHolder->repaintThreadChecked();
 
 		repaintThreadChecked();
 
@@ -557,7 +547,7 @@ namespace bdsp
 	{
 		if (p->isEnabled())
 		{
-			preClickState = p->Listuniversals->isVisible();
+			preClickState = p->ListHolder->isVisible();
 		}
 	}
 

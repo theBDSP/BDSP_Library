@@ -6,10 +6,10 @@ namespace bdsp
 		:ComboBoxBase(param, universalsToUse, juce::StringArray(), changFunc),
 		DistortionList(this)
 	{
-		Listuniversals = std::make_unique<DesktopComponent>(universals);
+		ListHolder = std::make_unique<DesktopComponent>(universals);
 		List = &DistortionList;
 
-		Listuniversals->addAndMakeVisible(DistortionList);
+		ListHolder->addAndMakeVisible(DistortionList);
 
 		initMenuComponents();
 	}
@@ -123,10 +123,10 @@ namespace bdsp
 		grid = std::make_unique<Grid>(this);
 
 
-		Listuniversals = std::make_unique<DesktopComponent>(universals);
-		Listuniversals->addAndMakeVisible(grid.get());
+		ListHolder = std::make_unique<DesktopComponent>(universals);
+		ListHolder->addAndMakeVisible(grid.get());
 
-		Listuniversals->onShow = [=]()
+		ListHolder->onShow = [=]()
 		{
 			resized();
 		};
@@ -186,16 +186,16 @@ namespace bdsp
 		{
 
 
-			auto y = Listuniversals->getY();
-			auto h = Listuniversals->getWidth() / BDSP_DISTORTION_TYPE_GRID_ASPECT_RATIO;
+			auto y = ListHolder->getY();
+			auto h = ListHolder->getWidth() / BDSP_DISTORTION_TYPE_GRID_ASPECT_RATIO;
 
 			if (y + h > universals->desktopManager.getHeight()) // would be cut off
 			{
 				y = y - getHeight() * 0.1 - h;
 			}
 
-			Listuniversals->setBounds(Listuniversals->getX(), y, Listuniversals->getWidth(), h);
-			List->setBounds(Listuniversals->getLocalBounds());
+			ListHolder->setBounds(ListHolder->getX(), y, ListHolder->getWidth(), h);
+			List->setBounds(ListHolder->getLocalBounds());
 			List->resized();
 		}
 	}
@@ -208,7 +208,7 @@ namespace bdsp
 
 	void DistortionTypeSelectorGrid::componentMovedOrResized(juce::Component& component, bool wasMoved, bool wasResized)
 	{
-		Listuniversals->setBounds(gridSibling->getBoundsRelativeToDesktopManager());
+		ListHolder->setBounds(gridSibling->getBoundsRelativeToDesktopManager());
 		grid->setBoundsRelative(0, 0, 1, 1);
 	}
 

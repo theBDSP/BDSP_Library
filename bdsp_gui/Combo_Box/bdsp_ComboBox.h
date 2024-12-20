@@ -54,8 +54,8 @@ namespace bdsp
 
 
 
-		void clearLookAndFeels() override;
-		void resetLookAndFeels(GUI_Universals* universalsToUse) override;
+
+
 
 
 		void setFontIndex(int idx) override;
@@ -129,7 +129,7 @@ namespace bdsp
 
 		juce::String boxText;
 
-		std::unique_ptr<DesktopComponent> Listuniversals; // must create in subclass constructor
+		std::unique_ptr<DesktopComponent> ListHolder; // must create in subclass constructor
 		ListComponent* List = nullptr;
 		//============================================================================
 

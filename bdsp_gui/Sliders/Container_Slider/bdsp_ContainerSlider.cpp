@@ -98,8 +98,8 @@ namespace bdsp
 
 
 
-		auto actualValueProp = valueToProportionOfLength(getActualValue());
-		auto valueProp = valueToProportionOfLength(getValue());
+		auto actualValueProp = getNormalisableRange().convertTo0to1(getActualValue());
+		auto valueProp = getNormalisableRange().convertTo0to1(getValue());
 
 		juce::Point<float> thumbCenter;
 		juce::Rectangle<float> thumbBounds;

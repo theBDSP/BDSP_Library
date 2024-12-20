@@ -123,7 +123,7 @@ namespace bdsp
 		return  influenceParameters[idx];
 	}
 
-	void ControlParameter::valueChanged(float newValue)
+	void ControlParameter::valueChanged()
 	{
 		calculateValue();
 	}
@@ -188,7 +188,7 @@ namespace bdsp
 
 	void ControlParameter::calculateValue()
 	{
-		float out = range.convertTo0to1(get());
+		float out = getValue();
 		for (int i = 0; i < influenceParameters.size(); ++i)
 		{
 			out += getSlotInfluence(i);

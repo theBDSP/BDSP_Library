@@ -33,10 +33,8 @@ namespace bdsp
 
 		GUIUniversals.freqRange = audioProcessor.parameterAttributes.getFloatAttribute("Frequency").range;
 
-		if (audioProcessor.specSet)
-		{
-			GUIUniversals.freqRange.end = audioProcessor.subBlockSpec->sampleRate / 2;
-		}
+		GUIUniversals.freqRange.end = sampleRate / 2;
+
 	}
 
 

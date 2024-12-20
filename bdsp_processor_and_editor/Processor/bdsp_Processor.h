@@ -187,7 +187,7 @@ namespace bdsp
 
 
 	public:
-		Editor* editor = nullptr;
+		juce::WeakReference<Editor> editor;
 		juce::Image texture;
 
 		std::unique_ptr<juce::AudioProcessorValueTreeState> parameters;

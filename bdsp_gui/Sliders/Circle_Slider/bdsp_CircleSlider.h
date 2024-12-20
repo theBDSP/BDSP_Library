@@ -57,7 +57,6 @@ namespace bdsp
 		void lookAndFeelChanged() override;
 
 
-		void resetLookAndFeels(bdsp::GUI_Universals* universalsToUse) override;
 
 
 		Label label;

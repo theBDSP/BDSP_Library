@@ -5,8 +5,11 @@ namespace bdsp
 {
 
 	class BaseSlider;
-	class LNFuniversals;
 
+	/**
+	 * A class that wrapsa compnent class and forwards all of its mouse events to its parent.
+	 * @tparam CompType The component class to wrap
+	 */
 	template <class CompType>
 	class MousePassthrough : public CompType
 	{
@@ -65,82 +68,166 @@ namespace bdsp
 
 	/***
 		Provides logic for handling users hovering over components and sending hover notifications to other components.
-		You will probably never use this class alone without it being the base class of ComponentCore
+		You will probably never use this class alone without it being the base class of ComponentCore.
 	*/
 	class HoverableComponent
 	{
 	public:
 		HoverableComponent(juce::Component* compToExtend);
-		virtual ~HoverableComponent() = default;
+		virtual ~HoverableComponent();
 
-
+		/**
+		 * @return The juce component this object extends
+		 */
 		juce::Component* getComponent();
 
+		/**
+		 * Sets a new lambda function to be called when this component's hovering state is changed 
+		 */
 		void setHoverFunc(std::function<void(bool)>& func);
+
+		/**
+		 * @return The current lambda function that gets called when this component's hovering state is changed
+		 */
 		std::function<void(bool)>& getHoverFunc();
 
+		/**
+		 * Sets how long the mouse must remain inside this component to trigger a hovering state change
+		 * @param ms The time in milliseconds
+		 */
 		void setHoverTime(int ms);
+		
+		/**
+		 * @return  How long the mouse must remain inside this component to trigger a hovering state change
+		 */
 		int getHoverTime();
 
+
+		/**
+		 * @return True if this component (or one of its hover partners) is currently being hovered over
+		 */
 		bool isHovering();
+
+		/**
+		 * Directly sets the hovering state of this component
+		 * @param state The hovering state to set
+		 * @param notifyListeners True if this component's hover listeners should be notified of this change - defaults to true
+		 * @param notifyPartners True if this component's hover partners should be notified of this change - defaults to true
+		 * @param excludedPartner A hover partner that should not be notified of this change - defaults to nullptr
+		 */
 		void setHovering(bool state, bool notifyListeners = true, bool notifyPartners = true, HoverableComponent* excludedPartner = nullptr);
+	
+		/**
+		 * Checks if a different hoverable component is a hover partner of this one 
+		 */
 		bool isHoverPartner(HoverableComponent* compToCheck);
 
-		bool isMouseWithin();
-
+		/**
+		 * Listens for changes to one or more HoverableComponent's hovering state and calls a lambda when it hears a change 
+		 */
 		class Listener
 		{
 		public:
 			Listener() = default;
 			~Listener() = default;
 
-			std::function<void(HoverableComponent*, bool)> onHoveringStateChanged; // like a virtual funtion except it is settable while running (add hover partner)
+			std::function<void(HoverableComponent*, bool)> onHoveringStateChanged;
 		private:
 			JUCE_DECLARE_WEAK_REFERENCEABLE(Listener)
 		};
 
-
+		//================================================================================================================================================================================================
 		void addHoverListener(Listener* listenerToAdd);
 		void removeHoverListener(Listener* listenerToRemove);
 		void removeAllHoverListeners();
+		//================================================================================================================================================================================================
 
-		void addHoverPartner(HoverableComponent* otherComp, bool initialAdd = true); // sets both comps as hover listeners of each other that set their own hover in response to the other
+		/**
+		 * Adds another HoverableComponent to this component's list of hover partners. After this both components will be notified when the other's hovering state has changed (unless excluded in the setHovering call)
+		 * @param otherComp The component to add as a hover partner
+		 * @param initialAdd If true, this component will also be added to the other component's list of hover partners - defaults to true
+		 */
+		void addHoverPartner(HoverableComponent* otherComp, bool initialAdd = true);
+
+
+		/**
+		 * Adds a set of HoverableComponents to this component's list of hover partners. After this all provided components will be notified when the any other provided component's hovering state has changed (unless excluded in the setHovering call)
+		 * @param otherComp The components to add as hover partners
+		 * @param initialAdd If true, this component will also be added to the other components' list of hover partners - defaults to true
+		 */
 		void addHoverPartners(const juce::Array<juce::WeakReference<HoverableComponent>>& otherComps, bool initialAdd = true);
 
+
+		/**
+		 * Removes another HoverableComponent from this component's list of hover partners
+		 * @param otherComp The component to remove as a hover partner
+		 * @param removeFromAllOtherPartners If true, removes the provided component from all the remaining hover partners' list of hover partners
+		 */
 		void removeHoverPartner(HoverableComponent* otherComp, bool removeFromAllOtherPartners = true);
+		
+		/**
+		 * Removes this component from all its hover partners list of hover partners, and clears it's own list of hover partners 
+		 */
 		void removeAllHoverPartners();
 	private:
+
+		/**
+		 *  Internal class that manages the hovering state of a HoverableComponent. Also manages the timing of triggering a hovering state change.
+		 */
 		class HoverTimer : public juce::Timer, public juce::MouseListener
 		{
 		public:
 			HoverTimer(HoverableComponent* parent);
-			virtual ~HoverTimer() = default;
+			virtual ~HoverTimer();
 
 
 			void timerCallback() override;
 
+
+			/**
+			 * Sets how long the mouse must remain inside the parent component to trigger a hovering state change
+			 * @param ms The time in milliseconds
+			 */
 			void setTime(int ms);
 			int getTime();
 
+
+			/**
+			 * @return True if the parent component is currently being hovered over
+			 */
 			bool isHovering();
+
+			/**
+			 * Directly sets the hovering state of the parent component
+			 * @param state The hovering state to set
+			 * @param notifyListeners True if the parent component's hover listeners should be notified of this change - defaults to true
+			 * @param notifyPartners True if the parent component's hover partners should be notified of this change - defaults to true
+			 * @param excludedPartner A hover partner that should not be notified of this change - defaults to nullptr
+			 */
 			void setHovering(bool state, bool notifyListeners = true, bool notifyPartners = true, HoverableComponent* excludedPartner = nullptr);
-			void notifyParentsListeners();
-			void notifyParentsPartners(HoverableComponent* excludedPartner = nullptr);
 
 			void mouseEnter(const juce::MouseEvent& e) override;
 			void mouseExit(const juce::MouseEvent& e) override;
 
-			bool isMouseWithin();
 
 
 			std::function<void(bool)> hoverFunc;
 
 		private:
+
+			/**
+			 * Notifys the parent component's hover listeners of its new hover state.
+			 */
+			void notifyParentsListeners();
+
+			/**
+			 * Notifys the parent component's hover partners of its new hover state. Optionally excluding a partner from recieving this notification.
+			 */
+			void notifyParentsPartners(HoverableComponent* excludedPartner = nullptr);
+
 			int onDelayMS = 250, offDelayMS = 100;
 			bool hovering = false;
-			HoverableComponent* p;
-
-			bool mouseWithin = false;
+			HoverableComponent* p; // the parent component
 
 			JUCE_LEAK_DETECTOR(HoverTimer)
 
@@ -154,59 +241,72 @@ namespace bdsp
 		JUCE_DECLARE_WEAK_REFERENCEABLE(HoverableComponent)
 	};
 
+
+	/**
+	 *  Extends any juce::Component (or derived class of juce::Component) with handy functions to manage BDSP specific things
+	 */
 	class ComponentCore : public HoverableComponent, public HoverableComponent::Listener
 	{
 	public:
 
-		enum RangeOverflow { Contained, Underflow, Overflow };
 		ComponentCore(juce::Component* componentToExtend, GUI_Universals* universalsToUse);
 		virtual ~ComponentCore();
 
 
-
+		/**
+		 * @return The extended component's bounds relative to the plugin's global bounds (the desktop manager will always be the exact size of the plugin)
+		 */
 		juce::Rectangle<int> getBoundsRelativeToDesktopManager();
+
+		/**
+		 * Restricts the extended component's bounds to a provided aspect ratio
+		 * @param aspectRatio The aspect ratio to restrict the bounds to 
+		 * @param position Where to place the restricted bounds in the original extended ocmponent's bounds - defaults to the center
+		 */
 		void forceAspectRatio(double aspectRatio, juce::RectanglePlacement position = juce::RectanglePlacement::centred);
 
-		void paintLinearSlider(juce::Graphics& g, BaseSlider* s, const juce::Rectangle<int>& bounds, bool paintValue = true, bool paintKnob = true, bool paintValuePtr = true, bool paintTrack = true);
-		void paintCircularSlider(juce::Graphics& g, BaseSlider* s, const juce::Rectangle<int>& bounds, bool paintValue = true, bool paintKnob = true, bool paintActualValue = true, bool paintTrack = true);
 
-		void repaintThreadChecked(); // call when there's a possibility this will get called outside of message thread
+		/**
+		 * Calls for the extended component to repaint itself in a thread safe manner.
+		 * Call this instead of repaint() when there's a possibility this will get called outside of message thread.
+		 */
+		void repaintThreadChecked();
 
 
 
-
+		/**
+		 * @return The attributed string that will be shown when the extended component gets hovered over
+		 */
 		const juce::AttributedString& getHintText();
+
+		/**
+		 * Sets the text that will be shown when the extended component gets hovered over and automatically applies any global formatting (colors, fonts) to applicable spans of text
+		 */
 		void setHintBarText(const juce::String& text);
 
 		virtual void setFontIndex(int idx);
 		int getFontIndex();
 
+
+		/**
+		 * @return An actual color value from a named color
+		 */
 		juce::Colour getColor(const NamedColorsIdentifier& name);
+
+		/**
+		 * @param index The index of the font to get -  defaults to -1 (gets the currently set font index)
+		 * @return An actual font from a given font index
+		 */
 		juce::Font getFont(int index = -1);
 
-		virtual void clearLookAndFeels();
-		virtual void resetLookAndFeels(GUI_Universals* universalsToUse);
 
-
-
-
-
-
-	private:
-
-
-
-		std::unique_ptr<HintBar::Listener> hintListener;
-
+		GUI_Universals* universals; // a global pool of values, colors, fonts, etc.
 
 	protected:
 		int fontIndex = 0;
 
-
-	public:
-		GUI_Universals* universals;
-
-
+	private:
+		std::unique_ptr<HintBar::Listener> hintListener; 
 	};
 
 	class Component : public juce::Component, public ComponentCore

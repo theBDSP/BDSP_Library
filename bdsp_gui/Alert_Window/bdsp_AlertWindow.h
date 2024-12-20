@@ -60,7 +60,6 @@ namespace bdsp
 	{
 	public:
 		AlertWindow(std::function<void(bool)>& ShowHideFunction, GUI_Universals* universalsToUse);
-		~AlertWindow() override;
 		void reset(); // resets the window to a null state
 
 		void addItemToQueue(const AlertWindowItem& item);

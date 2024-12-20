@@ -6,7 +6,7 @@ namespace bdsp
 	{
 	public:
 		AnimationTimer();
-		virtual ~AnimationTimer() = default;
+		virtual ~AnimationTimer();
 		juce::Value frameRate;
 
 		juce::Time lastUpdateTime;

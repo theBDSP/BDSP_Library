@@ -89,13 +89,5 @@ namespace bdsp
 		drawText(g,g.getCurrentFont(),t, bounds);
 
 	}
-	void SquareButton::clearLookAndFeels()
-	{
-		setLookAndFeel(nullptr);
-	}
-	void SquareButton::resetLookAndFeels(GUI_Universals* universalsToUse)
-	{
-		//auto lnf = &universalsToUse->MasterBaseLNF;
-//		//setLookAndFeel(lnf);
-	}
+
 }// namnepace bdsp

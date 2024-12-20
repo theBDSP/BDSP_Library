@@ -9,6 +9,11 @@ namespace bdsp
 		setFrameRate(30);
 	}
 
+	AnimationTimer::~AnimationTimer()
+	{
+		stopTimer();
+	}
+
 
 	unsigned long long int AnimationTimer::getFrameCount()
 	{

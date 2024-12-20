@@ -217,8 +217,9 @@ namespace bdsp
 			}
 		}
 
-		if (editor != nullptr)
+		if (editor.get() != nullptr)
 		{
+			editor->sampleRate = spec.sampleRate;
 			editor->GUIUniversals.freqRange.end = spec.sampleRate / 2;
 		}
 
@@ -322,7 +323,7 @@ namespace bdsp
 			}
 			for (auto p : controlParameters)
 			{
-				p->valueChanged(0);
+				p->valueChanged();
 			}
 		}
 	}
@@ -400,7 +401,7 @@ namespace bdsp
 				}
 				for (auto p : controlParameters)
 				{
-					p->valueChanged(0);
+					p->valueChanged();
 				}
 
 				processSubBlock();
@@ -485,7 +486,7 @@ namespace bdsp
 
 	void Processor::updateUIProperties(float newWidth)
 	{
-		settingsTree.setPropertyExcludingListener(editor, "WindowWidth", newWidth, nullptr);
+		settingsTree.setPropertyExcludingListener(editor.get(), "WindowWidth", newWidth, nullptr);
 	}
 
 	int Processor::getBaseLatency()
@@ -546,11 +547,6 @@ namespace bdsp
 			controlVisListeners.add(new OpenGLControlValuesListener(2000, controlObjects.getLast()));
 		}
 
-
-		//================================================================================================================================================================================================
-
-		//orderedListParameterTree = juce::ValueTree(OrderedListParamXMLTag);
-
 		//================================================================================================================================================================================================
 
 
@@ -597,7 +593,7 @@ namespace bdsp
 		const std::function<void(int)> ScaleFunc = [&](int idx)
 		{
 
-			if (editor != nullptr)
+			if (editor.get() != nullptr)
 			{
 				if (!editor->getBounds().isEmpty())
 				{
@@ -627,7 +623,7 @@ namespace bdsp
 		{
 			std::function<void(int)> Func = [=](int idx)
 			{
-				if (editor != nullptr)
+				if (editor.get() != nullptr)
 				{
 					editor->GUIUniversals.bindings.set(b, settings.mods[idx + (b == 1 ? 0 : 1)]);
 					editor->GUIUniversals.bindingChanged(b);

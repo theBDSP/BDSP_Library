@@ -10,7 +10,6 @@ namespace bdsp
 	{
 		;
 		setLossOfFocusClosesWindow(true, &vp.getVerticalScrollBar());
-		resetLookAndFeels(universalsToUse);
 
 		addAndMakeVisible(vp);
 		vp.setScrollBarsShown(true, false);
@@ -138,10 +137,6 @@ namespace bdsp
 
 
 
-	void PopupMenu::resetLookAndFeels(GUI_Universals* universalsToUse)
-	{
-		//		//setLookAndFeel(&universalsToUse->MasterPopupLNF);
-	}
 
 	void PopupMenu::setFontIndex(int idx)
 	{

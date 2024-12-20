@@ -25,8 +25,8 @@ namespace bdsp
 		void paintButton(juce::Graphics& g, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override;
 
 
-		void clearLookAndFeels() override;
-		void resetLookAndFeels(GUI_Universals* universalsToUse) override;
+
+
 
 	protected:
 

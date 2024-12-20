@@ -12,7 +12,6 @@ namespace bdsp
 		//universalsToUse->desktopManager.addComponent(this);
 
 
-		resetLookAndFeels(universalsToUse);
 
 
 		Header.setJustificationType(juce::Justification::centred);
@@ -43,11 +42,7 @@ namespace bdsp
 	}
 
 
-	AlertWindow::~AlertWindow()
-	{
-		clearLookAndFeels();
-	}
-
+	
 	void AlertWindow::reset()
 	{
 		leftButton.reset();

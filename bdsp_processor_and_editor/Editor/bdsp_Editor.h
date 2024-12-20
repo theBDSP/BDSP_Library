@@ -59,7 +59,7 @@ namespace bdsp
 		Processor& audioProcessor;
 
 
-
+		double sampleRate = 44100.0;
 
 
 
@@ -249,6 +249,7 @@ namespace bdsp
 	private:
 
 		JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Editor)
+			JUCE_DECLARE_WEAK_REFERENCEABLE(Editor)
 
 
 			// Inherited via FileDragAndDropTarget

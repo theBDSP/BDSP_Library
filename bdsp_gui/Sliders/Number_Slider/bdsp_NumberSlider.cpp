@@ -25,7 +25,6 @@ namespace bdsp
 
 		setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
 		setTextBoxStyle(juce::Slider::NoTextBox, true, 0, 0);
-		resetLookAndFeels(universalsToUse);
 
 		numbers.addMouseListener(this, false);
 
@@ -98,19 +97,6 @@ namespace bdsp
 	void NumberSlider::mouseExit(const juce::MouseEvent& e)
 	{
 		repaint();
-	}
-
-	void NumberSlider::clearLookAndFeels()
-	{
-		setLookAndFeel(nullptr);
-		numbersLNF = &numbers.getLookAndFeel();
-		numbers.setLookAndFeel(nullptr);
-	}
-
-	void NumberSlider::resetLookAndFeels(bdsp::GUI_Universals* universalsToUse)
-	{
-//		setLookAndFeel(&universalsToUse->MasterBaseLNF);
-//		numbers.setLookAndFeel(numbersLNF);
 	}
 
 

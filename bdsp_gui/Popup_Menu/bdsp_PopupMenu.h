@@ -31,7 +31,7 @@ namespace bdsp
 
 		void lookAndFeelChanged() override;
 
-		void resetLookAndFeels(GUI_Universals* universalsToUse) override;
+
 
 		void setFontIndex(int idx) override;
 

@@ -27,8 +27,7 @@ namespace bdsp
 
 
 
-		void clearLookAndFeels() override;
-		void resetLookAndFeels(bdsp::GUI_Universals* universalsToUse) override;
+
 
 
 		Label numbers;

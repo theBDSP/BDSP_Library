@@ -4,7 +4,7 @@ namespace bdsp
 {
 
 
-	BitCrushVisualizer::BitCrushVisualizerInternal::BitCrushVisualizerInternal(GUI_Universals* universalsToUse, BaseSlider* bitDepthSlider, BaseSlider* sampleRateSlider, BaseSlider* mixSlider)
+	BitCrushVisualizerInternal::BitCrushVisualizerInternal(GUI_Universals* universalsToUse, BaseSlider* bitDepthSlider, BaseSlider* sampleRateSlider, BaseSlider* mixSlider)
 		: OpenGLCompositeComponent(universalsToUse),
 		color(universalsToUse, this),
 		gridColor(universalsToUse, this)
@@ -13,7 +13,7 @@ namespace bdsp
 		sampleRate = sampleRateSlider;
 		mix = mixSlider;
 
-        auto lightColor = NamedColorsIdentifier(BDSP_COLOR_LIGHT);
+		auto lightColor = NamedColorsIdentifier(BDSP_COLOR_LIGHT);
 		gridColor.setColors(BDSP_COLOR_LIGHT, background.getColorID(false).mixedWith(&lightColor, universals->disabledAlpha));
 
 
@@ -45,7 +45,7 @@ namespace bdsp
 
 
 
-	BitCrushVisualizer::BitCrushVisualizerInternal::~BitCrushVisualizerInternal()
+	BitCrushVisualizerInternal::~BitCrushVisualizerInternal()
 	{
 		universals->contextHolder->unregisterOpenGlRenderer(this);
 	}
@@ -53,7 +53,7 @@ namespace bdsp
 
 
 
-	void BitCrushVisualizer::BitCrushVisualizerInternal::resized()
+	void BitCrushVisualizerInternal::resized()
 	{
 		line->setThickness(0, universals->visualizerLineThickness);
 		dry->setThickness(0, universals->visualizerLineThickness);
@@ -63,9 +63,16 @@ namespace bdsp
 
 	}
 
-	void BitCrushVisualizer::BitCrushVisualizerInternal::setColor(const NamedColorsIdentifier& newColor)
+	void BitCrushVisualizerInternal::setColor(const NamedColorsIdentifier& c, const NamedColorsIdentifier& line, float topCurveOpacity, float botCurveOpacity)
 	{
-		color.setColors(newColor, background.getColorID(false).mixedWith(&newColor, universals->disabledAlpha));
+		color.setColors(c, background.getColorID(false).mixedWith(&c, universals->disabledAlpha));
+	}
+
+	void BitCrushVisualizerInternal::setScaling(float x, float y)
+	{
+		xScaling = x;
+		yScaling = y;
+		resized();
 	}
 
 
@@ -77,7 +84,7 @@ namespace bdsp
 
 
 
-	void BitCrushVisualizer::BitCrushVisualizerInternal::generateVertexBuffer()
+	void BitCrushVisualizerInternal::generateVertexBuffer()
 	{
 
 
@@ -106,21 +113,21 @@ namespace bdsp
 
 		while (x <= 1.0 + grid->pointW)
 		{
-			samples.add({ x,yScaling * floor(sin(PI * x) / depthVal) * depthVal });
+			samples.add({ x * xScaling,yScaling * truncf(sin(PI * x) / depthVal) * depthVal });
 			xBounds = x;
 			xSamps++;
 			y = 0;
 			while (y <= 1.0 + grid->pointH)
 			{
 				grid->circleData.set(++n, {
-					x,yScaling * y,
+					xScaling * x,yScaling * y,
 					r,g,b, mixVal
 					});
 
 				if (x > 0)
 				{
 					grid->circleData.set(++n, {
-						-x,yScaling * y,
+						-xScaling * x,yScaling * y,
 						r,g,b, mixVal
 						});
 
@@ -128,7 +135,7 @@ namespace bdsp
 					if (y > 0)
 					{
 						grid->circleData.set(++n, {
-							-x,-yScaling * y,
+							-xScaling * x,-yScaling * y,
 							r,g,b, mixVal
 							});
 					}
@@ -136,7 +143,7 @@ namespace bdsp
 				if (y > 0)
 				{
 					grid->circleData.set(++n, {
-						x,-yScaling * y,
+						xScaling * x,-yScaling * y,
 						r,g,b, mixVal
 						});
 				}
@@ -195,7 +202,7 @@ namespace bdsp
 		{
 			p->set(i, {
 				dryPoints[i].x, yScaling * dryPoints[i].y,
-				r,g,b, 1-mixVal
+				r,g,b, 1 - mixVal
 				});
 		}
 
@@ -222,37 +229,11 @@ namespace bdsp
 
 
 	BitCrushVisualizer::BitCrushVisualizer(GUI_Universals* universalsToUse, BaseSlider* bitDepthSlider, BaseSlider* sampleRateSlider, BaseSlider* mixSlider)
-		:Component(universalsToUse),
-		vis(universalsToUse, bitDepthSlider, sampleRateSlider, mixSlider)
+		:OpenGlComponentWrapper<BitCrushVisualizerInternal>(universalsToUse, bitDepthSlider, sampleRateSlider, mixSlider)
 	{
-		addAndMakeVisible(vis);
 	}
 
-	void BitCrushVisualizer::resized()
-	{
-		vis.setBounds(getLocalBounds().reduced(universals->roundedRectangleCurve));
-	}
 
-	void BitCrushVisualizer::paint(juce::Graphics& g)
-	{
-		g.setColour(vis.getBackgroundColor());
-		g.fillRoundedRectangle(getLocalBounds().toFloat(), universals->roundedRectangleCurve);
-	}
-
-	void BitCrushVisualizer::setColor(const NamedColorsIdentifier& newColor)
-	{
-		vis.setColor(newColor);
-	}
-
-	void BitCrushVisualizer::setBackgroundColor(const NamedColorsIdentifier& bkgd, const NamedColorsIdentifier& bkgdBehind)
-	{
-		vis.setBackgroundColor(bkgd, bkgdBehind);
-	}
-
-	void BitCrushVisualizer::visibilityChanged()
-	{
-		vis.setVisible(isVisible());
-	}
 
 
 

@@ -166,7 +166,6 @@ namespace bdsp
 
 
 
-		resetLookAndFeels(universalsToUse);
 
 
 		//=====================================================================================================================//=====================================================================================================================//=====================================================================================================================//=====================================================================================================================
@@ -287,26 +286,6 @@ namespace bdsp
 		divisionLabel->setLookAndFeel(&getLookAndFeel());
 	}
 
-
-
-	template <class fracType>
-	void SyncFraction<fracType>::clearLookAndFeels()
-	{
-		setLookAndFeel(nullptr);
-		circleFrac->clearLookAndFeels();
-		circleTime->clearLookAndFeels();
-		divisionCombo->clearLookAndFeels();
-	}
-
-	template <class fracType>
-	void SyncFraction<fracType>::resetLookAndFeels(GUI_Universals* universalsToUse)
-	{
-
-		circleFrac->resetLookAndFeels(universalsToUse);
-		circleTime->resetLookAndFeels(universalsToUse);
-		divisionCombo->resetLookAndFeels(universalsToUse);
-//		setLookAndFeel(&universalsToUse->MasterCircleSliderLNF);
-	}
 
 
 

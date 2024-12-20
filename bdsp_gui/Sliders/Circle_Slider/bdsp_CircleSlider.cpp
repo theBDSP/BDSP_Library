@@ -13,8 +13,6 @@ namespace bdsp
 		setInterceptsMouseClicks(true, false);
 
 
-		resetLookAndFeels(universalsToUse);
-
 		setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
 		setTextBoxStyle(juce::Slider::NoTextBox, true, 0, 0);
 		setTextBoxIsEditable(isEditable);
@@ -129,7 +127,7 @@ namespace bdsp
 	{
 
 		forceAspectRatio(1);
-        jassert(getWidth()==getHeight());
+		jassert(getWidth() == getHeight());
 		auto overshoot = (labelWRatio - 1) * getWidth() / 2;
 		label.setBounds(getX() - overshoot, getBottom() + getHeight() * BDSP_CIRCLE_SLIDER_LABEL_BORDER_RATIO, getWidth() + 2 * overshoot, getHeight() * BDSP_CIRCLE_SLIDER_LABEL_HEIGHT_RATIO);
 
@@ -185,8 +183,8 @@ namespace bdsp
 		auto& textHighlightNew = textHighlight.isEmpty() ? BDSP_COLOR_COLOR : textHighlight;
 		auto& caretNew = caret.isEmpty() ? BDSP_COLOR_COLOR : caret;
 
-        const auto& colorLow = NamedColorsIdentifier(BDSP_COLOR_COLOR).withMultipliedAlpha(universals->lowOpacity);
-        const auto& highlightNew = highlight.isEmpty() ? colorLow : highlight;
+		const auto& colorLow = NamedColorsIdentifier(BDSP_COLOR_COLOR).withMultipliedAlpha(universals->lowOpacity);
+		const auto& highlightNew = highlight.isEmpty() ? colorLow : highlight;
 
 
 
@@ -220,11 +218,144 @@ namespace bdsp
 	void CircleSlider::paint(juce::Graphics& g)
 	{
 		bool isRanged = dynamic_cast<RangedSlider*>(getParentComponent()) != nullptr;
-		paintCircularSlider(g, this, getLocalBounds().withHeight(getWidth()), !isRanged, true, isRanged, true);
-		//bool isRanged = dynamic_cast<RangedSlider*>(getParentComponent()) != nullptr;
-		//paintCircularSlider(g, this, getLocalBounds().toFloat().withHeight(getWidth()), !isRanged, true, isRanged);
+		g.saveState();
+
+		//================================================================================================================================================================================================
+		auto newBounds = getLocalBounds().withHeight(getWidth());
+		if (isRanged)
+		{
+			newBounds = expandRectangleToInt(newBounds.toFloat().getProportion(juce::Rectangle<float>(BDSP_CIRCULAR_SLIDER_INFLUENCE_DISPLAY_RATIO, BDSP_CIRCULAR_SLIDER_INFLUENCE_DISPLAY_RATIO, 1 - 2 * BDSP_CIRCULAR_SLIDER_INFLUENCE_DISPLAY_RATIO, 1 - 2 * BDSP_CIRCULAR_SLIDER_INFLUENCE_DISPLAY_RATIO)));
+		}
 
 
+		auto rotaryStartAngle = getRotaryParameters().startAngleRadians;
+		auto rotaryEndAngle = getRotaryParameters().endAngleRadians;
+		auto sliderPos = getNormalisableRange().convertTo0to1(getValue());
+		auto actualSliderPos = getNormalisableRange().convertTo0to1(getActualValue());
+
+		auto sliderAngle = rotaryStartAngle + sliderPos * (rotaryEndAngle - rotaryStartAngle);
+		auto actualSliderAngle = rotaryStartAngle + actualSliderPos * (rotaryEndAngle - rotaryStartAngle);
+
+
+
+
+		auto alpha = isEnabled() ? 1.0f : universals->disabledAlpha;
+
+
+
+		auto center = newBounds.toFloat().getCentre();
+
+		auto r = newBounds.getWidth() / 2.0;
+		auto innerR = r * (1 - BDSP_CIRCULAR_SLIDER_TRACK_RATIO);
+		auto w = (r - innerR);
+		auto trackWidth = w * BDSP_CIRCULAR_SLIDER_TRACK_WIDTH;
+		auto trackWidthInside = trackWidth * (1 - BDSP_CIRCULAR_SLIDER_TRACK_INSIDE_RATIO);
+
+		auto trackW = trackWidthInside;
+		auto knobR = innerR * BDSP_CIRCULAR_SLIDER_KNOB_RATIO;
+
+		jassert(trackWidth <= w);
+
+
+
+		//================================================================================================================================================================================================
+		//Knob
+		juce::Path knob;
+		knob.addEllipse(expandRectangleToInt(juce::Rectangle<float>(2 * knobR, 2 * knobR).withCentre(center)).toFloat());
+		auto color = (universals->hoverAdjustmentFunc(findColour(juce::Slider::backgroundColourId), isHovering()).withMultipliedAlpha(alpha));
+		juce::ColourGradient cg(color.withMultipliedLightness(1.1f).withMultipliedAlpha(alpha), knob.getBounds().getCentre().getX(), knob.getBounds().getY(), color, center.x, center.y, true);
+		g.setGradientFill(cg);
+		g.fillPath(knob);
+
+		//================================================================================================================================================================================================
+		//Thumb
+
+		juce::PathStrokeType ptrStroke(knobR * BDSP_CIRCULAR_SLIDER_THUMB_RATIO, juce::PathStrokeType::curved, juce::PathStrokeType::rounded);
+		juce::Path ptr;
+
+
+		if (getType() == BaseSlider::CenterMirrored)
+		{
+			auto angle1 = rotaryStartAngle + (rotaryEndAngle - rotaryStartAngle) * (1 + sliderPos) / 2.0;
+			auto angle2 = rotaryStartAngle + (rotaryEndAngle - rotaryStartAngle) * (1 - sliderPos) / 2.0;
+
+
+
+			ptr.startNewSubPath(center.getPointOnCircumference(ptrStroke.getStrokeThickness() / 2, angle1));
+			ptr.lineTo(center.getPointOnCircumference(knobR, angle1));
+
+			ptr.startNewSubPath(center.getPointOnCircumference(ptrStroke.getStrokeThickness() / 2, angle2));
+			ptr.lineTo(center.getPointOnCircumference(knobR, angle2));
+
+
+			ptrStroke.createStrokedPath(ptr, ptr);
+
+		}
+		else
+		{
+
+			ptr.startNewSubPath(center.getPointOnCircumference(ptrStroke.getStrokeThickness() / 2, sliderAngle));
+
+
+			ptr.lineTo(center.getPointOnCircumference(knobR, sliderAngle));
+
+			ptrStroke.createStrokedPath(ptr, ptr);
+		}
+
+
+
+
+		g.setColour(universals->hoverAdjustmentFunc(universals->colors.getColor(BDSP_COLOR_PURE_BLACK), isHovering()).withMultipliedAlpha(alpha));
+		g.fillPath(ptr);
+
+		//================================================================================================================================================================================================
+		//Track
+		g.setColour(universals->hoverAdjustmentFunc(universals->colors.getColor(valueTrackColor), isHovering()).withMultipliedAlpha(alpha));
+		g.fillPath(createCenteredPieSegment(center, r - w / 2 - trackWidth / 2, r - w / 2 + trackWidth / 2, rotaryStartAngle, rotaryEndAngle));
+
+		g.setColour(universals->hoverAdjustmentFunc(universals->colors.getColor(valueTrackInsideColor), isHovering()).withMultipliedAlpha(alpha));
+		g.fillPath(createCenteredPieSegment(center, r - w / 2 - trackWidthInside / 2, r - w / 2 + trackWidthInside / 2, rotaryStartAngle, rotaryEndAngle));
+
+
+
+
+
+
+		//================================================================================================================================================================================================
+		//Value
+		float midAngle = (rotaryStartAngle + rotaryEndAngle) / 2;
+		juce::Path  p;
+
+
+		switch (getType())
+		{
+		case BaseSlider::Normal:
+			p = createCenteredPieSegment(center, r - w / 2 - trackW / 2, r - w / 2 + trackW / 2, rotaryStartAngle, actualSliderAngle);
+
+			break;
+
+		case BaseSlider::CenterZero:
+
+			p = createCenteredPieSegment(center, r - w / 2 - trackW / 2, r - w / 2 + trackW / 2, midAngle, actualSliderAngle);
+
+			break;
+
+		case BaseSlider::CenterMirrored:
+			auto angleDelta = (actualSliderAngle - rotaryStartAngle) / 2.0;
+			p = createCenteredPieSegment(center, r - w / 2 - trackW / 2, r - w / 2 + trackW / 2, midAngle - angleDelta, midAngle + angleDelta);
+
+
+			break;
+		}
+
+
+		g.setColour(universals->hoverAdjustmentFunc(universals->colors.getColor(valueColor), isHovering()).withMultipliedAlpha(alpha));
+		g.fillPath(p);
+
+		//================================================================================================================================================================================================
+
+
+		g.restoreState();
 	}
 
 	void CircleSlider::lookAndFeelChanged()
@@ -232,10 +363,6 @@ namespace bdsp
 		label.setLookAndFeel(&getLookAndFeel());
 	}
 
-	void CircleSlider::resetLookAndFeels(bdsp::GUI_Universals* universalsToUse)
-	{
-//		setLookAndFeel(&universalsToUse->MasterCircleSliderLNF);
-	}
 
 
 

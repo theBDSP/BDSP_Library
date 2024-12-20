@@ -173,7 +173,7 @@ namespace bdsp
 
 		for (auto c : controlParameters)
 		{
-			c->valueChanged(0);
+			c->valueChanged();
 		}
 	}
 
@@ -507,8 +507,6 @@ namespace bdsp
 			{
 				p->setValue(p->getDefaultValue());
 			}
-
-			//	orderedListParameterTree->copyPropertiesAndChildrenFrom(juce::ValueTree(OrderedListParamXMLTag), nullptr);
 
 			for (int i = 0; i < BDSP_NUMBER_OF_MACROS; ++i)
 			{

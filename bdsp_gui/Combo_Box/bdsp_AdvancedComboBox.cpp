@@ -9,10 +9,10 @@ namespace bdsp
 	{
 		pathStorage = paths;
 
-		Listuniversals = std::make_unique<DesktopComponent>(universals);
+		ListHolder = std::make_unique<DesktopComponent>(universals);
 		List = &AdvancedList;
 
-		Listuniversals->addAndMakeVisible(AdvancedList);
+		ListHolder->addAndMakeVisible(AdvancedList);
 		initMenuComponents();
 	}
 
@@ -41,7 +41,7 @@ namespace bdsp
 
 			auto desktopPos = getBoundsRelativeToDesktopManager().getCentre() + juce::Point<int>(-w / 2, getHeight() / 2);
 
-			Listuniversals->setBounds(juce::Rectangle<int>(w, h).withPosition(desktopPos));
+			ListHolder->setBounds(juce::Rectangle<int>(w, h).withPosition(desktopPos));
 			List->setBoundsRelative(0, 0, 1, 1);
 			List->resized();
 		}
@@ -279,10 +279,10 @@ namespace bdsp
 		groupedList(this)
 	{
 		groups = groupings;
-		Listuniversals = std::make_unique<DesktopComponent>(universals);
+		ListHolder = std::make_unique<DesktopComponent>(universals);
 		List = &groupedList;
 
-		Listuniversals->addAndMakeVisible(groupedList);
+		ListHolder->addAndMakeVisible(groupedList);
 
 		setItems(param->choices, groupings, dispNames);
 		initMenuComponents();
@@ -314,7 +314,7 @@ namespace bdsp
 
 			auto desktopPos = getBoundsRelativeToDesktopManager().getCentre() + juce::Point<int>(-w / 2, getHeight() / 2);
 
-			Listuniversals->setBounds(juce::Rectangle<int>(w, h).withPosition(desktopPos));
+			ListHolder->setBounds(juce::Rectangle<int>(w, h).withPosition(desktopPos));
 			List->setBoundsRelative(0, 0, 1, 1);
 			List->resized();
 		}

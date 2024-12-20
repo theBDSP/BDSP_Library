@@ -459,6 +459,7 @@ namespace bdsp
         
 		virtual ~EnvelopeFollowerSection()
 		{
+			stopTimer();
 			followers.clear();
 		}
 		EnvelopeFollowerComponent<SampleType>* getFollower(int idx)

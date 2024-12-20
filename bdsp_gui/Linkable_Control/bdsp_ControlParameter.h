@@ -77,7 +77,7 @@ namespace bdsp
 		juce::RangedAudioParameter* getInfluenceParameter(const juce::String& linkableID);
 		juce::RangedAudioParameter* getInfluenceParameter(const int idx);
 
-		void valueChanged(float newValue) override;
+		void valueChanged() override;
 
 		juce::String getBaseID();
 
