@@ -1,6 +1,6 @@
 #pragma once
 
-#include "bdsp_lib/bdsp_processor_and_editor/bdsp_processor_and_editor.h"
+#include "BDSP_Library/bdsp_processor_and_editor/bdsp_processor_and_editor.h"
 
 
 #include<bitset>

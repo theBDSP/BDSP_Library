@@ -2,8 +2,8 @@
 
 
 
-#include "bdsp_lib/bdsp_dsp/bdsp_dsp.h"
-#include "bdsp_lib/bdsp_preset_manager/bdsp_preset_manager.h"
+#include "BDSP_Library/bdsp_dsp/bdsp_dsp.h"
+#include "BDSP_Library/bdsp_preset_manager/bdsp_preset_manager.h"
 
 
 

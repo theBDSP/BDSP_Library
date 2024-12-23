@@ -9,7 +9,7 @@
 
  BEGIN_JUCE_MODULE_DECLARATION
 
-  ID:                 bdsp_lib
+  ID:                 BDSP_Library
   vendor:             BDSP
   version:            1.0.0
   name:               BDSP Library
