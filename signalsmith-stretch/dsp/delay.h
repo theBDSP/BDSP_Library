@@ -424,7 +424,7 @@ namespace delay {
 			}
 		};
 	}
-	/** Fixed-callingOrder Lagrange interpolation.
+	/** Fixed-order Lagrange interpolation.
 	\diagram{interpolator-LagrangeN.svg,aliasing and amplitude/delay errors for different sizes}
 	*/
 	template<typename Sample, int n>
@@ -535,7 +535,7 @@ namespace delay {
 				}
 			}
 			
-			// Re-callingOrder into FIR fractional-delay blocks
+			// Re-order into FIR fractional-delay blocks
 			coefficients.resize(n*(subSampleSteps + 1));
 			for (int k = 0; k <= subSampleSteps; ++k) {
 				for (int i = 0; i < n; ++i) {

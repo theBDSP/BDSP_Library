@@ -4,8 +4,6 @@ namespace bdsp
 {
 	namespace dsp
 	{
-		// counts samples and calls function at the beggining of the block where the count would be hit
-
 		/**
 		 * Executes a lambda after a certain number of audio samples. This can't call the lambda more than once per block it processes, but if you need to call a function that often on the audio thread you shouldn't be using this class anyways.
 		 */

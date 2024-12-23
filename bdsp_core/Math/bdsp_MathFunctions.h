@@ -86,7 +86,7 @@ namespace bdsp
 
 	/**
 	 * Checks if a number is between two endpoints, including the two endpoints.
-	 * The endpoints do not need to be in callingOrder
+	 * The endpoints do not need to be in order
 	 */
 	template<typename T>
 	bool isBetweenInclusive(T num, T endpoint1, T endpoint2)
@@ -96,7 +96,7 @@ namespace bdsp
 
 	/**
 	 * Checks if a number is between two endpoints, not including the two endpoints
-	 * The endpoints do not need to be in callingOrder
+	 * The endpoints do not need to be in order
 	 */
 	template<typename T>
 	bool isBetweenExclusive(T num, T endpoint1, T endpoint2)

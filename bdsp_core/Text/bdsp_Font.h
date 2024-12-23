@@ -120,7 +120,7 @@ namespace bdsp
 			}
 			else
 			{
-				for (int i = widthOrder.size() - 1; ; --i) // loop through the width callingOrder array in reverse
+				for (int i = widthOrder.size() - 1; ; --i) // loop through the width order array in reverse
 				{
 					auto curr = widthOrder.getUnchecked(i);
 					if (allowedCharacters.contains(juce::String::charToString(curr))) // if the current character is in the allowed set we're done

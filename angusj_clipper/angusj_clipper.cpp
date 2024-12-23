@@ -1916,7 +1916,7 @@ namespace ClipperLib {
 	void Clipper::AddEdgeToSEL(TEdge* edge)
 	{
 		//SEL pointers in PEdge are reused to build a list of horizontal edges.
-		//However, we don't need to worry about callingOrder with horizontal edge processing.
+		//However, we don't need to worry about order with horizontal edge processing.
 		if (!m_SortedEdges)
 		{
 			m_SortedEdges = edge;
@@ -2083,7 +2083,7 @@ namespace ClipperLib {
 					{
 						//nb: For calculating winding counts etc, IntersectEdges() assumes
 						//that param1 will be to the Right of param2 ABOVE the intersection ...
-						IntersectEdges(rb, e, lb->Curr); //callingOrder important here
+						IntersectEdges(rb, e, lb->Curr); //order important here
 						e = e->NextInAEL;
 					}
 				}
@@ -2650,7 +2650,7 @@ namespace ClipperLib {
 
 	/*******************************************************************************
 	* Notes: Horizontal edges (HEs) at scanline intersections (ie at the Top or    *
-	* Bottom of a scanbeam) are processed as if layered. The callingOrder in which HEs    *
+	* Bottom of a scanbeam) are processed as if layered. The order in which HEs    *
 	* are processed doesn't matter. HEs intersect with other HE Bot.Xs only [#]    *
 	* (or they could intersect with Top.Xs only, ie EITHER Bot.Xs OR Top.Xs),      *
 	* and with other non-horizontal edges [*]. Once these intersections are        *
@@ -2959,7 +2959,7 @@ namespace ClipperLib {
 	{
 		//pre-condition: intersections are sorted Bottom-most first.
 		//Now it's crucial that intersections are made only between adjacent edges,
-		//so to ensure this the callingOrder of intersections may need adjusting ...
+		//so to ensure this the order of intersections may need adjusting ...
 		CopyAELToSEL();
 		std::sort(m_IntersectList.begin(), m_IntersectList.end(), IntersectListSort);
 		size_t cnt = m_IntersectList.size();

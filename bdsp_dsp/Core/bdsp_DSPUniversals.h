@@ -16,8 +16,8 @@ namespace bdsp
 
 		
 			/**
-			 * Retrieves an already existing or creates a FFT object with a certain callingOrder 
-			 * @param callingOrder The callingOrder of the FFT object to return (num of points the object will operate on is 2 ^ callingOrder)
+			 * Retrieves an already existing or creates a FFT object with a certain order 
+			 * @param order The order of the FFT object to return (num of points the object will operate on is 2 ^ order)
 			 */
 			juce::dsp::FFT* getFFT(int order)
 			{

@@ -387,7 +387,7 @@ namespace bdsp
 
 
 
-			bool linkedProcessorCopiesMix = false; // set true if you want linked processor to auto copy this processor's mix parameter values (might not for things like 2nd callingOrder filters)
+			bool linkedProcessorCopiesMix = false; // set true if you want linked processor to auto copy this processor's mix parameter values (might not for things like 2nd order filters)
 
 		private:
 

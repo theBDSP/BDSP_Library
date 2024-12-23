@@ -35,7 +35,7 @@ namespace bdsp
 			struct Linear {};
 
 			/**
-				Successive samples in the delay line will be interpolated using a 3rd callingOrder
+				Successive samples in the delay line will be interpolated using a 3rd order
 				Lagrange interpolator. This method incurs more computational overhead than
 				linear interpolation but reduces the low-pass filtering effect whilst
 				remaining amenable to real time delay modulation.
@@ -43,7 +43,7 @@ namespace bdsp
 			struct Lagrange3rd {};
 
 			/**
-				Successive samples in the delay line will be interpolated using 1st callingOrder
+				Successive samples in the delay line will be interpolated using 1st order
 				Thiran interpolation. This method is very efficient, and features a flat
 				amplitude frequency response in exchange for less accuracy in the phase
 				response. This interpolation method is stateful so is unsuitable for

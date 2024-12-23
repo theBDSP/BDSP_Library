@@ -21,14 +21,14 @@ namespace bdsp
 
 
 			/**
-			 * Process a block of audio with each processor in callingOrder
+			 * Process a block of audio with each processor in calling order
 			 */
 			void processInternal(bool isBypassed) noexcept override
 			{
 				juce::dsp::ProcessContextReplacing<SampleType> context(BaseProcessingUnit<SampleType>::internalWetBlock); // create a processing context that uses the internal wet block
 				for (int i = 0; i < processors.size(); ++i)
 				{
-					processors.getUnchecked(callingOrder.getUnchecked(i))->process(context); // process through each processor in callingOrder
+					processors.getUnchecked(callingOrder.getUnchecked(i))->process(context); // process through each processor in calling order
 				}
 				outGain.process(context);
 
@@ -37,13 +37,13 @@ namespace bdsp
 
 
 			/**
-			 * Process a single sample of audio with each processor in callingOrder
+			 * Process a single sample of audio with each processor in calling order
 			 */
 			inline SampleType processSample(int channel, const SampleType& inputSample) noexcept override;
 
 
 			/**
-			 * Process a single stereo sample of audio with each processor in callingOrder
+			 * Process a single stereo sample of audio with each processor in calling order
 			 */
 			StereoSample<SampleType> processSampleStereo(const StereoSample<SampleType>& inputSample) noexcept override;
 
@@ -79,15 +79,15 @@ namespace bdsp
 
 
 			/**
-			 * Changes the callingOrder in which the processors are called when processing audio
+			 * Changes the calling order in which the processors are called when processing audio
 			 * @param newOrder The new calling order
 			 */
 			void reorderProcessors(const juce::Array<int>& newOrder);
 
 			/**
-			 * Moves a single processor in the calling callingOrder
+			 * Moves a single processor in the calling order
 			 * @param proccesorToMove The processor to move
-			 * @param newIdx The new index in the calling callingOrder
+			 * @param newIdx The new index in the calling calling order
 			 */
 			void moveProcessor(BaseProcessingUnit<SampleType>* proccesorToMove, int newIdx);
 
@@ -101,7 +101,7 @@ namespace bdsp
 
 
 			/**
-			 * Replaces a processor with a different one. This does not change the calling callingOrder, the new processor will take the old one's place in the calling callingOrder.
+			 * Replaces a processor with a different one. This does not change the calling order, the new processor will take the old one's place in the calling order.
 			 * This does nothing the processor to replace is not currently in this chain.
 			 */
 			void replaceProcessor(BaseProcessingUnit<SampleType>* processorToReplace, BaseProcessingUnit<SampleType>* processorToInsert);
@@ -109,14 +109,14 @@ namespace bdsp
 
 
 			/**
-			 * Replaces a processor with a different one. This does not change the calling callingOrder, the new processor will take the old one's place in the calling callingOrder.
-			 * @param processorToReplace The index in the calling callingOrder of the processor to replace
+			 * Replaces a processor with a different one. This does not change the calling order, the new processor will take the old one's place in the calling order.
+			 * @param processorToReplace The index in the calling order of the processor to replace
 			 */
 			void replaceProcessor(int processorToReplace, BaseProcessingUnit<SampleType>* processorToInsert);
 
 			/**
-			 * Returns a pointer to the processor at a certain index in the calling callingOrder. 
-			 * @param index The index in the calling callingOrder to get the processor from
+			 * Returns a pointer to the processor at a certain index in the calling order. 
+			 * @param index The index in the calling order to get the processor from
 			 */
 			BaseProcessingUnit<SampleType>* getProcessor(int index);
 
