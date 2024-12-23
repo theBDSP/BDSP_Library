@@ -142,7 +142,7 @@ namespace bdsp
 				for (size_t i = 0; i < numSamples; ++i)
 				{
 					auto inputSample = StereoSample<SampleType>(inputBlock.getSample(0, i), inputBlock.getSample(1, i));
-                    BaseProcessingUnit<SampleType>::updateSmoothedVariables();
+					BaseProcessingUnit<SampleType>::updateSmoothedVariables();
 
 					// push left and right sample into the buffer
 					pushSample(0, inputSample.left);
@@ -153,7 +153,7 @@ namespace bdsp
 					outputBlock.setSample(0, i, popSampleUpdateRead(0));
 					outputBlock.setSample(1, i, popSampleUpdateRead(1));
 				}
-                BaseProcessingUnit<SampleType>::applyDryWetMix();
+				BaseProcessingUnit<SampleType>::applyDryWetMix();
 			}
 
 			inline SampleType processSample(int channel, const SampleType& inputSample) noexcept override
@@ -188,7 +188,14 @@ namespace bdsp
 			DelayLine(int maxDelayInSamples, DSP_Universals<SampleType>* lookupToUse = nullptr);
 
 
+			/**
+			 * @return The current delay time in samples
+			 */
 			SampleType getDelay() const;
+
+			/**
+			 * @return The target delay time in samples to be reached after smoothing
+			 */
 			SampleType getTargetDelay() const;
 
 
@@ -208,8 +215,15 @@ namespace bdsp
 			 */
 			SampleType popSampleUpdateRead(int channel) override;
 
+			/**
+			 * Pops and interpolates a delayed stereo sample from the buffer, and inter-mixes the two channels according to the value of soothedPongMix
+			 */
 			StereoSample<SampleType> pingPongPop();
 
+
+			/**
+			 * Pops and interpolates a delayed stereo sample from the buffer, inter-mixes the two channels according to the value of soothedPongMix, and updates each channel's read pointer
+			 */
 			StereoSample<SampleType> pingPongPopUpdateRead();
 
 
@@ -220,51 +234,51 @@ namespace bdsp
 
 			void setSmoothingTime(SampleType timeInSeconds) override;
 
+			//================================================================================================================================================================================================
+
 			void setFeedback(SampleType newValue);
 			void setPongMix(SampleType newValue);
 			void setDelay(SampleType newValue) override;
-			void snapDelay(SampleType newValue); // sets delay without smoothing
+
+			/**
+			 *  Sets the delay without smoothing
+			 */
+			void snapDelay(SampleType newValue);
 
 
 
 			void initFeedback(SampleType newValue);
 			void initPongMix(SampleType newValue);
 
+			//================================================================================================================================================================================================
 
-
-
-			//==============================================================================
-
-			template <class ContextType = juce::dsp::ProcessContextReplacing<SampleType>>
-			void process(const ContextType& context) noexcept
+			void processInternal(bool isBypassed) noexcept override
 			{
-				const auto& inputBlock = context.getInputBlock();
-				auto& outputBlock = context.getOutputBlock();
 
-				if (context.isBypassed || DelayLineBase<SampleType>::bypassed)
+				if (isBypassed)
 				{
-					outputBlock.copyFrom(inputBlock);
+					BaseProcessingUnit<SampleType>::internalWetBlock.copyFrom(BaseProcessingUnit<SampleType>::internalDryBlock);
 					return;
 				}
 
 
-				const auto numChannels = outputBlock.getNumChannels();
-				const auto numSamples = outputBlock.getNumSamples();
+				const auto numChannels = BaseProcessingUnit<SampleType>::internalWetBlock.getNumChannels();
+				const auto numSamples = BaseProcessingUnit<SampleType>::internalWetBlock.getNumSamples();
 
 
-				jassert(inputBlock.getNumChannels() == numChannels);
-				jassert(inputBlock.getNumSamples() == numSamples);
+				jassert(BaseProcessingUnit<SampleType>::internalDryBlock.getNumChannels() == numChannels);
+				jassert(BaseProcessingUnit<SampleType>::internalDryBlock.getNumSamples() == numSamples);
 
 
 				for (size_t i = 0; i < numSamples; ++i)
 				{
-					inputSample = StereoSample<SampleType>(inputBlock.getSample(0, i), inputBlock.getSample(1, i));
+					inputSample = StereoSample<SampleType>(BaseProcessingUnit<SampleType>::internalDryBlock.getSample(0, i), BaseProcessingUnit<SampleType>::internalDryBlock.getSample(1, i));
 					updateSmoothedVariables();
-					outputSample = wet.processSampleStereo(processSampleStereo(inputSample)); // calculate each sample
+					outputSample = outputPanner.processSampleStereo(processSampleStereo(inputSample)); // calculates the next stereo sample and processes it through the output panner
 
 					inputSample *= DelayLineBase<SampleType>::smoothedDryMix.getCurrentValue();
-					outputBlock.setSample(0, i, inputSample.left + outputSample.left);
-					outputBlock.setSample(1, i, inputSample.right + outputSample.right);
+					BaseProcessingUnit<SampleType>::internalWetBlock.setSample(0, i, inputSample.left + outputSample.left);
+					BaseProcessingUnit<SampleType>::internalWetBlock.setSample(1, i, inputSample.right + outputSample.right);
 
 				}
 
@@ -272,8 +286,17 @@ namespace bdsp
 
 		private:
 
+			/**
+			 * Grabs the next smoothed value of the delay and updates all the related variables to the new value
+			 */
 			void updateDelay();
 
+			//================================================================================================================================================================================================
+			// Interpolate Sample Implementations
+
+			/**
+			 * No interpolation
+			 */
 			template <typename T = InterpolationType>
 			typename std::enable_if <std::is_same <T, DelayLineInterpolationTypes::None>::value, SampleType>::type
 				interpolateSample(int channel) const
@@ -283,6 +306,9 @@ namespace bdsp
 				return DelayLineBase<SampleType>::bufferData.getSample(channel, index);
 			}
 
+			/**
+			 * Linear interpolation
+			 */
 			template <typename T = InterpolationType>
 			typename std::enable_if <std::is_same <T, DelayLineInterpolationTypes::Linear>::value, SampleType>::type
 				interpolateSample(int channel) const
@@ -301,6 +327,9 @@ namespace bdsp
 				return value1 + delayFrac * (value2 - value1);
 			}
 
+			/**
+			 * Lagrange interpolation
+			 */
 			template <typename T = InterpolationType>
 			typename std::enable_if <std::is_same <T, DelayLineInterpolationTypes::Lagrange3rd>::value, SampleType>::type
 				interpolateSample(int channel) const
@@ -329,6 +358,16 @@ namespace bdsp
 				auto d2 = delayFrac - 2.0f;
 				auto d3 = delayFrac - 3.0f;
 
+
+				/*
+				 * We do a bit of rearranging to spare a few multiplications.
+				 * For clarity, these are the numbers we are calculating.
+					c1 = -d1 * d2 * d3 / 6.0f;
+					c2 = d2 * d3 * 0.5f;
+					c3 = -d1 * d3 * 0.5f;
+					c4 = d1 * d2 / 6.0f;
+				 */
+
 				auto d32 = d3 * 0.5f;
 
 				auto c4 = d1 * d2 / 6.0f;
@@ -336,14 +375,13 @@ namespace bdsp
 				auto c2 = d2 * d32;
 				auto c3 = -d1 * d32;
 
-				//auto c1 = -d1 * d2 * d3 / 6.0f;
-				//auto c2 = d2 * d3 * 0.5f;
-				//auto c3 = -d1 * d3 * 0.5f;
-				//auto c4 = d1 * d2 / 6.0f;
 
 				return value1 * c1 + delayFrac * (value2 * c2 + value3 * c3 + value4 * c4);
 			}
 
+			/**
+			 * Thiran interpolation
+			 */
 			template <typename T = InterpolationType>
 			typename std::enable_if <std::is_same <T, DelayLineInterpolationTypes::Thiran>::value, SampleType>::type
 				interpolateSample(int channel)
@@ -359,26 +397,32 @@ namespace bdsp
 				auto value1 = DelayLineBase<SampleType>::bufferData.getSample(channel, index1);
 				auto value2 = DelayLineBase<SampleType>::bufferData.getSample(channel, index2);
 
-				//auto output = delayFrac == 0 ? value1 : value2 + alpha * (value1 - v[(size_t)channel]);
+				/*
+				* To avoid branching from the following, we replace the ternary operator with a few bool conversions and multiplies
+				* output = (delayFrac == 0) ? value1 : value2 + alpha * (value1 - v[(size_t)channel]);
+				*/
 				auto output = !delayFrac * value1 + !!delayFrac * (value2 + alpha * (value1 - v[(size_t)channel]));
 				v[(size_t)channel] = output;
 
 				return output;
 			}
 
+			/**
+			 * Lanczos interpolation
+			 */
 			template <typename T = InterpolationType>
 			typename std::enable_if <std::is_same <T, DelayLineInterpolationTypes::Lanczos>::value, SampleType>::type
 				interpolateSample(int channel) const
 			{
 
-				SampleType x = DelayLineBase<SampleType>::readPos[(size_t)channel] + DelayLineBase<SampleType>::delayInt;
+				SampleType index = DelayLineBase<SampleType>::readPos[(size_t)channel] + DelayLineBase<SampleType>::delayInt;
 				int a = lookup->trigLookups->getLanczosA();
 				SampleType L;
 				SampleType sum = 0;
-				int floorX = floor(x) + DelayLineBase<SampleType>::totalSize; // only used in modulo operation
+				int floorIndex = floor(index) + DelayLineBase<SampleType>::totalSize; // only used in modulo operation
 				for (int i = -a + 1; i <= a; ++i)
 				{
-					SampleType smp = DelayLineBase<SampleType>::bufferData.getSample(channel, (floorX + i) & (DelayLineBase<SampleType>::totalSize - 1));
+					SampleType smp = DelayLineBase<SampleType>::bufferData.getSample(channel, (floorIndex + i) & (DelayLineBase<SampleType>::totalSize - 1));
 
 					L = lookup->trigLookups->lanczos(delayFrac + i);
 
@@ -386,40 +430,58 @@ namespace bdsp
 				}
 				return sum;
 			}
-			//==============================================================================
+
+			//================================================================================================================================================================================================
+			// Update Internal Variable Implementations
+
+			/**
+			 * None
+			 */
 			template <typename T = InterpolationType>
 			typename std::enable_if <std::is_same <T, DelayLineInterpolationTypes::None>::value, void>::type
 				updateInternalVariables()
 			{
 			}
 
+			/**
+			 * Linear
+			 */
 			template <typename T = InterpolationType>
 			typename std::enable_if <std::is_same <T, DelayLineInterpolationTypes::Linear>::value, void>::type
 				updateInternalVariables()
 			{
 			}
 
+
+			/**
+			 * Lagrange
+			 */
 			template <typename T = InterpolationType>
 			typename std::enable_if <std::is_same <T, DelayLineInterpolationTypes::Lagrange3rd>::value, void>::type
 				updateInternalVariables()
 			{
-				delayFrac += !!(DelayLineBase<SampleType>::delayInt > 0);
-				DelayLineBase<SampleType>::delayInt -= !!(DelayLineBase<SampleType>::delayInt > 0);
-
+				delayFrac += (DelayLineBase<SampleType>::delayInt > 0);
+				DelayLineBase<SampleType>::delayInt -= (DelayLineBase<SampleType>::delayInt > 0);
 			}
 
+			/**
+			 * Thiran
+			 */
 			template <typename T = InterpolationType>
 			typename std::enable_if <std::is_same <T, DelayLineInterpolationTypes::Thiran>::value, void>::type
 				updateInternalVariables()
 			{
-				delayFrac += !!(delayFrac < (SampleType)0.618 && DelayLineBase<SampleType>::delayInt > 0);
-				DelayLineBase<SampleType>::delayInt -= !!(delayFrac < (SampleType)0.618 && DelayLineBase<SampleType>::delayInt > 0);
+				delayFrac += (delayFrac < (SampleType)0.618 && DelayLineBase<SampleType>::delayInt > 0);
+				DelayLineBase<SampleType>::delayInt -= (delayFrac < (SampleType)0.618 && DelayLineBase<SampleType>::delayInt > 0);
 
 
 				alpha = (1 - delayFrac) / (1 + delayFrac);
 			}
 
 
+			/**
+			 * Lanczos
+			 */
 			template <typename T = InterpolationType>
 			typename std::enable_if <std::is_same <T, DelayLineInterpolationTypes::Lanczos>::value, void>::type
 				updateInternalVariables()
@@ -428,26 +490,39 @@ namespace bdsp
 
 
 			//================================================================================================================================================================================================
+			// Generate Lookup Table Implementations
 
 
+			/**
+			 * None
+			 */
 			template <typename T = InterpolationType>
 			typename std::enable_if <std::is_same <T, DelayLineInterpolationTypes::None>::value, void>::type
 				generateLookupTables()
 			{
 			}
 
+			/**
+			 * Linear
+			 */
 			template <typename T = InterpolationType>
 			typename std::enable_if <std::is_same <T, DelayLineInterpolationTypes::Linear>::value, void>::type
 				generateLookupTables()
 			{
 			}
 
+			/**
+			 * Lagrange
+			 */
 			template <typename T = InterpolationType>
 			typename std::enable_if <std::is_same <T, DelayLineInterpolationTypes::Lagrange3rd>::value, void>::type
 				generateLookupTables()
 			{
 			}
 
+			/**
+			 * Thiran
+			 */
 			template <typename T = InterpolationType>
 			typename std::enable_if <std::is_same <T, DelayLineInterpolationTypes::Thiran>::value, void>::type
 				generateLookupTables()
@@ -455,24 +530,29 @@ namespace bdsp
 			}
 
 
+			/**
+			 * Lanczos
+			 */
 			template <typename T = InterpolationType>
 			typename std::enable_if <std::is_same <T, DelayLineInterpolationTypes::Lanczos>::value, void>::type
 				generateLookupTables()
 			{
-				lookup->trigLookups;
+				lookup->trigLookups.operator->();
 			}
 
-
-
-
 			//========================================================================================================================================================================================================================
+			// Process Sample Stereo Implementations
 		public:
 
+			/**
+			 * Basic
+			 * Delays each channel and outputs those results to the same channel
+			 */
 			template <typename T = DelayType>
 			typename std::enable_if <std::is_same <T, DelayTypes::Basic>::value, StereoSample<SampleType>>::type
 				processSampleStereo(const StereoSample<SampleType>& inputSample) noexcept
 			{
-				poppedSample = StereoSample<SampleType>(popSampleUpdateRead(0), popSampleUpdateRead(1));
+				auto poppedSample = StereoSample<SampleType>(popSampleUpdateRead(0), popSampleUpdateRead(1));
 				pushSample(0, inputSample.left);
 
 				pushSample(1, inputSample.right);
@@ -481,12 +561,15 @@ namespace bdsp
 			}
 
 
-
+			/**
+			 * FBCF (Feedback Comb Filter)
+			 * Delays each channel, pushes the results back into the buffer and outputs the results to the same channel
+			 */
 			template <typename T = DelayType>
 			typename std::enable_if <std::is_same <T, DelayTypes::FBCF>::value, StereoSample<SampleType>>::type
 				processSampleStereo(const StereoSample<SampleType>& inputSample) noexcept
 			{
-				poppedSample = StereoSample<SampleType>(popSampleUpdateRead(0), popSampleUpdateRead(1));
+				auto poppedSample = StereoSample<SampleType>(popSampleUpdateRead(0), popSampleUpdateRead(1));
 				pushSample(0, inputSample.left + poppedSample.left * smoothedFeedback.getCurrentValue());
 
 				pushSample(1, inputSample.right + poppedSample.right * smoothedFeedback.getCurrentValue());
@@ -495,11 +578,16 @@ namespace bdsp
 				return poppedSample;
 			}
 
+			/**
+			 * LPFBCF (Low-Pass Feedback Comb Filter)
+			 * Delays each channel, pushes the results mixed with the last sample's results back into the buffer and outputs the results to the same channel
+			 */
+
 			template <typename T = DelayType>
 			typename std::enable_if <std::is_same <T, DelayTypes::LPFBCF>::value, StereoSample<SampleType>>::type
 				processSampleStereo(const StereoSample<SampleType>& inputSample) noexcept
 			{
-				poppedSample = StereoSample<SampleType>(popSampleUpdateRead(0), popSampleUpdateRead(1));
+				auto poppedSample = StereoSample<SampleType>(popSampleUpdateRead(0), popSampleUpdateRead(1));
 
 
 				prevOutL = poppedSample.left + a * (prevOutL - poppedSample.left); //Fewer multiplication version of: Popped * (1 - a) + prevOut * a;
@@ -513,11 +601,16 @@ namespace bdsp
 			}
 
 
+			/**
+			 * PingPong 
+			 * Delays each channel, inter-mixes the resulting channels, pushes the results back into the buffer, and outputs the results to the same channel
+			 */
+
 			template <typename T = DelayType>
 			typename std::enable_if <std::is_same <T, DelayTypes::PingPong>::value, StereoSample<SampleType>>::type
 				processSampleStereo(const StereoSample<SampleType>& inputSample) noexcept
 			{
-				poppedSample = pingPongPopUpdateRead();
+				auto poppedSample = pingPongPopUpdateRead();
 
 				pushSample(0, inputSample.left + poppedSample.left * smoothedFeedback.getCurrentValue());
 				pushSample(1, inputSample.right + poppedSample.right * smoothedFeedback.getCurrentValue());
@@ -531,16 +624,17 @@ namespace bdsp
 		protected:
 
 			DSP_Universals<SampleType>* lookup;
-			SampleType delay = 0.0, delayFrac = 0.0, alpha = 0.0, targetDelay = 0;
+			SampleType delay = 0.0, delayFrac = 0.0, targetDelay = 0;
 			std::vector<SampleType> v;
 
 			SampleType prevOutL = 0, prevOutR = 0, interpolatedSample;
+			SampleType  alpha = 0.0; // for Thiran
 			SampleType a = 0.25; // for LPFBCF
-			StereoSample<SampleType> inputSample, outputSample, poppedSample;
+			StereoSample<SampleType> inputSample, outputSample;
 
 
 			juce::SmoothedValue<SampleType> smoothedFeedback, smoothedPongMix;
-			StereoPanner<SampleType> wet;
+			StereoPanner<SampleType> outputPanner;
 
 
 

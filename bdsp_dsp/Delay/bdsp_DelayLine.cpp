@@ -120,7 +120,7 @@ namespace bdsp
 		template <typename SampleType, typename DelayType, typename InterpolationType>
 		DelayLine<SampleType, DelayType, InterpolationType>::DelayLine(int maxDelayInSamples, DSP_Universals<SampleType>* lookupToUse)
 			:DelayLineBase<SampleType>(maxDelayInSamples),
-			wet(lookupToUse)
+			outputPanner(lookupToUse)
 		{
 			lookup = lookupToUse;
 			if (lookup != nullptr)
@@ -132,7 +132,7 @@ namespace bdsp
 
 			initFeedback(0);
             BaseProcessingUnit<SampleType>::initMix(1);
-			wet.initPan(0);
+			outputPanner.initPan(0);
 			initPongMix(0);
 
 		}
@@ -142,17 +142,18 @@ namespace bdsp
 		void DelayLine<SampleType, DelayType, InterpolationType>::updateDelay()
 		{
 
+			// Negative delay time or delay time greater than the max delay time wouldn't make sense
 			jassert(juce::isPositiveAndNotGreaterThan(targetDelay, DelayLineBase<SampleType>::totalSize - 1));
 
 
-			auto inc = (targetDelay - delay) / (DelayLineBase<SampleType>::smoothTime);
+			auto inc = (targetDelay - delay) / (BaseProcessingUnit<SampleType>::smoothTime); // calculates how much to increment the delay time this sample
 			delay += inc;
 
 			DelayLineBase<SampleType>::delayInt = static_cast<int> (std::floor(delay));
 			delayFrac = delay - (SampleType)DelayLineBase<SampleType>::delayInt;
 
 
-			updateInternalVariables();
+			updateInternalVariables(); // calculate other necessary variables depending on the smoothing type being used
 		}
 
 
@@ -176,11 +177,7 @@ namespace bdsp
 		template <typename SampleType, typename DelayType, typename InterpolationType>
 		void DelayLine<SampleType, DelayType, InterpolationType>::prepare(const juce::dsp::ProcessSpec& spec)
 		{
-
-
 			v.resize(spec.numChannels);
-
-
 
 			DelayLineBase<SampleType>::prepare(spec);
 
@@ -193,23 +190,9 @@ namespace bdsp
 			DelayLineBase<SampleType>::reset();
 
 			std::fill(v.begin(), v.end(), static_cast<SampleType> (0));
-
 		}
 
 
-
-
-		template<typename SampleType, typename DelayType, typename InterpolationType>
-		StereoSample<SampleType> DelayLine<SampleType, DelayType, InterpolationType>::pingPongPop()
-		{
-			poppedSample = StereoSample<SampleType>(popSample(0), popSample(1));
-
-
-			//Fewer multiplication of: norm * (1-pongVal) + pong * pongVal
-			// norm + pongVal * (pong-norm)
-
-			return StereoSample<SampleType>(poppedSample.left + smoothedPongMix.getCurrentValue() * (poppedSample.right - poppedSample.left), poppedSample.right + smoothedPongMix.getCurrentValue() * (poppedSample.left - poppedSample.right));
-		}
 
 
 		template <typename SampleType, typename DelayType, typename InterpolationType>
@@ -217,25 +200,32 @@ namespace bdsp
 		{
 			interpolatedSample = interpolateSample(channel);
 
-
 			DelayLineBase<SampleType>::updateReadPointer(channel);
 
-
-			//return (channel == 0 ? aaFilterL : aaFilterR).processSample(interpolatedSample);
 			return interpolatedSample;
 		}
 
 		template<typename SampleType, typename DelayType, typename InterpolationType>
+		StereoSample<SampleType> DelayLine<SampleType, DelayType, InterpolationType>::pingPongPop()
+		{
+			auto poppedSample = StereoSample<SampleType>(popSample(0), popSample(1));
+
+
+			//Fewer multiplication of: norm * (1-pongMix) + pong * pongMix
+			// norm + pongMix * (pong-norm)
+
+			return StereoSample<SampleType>(poppedSample.left + smoothedPongMix.getCurrentValue() * (poppedSample.right - poppedSample.left), 
+				poppedSample.right + smoothedPongMix.getCurrentValue() * (poppedSample.left - poppedSample.right));
+		}
+
+
+		template<typename SampleType, typename DelayType, typename InterpolationType>
 		StereoSample<SampleType> DelayLine<SampleType, DelayType, InterpolationType>::pingPongPopUpdateRead()
 		{
-
-			poppedSample = StereoSample<SampleType>(popSampleUpdateRead(0), popSampleUpdateRead(1));
-
-
-			//Fewer multiplication of: norm * (1-pongVal) + pong * pongVal
-			// norm + pongVal * (pong-norm)
-
-			return StereoSample<SampleType>(poppedSample.left + smoothedPongMix.getCurrentValue() * (poppedSample.right - poppedSample.left), poppedSample.right + smoothedPongMix.getCurrentValue() * (poppedSample.left - poppedSample.right));
+			auto out = pingPongPop();
+			updateReadPointer(0);
+			updateReadPointer(1);
+			return out;
 		}
 
 		template<typename SampleType, typename DelayType, typename InterpolationType>
@@ -295,7 +285,7 @@ namespace bdsp
 			smoothedFeedback.getNextValue();
 			smoothedPongMix.getNextValue();
 
-			wet.updateSmoothedVariables();
+			outputPanner.updateSmoothedVariables();
 
 			updateDelay();
 		}
@@ -307,7 +297,7 @@ namespace bdsp
 			smoothedFeedback.reset(DelayLineBase<SampleType>::sampleRate, timeInSeconds);
 			smoothedPongMix.reset(DelayLineBase<SampleType>::sampleRate, timeInSeconds);
 
-			wet.setSmoothingTime(timeInSeconds);
+			outputPanner.setSmoothingTime(timeInSeconds);
 		}
 
 
