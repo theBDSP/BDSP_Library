@@ -26,6 +26,7 @@ namespace bdsp
 			void processInternal(bool isBypassed) noexcept override
 			{
 				juce::dsp::ProcessContextReplacing<SampleType> context(BaseProcessingUnit<SampleType>::internalWetBlock); // create a processing context that uses the internal wet block
+				context.isBypassed = isBypassed;
 				for (int i = 0; i < processors.size(); ++i)
 				{
 					processors.getUnchecked(callingOrder.getUnchecked(i))->process(context); // process through each processor in calling order

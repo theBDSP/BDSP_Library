@@ -52,6 +52,25 @@ namespace bdsp
 	// namespace dsp
 } // namespace bdsp
 
+
+//================================================================================================================================================================================================
+//Distortion Types
+
+#include "Distortion/Types/bdsp_DistortionTypeBase.h"
+#include "Distortion/Types/bdsp_BitCrush.h"
+#include "Distortion/Types/bdsp_Bump.h"
+#include "Distortion/Types/bdsp_Drive.h"
+#include "Distortion/Types/bdsp_Fuzz.h"
+#include "Distortion/Types/bdsp_HardClip.h"
+#include "Distortion/Types/bdsp_Pinch.h"
+#include "Distortion/Types/bdsp_Power.h"
+#include "Distortion/Types/bdsp_Saturation.h"
+#include "Distortion/Types/bdsp_SinFold.h"
+#include "Distortion/Types/bdsp_SoftClip.h"
+#include "Distortion/Types/bdsp_Tape.h"
+#include "Distortion/Types/bdsp_TriFold.h"
+#include "Distortion/Types/bdsp_Tube.h"
+
 //=====================================================================================================================
 //Core
 #include "Math/bdsp_MultiDimensionalLookup.h"
@@ -67,6 +86,8 @@ namespace bdsp
 #include "Core/bdsp_BaseProcessingUnit.h"
 #include "Core/bdsp_LatencyCompensator.h"
 #include "Core/bdsp_Oversampling.h"
+#include "Core/bdsp_SampleRateReducer.h"
+
 #include "Core/bdsp_SampleTimer.h"
 #include "Core/bdsp_DemoTimer.h"
 
@@ -80,32 +101,19 @@ namespace bdsp
 
 
 
+//================================================================================================================================================================================================
+//Distortion
+#include "Distortion/bdsp_DistortionBase.h"
+#include "Distortion/bdsp_BitCrusherDistortion.h"
+
+
+#include "Distortion/bdsp_VariableDistortion.h"
 
 
 //================================================================================================================================================================================================
 //Dynamics
 #include "Dynamics/bdsp_DynamicsBase.h"
 #include "Dynamics/bdsp_Compressor.h"
-
-
-//================================================================================================================================================================================================
-//Distortion
-#include "Distortion/bdsp_DistortionBase.h"
-//
-//#include "Distortion/bdsp_ArcSinHDistortion.h"
-#include "Distortion/bdsp_BitCrusherDistortion.h"
-//#include "Distortion/bdsp_HardClipDistortion.h"
-//#include "Distortion/bdsp_SoftClipDistortion.h"
-//#include "Distortion/bdsp_TanHDistortion.h"
-//#include "Distortion/bdsp_ArcTanDistortion.h"
-//#include "Distortion/bdsp_InverseProportionDistortion.h"
-//#include "Distortion/bdsp_InversePowerDistortion.h"
-//#include "Distortion/bdsp_WaveFoldingDistortion.h"
-//#include "Distortion/bdsp_PositiveClipDistortion.h"
-//#include "Distortion/bdsp_DoubleBumpDistortion.h"
-//#include "Distortion/bdsp_TanHPinchDistortion.h"
-
-#include "Distortion/bdsp_VariableDistortion.h"
 
 
 //================================================================================================================================================================================================

@@ -3,30 +3,51 @@ namespace bdsp
 {
 	namespace dsp
 	{
-
+		/**
+		 * Basic Waveshaping distortion.
+		 * The tranfer function is implemented through a pointer to a subclass of DistortionTypeBase.
+		 */
 		template <typename SampleType>
 		class DistortionBase : public BaseProcessingUnit<SampleType>
 		{
 		public:
-			DistortionBase(DSP_Universals<SampleType>* lookupToUse, DistortionTypes type, int oversamplingFactor = 2, bool handleLatencyCompensationInternally = true)
+			/**
+			 * Creates a distortion processor
+			 * @param lookupToUse Pointer to the main processor's DSP_Universals
+			 * @param typeToUse A pointer to the subclass of DistortionTypeBase you want to use for the distortion
+			 * @param oversamplingFactor How many stages of oversampling to use when processing the distortion. Each stage doubles the samplerate used.
+			 * @param handleLatencyCompensationInternally If true, this processor will delay the dry signal to compensate for latency added by oversampling
+			 */
+			DistortionBase(DSP_Universals<SampleType>* lookupToUse, DistortionTypeBase<SampleType>* typeToUse, int oversamplingFactor = 2, bool handleLatencyCompensationInternally = true)
 				:oversampling(2, oversamplingFactor, juce::dsp::Oversampling<SampleType>::filterHalfBandPolyphaseIIR, handleLatencyCompensationInternally)
 			{
 				lookup = lookupToUse;
 
-				lookup->distortionLookups->generateTables(type);
+				type = typeToUse;
 
-				func = lookup->distortionLookups->getDistortionFunc(type);
-
-				//lookup->generateTables(LookupTableTypes({}, { DistortionLookupTables::ArcSinH }));
+				initPre(1);
 			}
-			//virtual ~DistortionBase() = default;
 
-			//==============================================================================
-			/** Initialises the processor. */
+			/**
+			 * Creates a distortion processor
+			 * @param lookupToUse Pointer to the main processor's DSP_Universals
+			 * @param typeToUse The name of type of distortion you want to use
+			 * @param oversamplingFactor How many stages of oversampling to use when processing the distortion. Each stage doubles the samplerate used.
+			 * @param handleLatencyCompensationInternally If true, this processor will delay the dry signal to compensate for latency added by oversampling
+			 */
+			DistortionBase(DSP_Universals<SampleType>* lookupToUse, const juce::String typeToUse, int oversamplingFactor = 2, bool handleLatencyCompensationInternally = true)
+				:DistortionBase<SampleType>(lookupToUse, lookupToUse->distortionLookups->nameToDistortionType(typeToUse), oversamplingFactor, handleLatencyCompensationInternally)
+			{
+			}
+
+			virtual ~DistortionBase() = default;
+
+			//================================================================================================================================================================================================
+
 			void prepare(const juce::dsp::ProcessSpec& spec) override
 			{
 
-				juce::dsp::ProcessSpec upSepc = { spec.sampleRate * oversampling.getOversamplingFactor(),spec.maximumBlockSize,spec.numChannels };
+				juce::dsp::ProcessSpec upSepc = { spec.sampleRate * oversampling.getOversamplingFactor(),spec.maximumBlockSize,spec.numChannels }; // process spec after upsampling
 				BaseProcessingUnit<SampleType>::prepare(upSepc);
 
 				oversampling.prepare(spec);
@@ -51,6 +72,7 @@ namespace bdsp
 
 				if (isBypassed || BaseProcessingUnit<SampleType>::bypassed || BaseProcessingUnit<SampleType>::internalDryBlock.getNumChannels() < 2 || BaseProcessingUnit<SampleType>::internalWetBlock.getNumChannels() < 2)
 				{
+					// Add latency compensation when bypassed to avoid time jumps
 					oversampling.mixWithLatencyCompensation(*BaseProcessingUnit<SampleType>::internalContext.get(), BaseProcessingUnit<SampleType>::smoothedDryMix, BaseProcessingUnit<SampleType>::smoothedWetMix, true);
 
 					return;
@@ -120,11 +142,18 @@ namespace bdsp
 			{
 				return oversampling.getLatency();
 			}
+
+			DistortionTypeBase<SampleType>* getType()
+			{
+				return type;
+			}
+
+
 			bool isScaled = true;
 
 		protected:
-			SampleType(DistortionLookups<SampleType>::* func) (SampleType, SampleType, bool);
 
+			DistortionTypeBase<SampleType>* type;
 			juce::SmoothedValue<SampleType> smoothedAmt, smoothedPre;
 
 			Oversampling<SampleType> oversampling;
@@ -133,9 +162,15 @@ namespace bdsp
 
 			inline SampleType processSample(int channel, const SampleType& inputSample) noexcept override
 			{
-
-				SampleType scaledInput = inputSample * smoothedPre.getCurrentValue();
-				return  ((lookup->distortionLookups.operator->())->*(func))(scaledInput, smoothedAmt.getCurrentValue(), isScaled);
+				if (type != nullptr)
+				{
+					SampleType scaledInput = inputSample * smoothedPre.getCurrentValue();
+					return  type->processSample(scaledInput, smoothedAmt.getCurrentValue(), isScaled);
+				}
+				else
+				{
+					return inputSample;
+				}
 			}
 		};
 
