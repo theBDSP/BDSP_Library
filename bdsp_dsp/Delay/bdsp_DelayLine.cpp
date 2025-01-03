@@ -223,8 +223,8 @@ namespace bdsp
 		StereoSample<SampleType> DelayLine<SampleType, DelayType, InterpolationType>::pingPongPopUpdateRead()
 		{
 			auto out = pingPongPop();
-			updateReadPointer(0);
-			updateReadPointer(1);
+			DelayLineBase<SampleType>::updateReadPointer(0);
+            DelayLineBase<SampleType>::updateReadPointer(1);
 			return out;
 		}
 

@@ -16,8 +16,8 @@ namespace bdsp
 			BitCrushDistortion(DSP_Universals<SampleType>* lookupToUse)
 				:crush(lookupToUse, DistortionTypes::BitCrush<SampleType>::Name, 0)
 			{
-				addProcessor(&crush);
-				addProcessor(&rate);
+				this->addProcessor(&crush);
+				this->addProcessor(&rate);
 			}
 			~BitCrushDistortion() = default;
 

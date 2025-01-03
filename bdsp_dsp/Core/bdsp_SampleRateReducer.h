@@ -48,7 +48,7 @@ namespace bdsp
 
 				for (size_t i = 0; i < numSamples; ++i)
 				{
-					updateSmoothedVariables();
+					BaseProcessingUnit<SampleType>::updateSmoothedVariables();
 
 
 					if (n < reductionFactor - 1) // discard every (reductionFactor - 1) samples

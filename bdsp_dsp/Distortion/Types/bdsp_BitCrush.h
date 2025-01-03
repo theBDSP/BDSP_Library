@@ -1,5 +1,9 @@
 #pragma once
 
+
+constexpr int BDSP_BIT_CRUSH_MIN_DEPTH = 1;
+constexpr int BDSP_BIT_CRUSH_MAX_DEPTH = 16;
+
 namespace bdsp
 {
 	namespace dsp

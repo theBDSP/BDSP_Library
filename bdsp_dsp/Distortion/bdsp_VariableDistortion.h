@@ -18,7 +18,7 @@ namespace bdsp
 			 * This processor will do nothing until you cal setParameter.
 			 */
 			VariableDistortion(DSP_Universals<SampleType>* lookupToUse)
-				:DistortionBase<SampleType>(lookupToUse, nullptr, 2, false)
+				:DistortionBase<SampleType>(lookupToUse, nullptr, 2, true)
 			{
 
 			}
