@@ -573,7 +573,7 @@ namespace bdsp
 
 		std::function<juce::NormalisableRange<float>(double)> bitCrushRateRangeGenerator = [=](double sampleRate)
 		{
-			return juce::NormalisableRange<float>(1.0, 32.0);
+			return juce::NormalisableRange<float>(1.0, 32.0, 1);
 		};
 
 
@@ -586,15 +586,17 @@ namespace bdsp
 
 		auto bitCrushDepthLambda = [=](float value, int maximumStringLength)
 		{
-			return simplifyNumber(juce::jmap(value, 16.0f, (float)BDSP_BIT_CRUSH_MIN_DEPTH), 1, false);
+			return simplifyNumber(juce::jmap(value, (float)BDSP_BIT_CRUSH_MAX_DEPTH, (float)BDSP_BIT_CRUSH_MIN_DEPTH), 1, false);
 		};
 
 		auto bitCrushDepthLambdaText = [=](const juce::String& s)
 		{
-			return juce::jmap(s.retainCharacters("0123456789.-").getFloatValue(), 16.0f, (float)BDSP_BIT_CRUSH_MIN_DEPTH, 0.0f, 1.0f);
+			return juce::jmap(s.retainCharacters("0123456789.-").getFloatValue(), (float)BDSP_BIT_CRUSH_MAX_DEPTH, (float)BDSP_BIT_CRUSH_MIN_DEPTH, 0.0f, 1.0f);
 		};
+		juce::NormalisableRange<float> bitCrushDepthRage(0, 1);
+		bitCrushDepthRage.skew = 2;
 
-		floatAttributes.add(new FloatParameterAttribute("Bit Crush Depth", bitCrushDepthLambda, bitCrushDepthLambdaText, juce::NormalisableRange<float>(0, 1)));
+		floatAttributes.add(new FloatParameterAttribute("Bit Crush Depth", bitCrushDepthLambda, bitCrushDepthLambdaText, bitCrushDepthRage));
 		//================================================================================================================================================================================================
 
 

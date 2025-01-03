@@ -553,9 +553,9 @@ namespace bdsp
 				processSampleStereo(const StereoSample<SampleType>& inputSample) noexcept
 			{
 				auto poppedSample = StereoSample<SampleType>(popSampleUpdateRead(0), popSampleUpdateRead(1));
-				pushSample(0, inputSample.left);
+				this->pushSample(0, inputSample.left);
 
-				pushSample(1, inputSample.right);
+				this->pushSample(1, inputSample.right);
 
 				return poppedSample;
 			}
@@ -570,9 +570,9 @@ namespace bdsp
 				processSampleStereo(const StereoSample<SampleType>& inputSample) noexcept
 			{
 				auto poppedSample = StereoSample<SampleType>(popSampleUpdateRead(0), popSampleUpdateRead(1));
-				pushSample(0, inputSample.left + poppedSample.left * smoothedFeedback.getCurrentValue());
+				this->pushSample(0, inputSample.left + poppedSample.left * smoothedFeedback.getCurrentValue());
 
-				pushSample(1, inputSample.right + poppedSample.right * smoothedFeedback.getCurrentValue());
+				this->pushSample(1, inputSample.right + poppedSample.right * smoothedFeedback.getCurrentValue());
 
 
 				return poppedSample;
@@ -591,10 +591,10 @@ namespace bdsp
 
 
 				prevOutL = poppedSample.left + a * (prevOutL - poppedSample.left); //Fewer multiplication version of: Popped * (1 - a) + prevOut * a;
-				pushSample(0, inputSample.left + prevOutL * smoothedFeedback.getCurrentValue());
+				this->pushSample(0, inputSample.left + prevOutL * smoothedFeedback.getCurrentValue());
 
 				prevOutR = poppedSample.right + a * (prevOutR - poppedSample.right); //Fewer multiplication version of: Popped * (1 - a) + prevOut * a;
-				pushSample(1, inputSample.right + prevOutR * smoothedFeedback.getCurrentValue());
+				this->pushSample(1, inputSample.right + prevOutR * smoothedFeedback.getCurrentValue());
 
 
 				return poppedSample;
@@ -612,8 +612,8 @@ namespace bdsp
 			{
 				auto poppedSample = pingPongPopUpdateRead();
 
-				pushSample(0, inputSample.left + poppedSample.left * smoothedFeedback.getCurrentValue());
-				pushSample(1, inputSample.right + poppedSample.right * smoothedFeedback.getCurrentValue());
+				this->pushSample(0, inputSample.left + poppedSample.left * smoothedFeedback.getCurrentValue());
+				this->pushSample(1, inputSample.right + poppedSample.right * smoothedFeedback.getCurrentValue());
 
 				return poppedSample;
 			}

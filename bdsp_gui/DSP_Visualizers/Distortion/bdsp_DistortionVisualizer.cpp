@@ -4,7 +4,7 @@ namespace bdsp
 {
 
 
-	DistortionVisualizerInternal::DistortionVisualizerInternal(GUI_Universals* universalsToUse, dsp::DSP_Universals<float>* lookups, BaseSlider* driveSlider, BaseSlider* mixSlider, juce::Button* autoGainButton, dsp::DistortionTypes initType)
+	DistortionVisualizerInternal::DistortionVisualizerInternal(GUI_Universals* universalsToUse, dsp::DSP_Universals<float>* lookups, BaseSlider* driveSlider, BaseSlider* mixSlider, juce::Button* autoGainButton, dsp::DistortionTypeBase<float>* initType)
 		:OpenGLFunctionVisualizer(universalsToUse)
 	{
 		setBipolar(true);
@@ -14,7 +14,6 @@ namespace bdsp
 
 
 		lookup = lookups;
-		lookup->distortionLookups->generateSingleTable(initType);
 
 		setType(initType);
 		newFrameInit();
@@ -34,10 +33,10 @@ namespace bdsp
 		OpenGLFunctionVisualizer::resized();
 	}
 
-	void DistortionVisualizerInternal::setType(dsp::DistortionTypes newType, dsp::DistortionTypes newNegType)
+	void DistortionVisualizerInternal::setType(dsp::DistortionTypeBase<float>* newType, dsp::DistortionTypeBase<float>* newNegType)
 	{
 		type = newType;
-		if (newNegType == dsp::DistortionTypes(0))
+		if (newNegType == nullptr)
 		{
 			negType = type;
 		}
@@ -45,9 +44,6 @@ namespace bdsp
 		{
 			negType = newNegType;
 		}
-		lookup->distortionLookups->generateSingleTable(newType);
-		lookup->distortionLookups->generateSingleTable(newNegType);
-
 
 	}
 
@@ -66,18 +62,16 @@ namespace bdsp
 
 	inline float DistortionVisualizerInternal::calculateFunctionSample(int sampleNumber, float openGL_X, float normX)
 	{
-		float wet;
-		if (type == dsp::DistortionTypes::BitCrush)
+		float wet = openGL_X;
+		if (openGL_X <= 0 && negType != nullptr)
 		{
-			auto bitrate = juce::jmap(drive->getActualValue(), 4.0, 0.0);
-			auto p = pow(2, bitrate);
-			wet = round(openGL_X * p) / p;
+			wet = negType->processSample(openGL_X, drive->getActualValue(), autoGain->getToggleState());
 		}
-		else
+		else if (type != nullptr)
 		{
-			wet = lookup->distortionLookups->getDistortion(openGL_X, drive->getActualValue(), autoGain->getToggleState(), openGL_X <= 0 ? negType : type);
+			wet = type->processSample(openGL_X, drive->getActualValue(), autoGain->getToggleState());
+		}
 
-		}
 		return wet * mixVal + openGL_X * (1 - mixVal);
 	}
 
@@ -86,11 +80,12 @@ namespace bdsp
 
 
 
-	DistortionVisualizer::DistortionVisualizer(GUI_Universals* universalsToUse, dsp::DSP_Universals<float>* lookups, BaseSlider* driveSlider, BaseSlider* mixSlider, juce::Button* autoGainButton, dsp::DistortionTypes initType)
+	DistortionVisualizer::DistortionVisualizer(GUI_Universals* universalsToUse, dsp::DSP_Universals<float>* lookups, BaseSlider* driveSlider, BaseSlider* mixSlider, juce::Button* autoGainButton, dsp::DistortionTypeBase<float>* initType)
 		:OpenGlComponentWrapper<DistortionVisualizerInternal>(universalsToUse, lookups, driveSlider, mixSlider, autoGainButton, initType)
 	{
 		vis->setScaling(1, 0.9);
 	}
+
 
 	void DistortionVisualizer::resized()
 	{
@@ -98,9 +93,8 @@ namespace bdsp
 		OpenGlComponentWrapper::resized();
 	}
 
-	void DistortionVisualizer::setType(dsp::DistortionTypes newType, dsp::DistortionTypes newNegType)
+	void DistortionVisualizer::setType(dsp::DistortionTypeBase<float>* newType, dsp::DistortionTypeBase<float>* newNegType)
 	{
-
 		vis->setType(newType, newNegType);
 	}
 

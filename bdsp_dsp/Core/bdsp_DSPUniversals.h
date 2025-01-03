@@ -24,7 +24,7 @@ namespace bdsp
 
 				if (!FFTs.contains(order))
 				{
-					FFTs.add(order, order);
+					FFTs.add(order, new juce::dsp::FFT(order));
 				}
 				return FFTs[order];
 			}
@@ -36,7 +36,7 @@ namespace bdsp
 			LazyLoad<WaveLookups<T>> waveLookups;
 			LazyLoad<ChorusLookups<T>> chorusLookups;
 		private:
-			OwnedMap<int, juce::dsp::FFT> FFTs;
+			OwnedMap<int, juce::dsp::FFT, std::hash<int>> FFTs;
 		};
 	} // namespace dsp
 } // namespace bdsp

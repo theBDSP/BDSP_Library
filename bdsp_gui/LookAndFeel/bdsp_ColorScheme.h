@@ -199,14 +199,6 @@ namespace bdsp
 	};
 
 
-	// Struct to provide hashing function to use juce::Identifier in standard library maps
-	struct IDHash
-	{
-		std::size_t operator() (const juce::Identifier& id) const noexcept
-		{
-			return std::hash<std::string>{}(id.toString().toStdString());
-		}
-	};
 
 	struct ColorScheme
 	{
@@ -253,14 +245,14 @@ namespace bdsp
 			map[name] = c;
 		}
 
-		const std::unordered_map<juce::Identifier, juce::Colour, IDHash>& getMap()
+		const std::unordered_map<juce::Identifier, juce::Colour, HashFunctions::Identifier>& getMap()
 		{
 			return map;
 		}
 
 	private:
 
-		std::unordered_map<juce::Identifier, juce::Colour, IDHash> map;
+		std::unordered_map<juce::Identifier, juce::Colour, HashFunctions::Identifier> map;
 	};
 
 }// namnepace bdsp

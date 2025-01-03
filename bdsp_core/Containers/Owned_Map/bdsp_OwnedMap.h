@@ -2,11 +2,12 @@
 namespace bdsp
 {
 
+
 	/**
 	 * Wraps a juce::OwnedArray. Access elements with a key instead of an index.
 	 * @see juce::OwnedArray
 	 */
-	template <typename keyType, typename valType>
+	template <typename keyType, typename valType, class HashFunctionType = std::hash<keyType>>
 	class OwnedMap
 	{
 
@@ -15,13 +16,22 @@ namespace bdsp
 		/**
 		 * Adds a new element to the map
 		 * @param k The key to associate with the new element
-		 * @param args Arguments to pass to valType constructor when creating the new element
+		 * @param newObject The new object you want to add to the map
 		 */
-		template <class ... Types>
-		void add(keyType k, Types...args)
+		void add(keyType k, std::unique_ptr<valType> newObject)
 		{
-			vals.add(std::make_unique <valType>(args...));
-			idxMap.insert(std::pair<keyType, int>(k, vals.size() - 1));
+			map[k] = newObject.release();
+		}
+
+		/**
+		 * Adds a new element to the map
+		 * @param k The key to associate with the new element
+		 * @param newObject The new object you want to add to the map
+		 */
+		void add(keyType k, valType* newObject)
+		{
+			map[k] = nullptr;
+			map[k].reset(newObject);
 		}
 
 		/**
@@ -29,8 +39,7 @@ namespace bdsp
 		 */
 		valType* get(keyType k)
 		{
-			int idx = idxMap[k];
-			return vals[idx];
+			return map[k].get();
 		}
 
 		/**
@@ -42,17 +51,16 @@ namespace bdsp
 		}
 
 		/**
-		 * Checks if the map has an object with an associated key 
+		 * Checks if the map has an object with an associated key
 		 * @param k The key to check
 		 * @return True if the map has an object associated with the specified key
 		 */
 		bool contains(keyType k)
 		{
-			return idxMap.find(k) != idxMap.end();
+			return map.find(k) != map.end();
 		}
 
 	private:
-		std::unordered_map<keyType, int> idxMap;
-		juce::OwnedArray<valType> vals;
+		std::unordered_map<keyType, std::unique_ptr<valType>, HashFunctionType> map;
 	};
 } // namespace bdsp
