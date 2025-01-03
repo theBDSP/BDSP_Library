@@ -5,119 +5,68 @@ namespace bdsp
 	namespace dsp
 	{
 
-
+		/**
+		 * Basic Waveshaping Distortion with selectable distortion type.
+		 */
 		template <typename SampleType>
 		class VariableDistortion : public DistortionBase<SampleType>, public juce::AudioParameterChoice::Listener
 		{
 		public:
+
+			/**
+			 * Creates an empty distortion processor.
+			 * This processor will do nothing until you cal setParameter.
+			 */
 			VariableDistortion(DSP_Universals<SampleType>* lookupToUse)
-				:DistortionBase<SampleType>(lookupToUse, DistortionTypes(1), 2, false)
+				:DistortionBase<SampleType>(lookupToUse, nullptr, 2, false)
 			{
 
 			}
 
 
-
+			/**
+			 * Links this processor to a parameter that controls which tpye of distortion to use.
+			 */
 			void setParameter(juce::AudioParameterChoice* param)
 			{
 				choiceParam = param;
 
 				choiceParam->addListener(this);
 				possibleTypes.clear();
-				for (auto s : choiceParam->choices)
+				
+				// Fill the array of possible types with those specified by the parameter provided
+				for (const auto& s : choiceParam->choices)
 				{
-					possibleTypes.add(DistortionBase<SampleType>::lookup->distortionLookups->stringToDistortionType(s));
-                    DistortionBase<SampleType>::lookup->distortionLookups->generateSingleTable(possibleTypes.getLast());
+					possibleTypes.add(DistortionBase<SampleType>::lookup->distortionLookups->nameToDistortionType(s));
 				}
-				parameterValueChanged(choiceParam->getParameterIndex(), choiceParam->getIndex());
+
+				parameterValueChanged(choiceParam->getParameterIndex(), choiceParam->getIndex()); // init the current type with the value of the provided parameter
 			}
 
-			DistortionTypes getTypeFromParameter()
-			{
-				int idx = choiceParam->getIndex();
-				return possibleTypes.getUnchecked(idx);
-			}
 		protected:
 
 
-			juce::Array<DistortionTypes> possibleTypes;
+			juce::Array<DistortionTypeBase<SampleType>*> possibleTypes;
 
 			juce::AudioParameterChoice* choiceParam = nullptr;
 
 			// Inherited via Listener
 			void parameterValueChanged(int parameterIndex, float newValue) override
 			{
-                DistortionBase<SampleType>::func = DistortionBase<SampleType>::lookup->distortionLookups->getDistortionFunc(getTypeFromParameter());
+                DistortionBase<SampleType>::type = getTypeFromParameter();
 			}
 			void parameterGestureChanged(int parameterIndex, bool gestureIsStarting) override
 			{
 			}
 
 
-
+		private:
+			DistortionTypeBase<SampleType>* getTypeFromParameter()
+			{
+				int idx = choiceParam->getIndex();
+				return possibleTypes.getUnchecked(idx);
+			}
 		};
-
-		////seperate transfer functions for + and - values
-		//template <typename SampleType>
-		//class BiPolarDistortion : public VariableDistortion<SampleType>
-		//{
-		//public:
-		//	BiPolarDistortion(DSP_Universals<SampleType>* lookupToUse, DistortionTypes types)
-		//		:VariableDistortion<SampleType>(lookupToUse, types)
-		//	{
-		//		jassert(!VariableDistortion<SampleType>::possibleTypes.contains(DistortionTypes::BitCrush));
-		//	}
-
-
-
-
-
-
-		//	void setParameters(juce::AudioParameterChoice* param, juce::AudioParameterChoice* negParam)
-		//	{
-		//		VariableDistortion<SampleType>::setParameter(param);
-
-		//		negChoiceParam = negParam;
-
-		//		negChoiceParam->addListener(this);
-
-		//		negType = getNegTypeFromParameter();
-		//	}
-
-		//	DistortionTypes getNegTypeFromParameter()
-		//	{
-		//		int idx = negChoiceParam->getIndex();
-		//		return VariableDistortion<SampleType>::possibleTypes[idx];
-		//	}
-		//private:
-
-		//	inline SampleType processSample(int channel, const SampleType& inputSample) noexcept override
-		//	{
-		//		SampleType scaledInput = inputSample * DistortionBase<SampleType>::smoothedPre.getCurrentValue();
-
-		//		return DistortionBase<SampleType>::lookup->getDistortion(scaledInput, DistortionBase<SampleType>::smoothedAmt.getCurrentValue(), DistortionBase<SampleType>::isScaled, inputSample <= 0 ? negType : VariableDistortion<SampleType>::type);
-
-
-
-		//	}
-		//	DistortionTypes negType;
-
-		//	juce::AudioParameterChoice* negChoiceParam = nullptr;
-
-		//	// Inherited via Listener
-		//	void parameterValueChanged(int parameterIndex, float newValue) override
-		//	{
-		//		VariableDistortion<SampleType>::type = VariableDistortion<SampleType>::getTypeFromParameter();
-		//		negType = getNegTypeFromParameter();
-		//	}
-		//	void parameterGestureChanged(int parameterIndex, bool gestureIsStarting) override
-		//	{
-		//	}
-
-
-		//};
-
-
 
 	}// namespace dsp
 }// namnepace bdsp

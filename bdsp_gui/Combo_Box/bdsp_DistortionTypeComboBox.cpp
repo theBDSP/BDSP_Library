@@ -36,9 +36,9 @@ namespace bdsp
 		for (int i = 0; i < p->parameter->choices.size(); i++)
 		{
 			auto name = p->parameter->choices[i];
-			auto type = dynamic_cast<Processor*>(&universals->APVTS->processor)->lookups.distortionLookups->stringToDistortionType(name);
-			auto path = universals->commonPaths.distortionPaths.getPath(type);
-			auto fill = universals->commonPaths.distortionPaths.getPath(type, true);
+			auto type = dynamic_cast<Processor*>(&universals->APVTS->processor)->lookups.distortionLookups->nameToDistortionType(name);
+			auto path = type->getIcon(false);
+			auto fill = type->getIcon(true);
 
 			List.add(new DistortionListItem(this, name, path, fill, i));
 
@@ -219,8 +219,8 @@ namespace bdsp
 
 		auto name = parameter->choices[idx];
 
-		auto type = dynamic_cast<Processor*>(&universals->APVTS->processor)->lookups.distortionLookups->stringToDistortionType(name);
-		auto path = universals->commonPaths.distortionPaths.getPath(type);
+		auto type = dynamic_cast<Processor*>(&universals->APVTS->processor)->lookups.distortionLookups->nameToDistortionType(name);
+		auto path = type->getIcon(false);
 
 		icon.path = path;
 
@@ -238,8 +238,8 @@ namespace bdsp
 		for (int i = 0; i < p->parameter->choices.size(); i++)
 		{
 			auto name = p->parameter->choices[i];
-			auto type = dynamic_cast<Processor*>(&universals->APVTS->processor)->lookups.distortionLookups->stringToDistortionType(name);
-			auto path = universals->commonPaths.distortionPaths.getPath(type);
+			auto type = dynamic_cast<Processor*>(&universals->APVTS->processor)->lookups.distortionLookups->nameToDistortionType(name);
+			auto path = type->getIcon(false);
 
 			List.add(new Item(this, name, path, i));
 			List.getLast()->highlightColor = BDSP_COLOR_PURE_BLACK;
