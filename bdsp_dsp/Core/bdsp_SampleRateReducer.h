@@ -70,11 +70,6 @@ namespace bdsp
 			}
 
 
-			inline SampleType processSample(int channel, const SampleType& inputSample) noexcept override
-			{
-				return SampleType();
-			}
-
 		protected:
 
 			int n = 0;

@@ -58,10 +58,7 @@ namespace bdsp
 				modPosR = 0;
 			}
 
-			inline SampleType processSample(int channel, const SampleType& inputSample) noexcept override
-			{
-				return SampleType(0);
-			}
+
 
 			StereoSample<SampleType> processSampleStereo(const StereoSample<SampleType>& inputSample) noexcept override
 			{

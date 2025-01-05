@@ -88,12 +88,6 @@ namespace bdsp
 				latencyComp.mixWithLatencyCompensation(*BaseProcessingUnit<SampleType>::internalContext.get(), BaseProcessingUnit<SampleType>::smoothedDryMix, BaseProcessingUnit<SampleType>::smoothedWetMix);
 			}
 
-			inline SampleType processSample(int channel, const SampleType& inputSample) noexcept override
-			{
-				return 0;
-			}
-
-
 
 
 			inline StereoSample<SampleType> processSampleStereo(const StereoSample<SampleType>& inputSample) noexcept override;
@@ -173,10 +167,6 @@ namespace bdsp
 
 			}
 
-			inline SampleType processSample(int channel, const SampleType& inputSample) noexcept override
-			{
-				return 0;
-			}
 
 
 

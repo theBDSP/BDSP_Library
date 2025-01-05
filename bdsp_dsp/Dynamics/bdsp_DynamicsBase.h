@@ -1,6 +1,4 @@
 #pragma once
-
-
 namespace bdsp
 {
 	namespace dsp
@@ -16,9 +14,6 @@ namespace bdsp
 			{
 				envFilter.setAttackTime(attackTimeMs);
 			}
-
-
-
 			void setRelease(SampleType releaseTimeMs)
 			{
 				envFilter.setReleaseTime(releaseTimeMs);
@@ -45,7 +40,6 @@ namespace bdsp
 				reset();
 			}
 
-			/** Resets the internal state variables of the filter. */
 			void reset() override
 			{
 				BaseProcessingUnit<SampleType>::reset();
@@ -60,14 +54,6 @@ namespace bdsp
 			{
 				sideChain = newSideChain;
 			}
-
-
-
-			inline SampleType processSample(int channel, const SampleType& inputSample) noexcept override
-			{
-				return SampleType();
-			}
-
 
 
 
@@ -87,7 +73,7 @@ namespace bdsp
 				jassert(BaseProcessingUnit<SampleType>::internalDryBlock.getNumSamples() == numSamples);
 
 
-				const auto& sideChainBuffer = sideChain.getBuffer(numChannels,numSamples);
+				const auto& sideChainBuffer = sideChain.getBuffer(numChannels, numSamples);
 
 				for (size_t i = 0; i < numSamples; ++i)
 				{
@@ -107,7 +93,7 @@ namespace bdsp
 					BaseProcessingUnit<SampleType>::internalWetBlock.setSample(1, i, smp.right);
 
 				}
-                BaseProcessingUnit<SampleType>::applyDryWetMix();
+				BaseProcessingUnit<SampleType>::applyDryWetMix();
 			}
 
 
