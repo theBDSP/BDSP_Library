@@ -141,5 +141,5 @@ namespace bdsp
 			JUCE_LEAK_DETECTOR(LatencyCompensator)
 		};
 
-	} //dsp namespace
-} //bdsp namespace
+	} //namespace dsp
+} //namespace bdsp

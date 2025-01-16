@@ -61,5 +61,5 @@ namespace bdsp
 			LatencyCompensator<SampleType> latencyComp;
 
 		};
-	} //dsp namespace
-} //bdsp namespace
+	} //namespace dsp
+} //namespace bdsp

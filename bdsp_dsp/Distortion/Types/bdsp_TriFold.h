@@ -32,6 +32,6 @@ namespace bdsp
 
 		}
 
-	} //dsp namespace
-} //bdsp namespace
+	} //namespace dsp
+} //namespace bdsp
 

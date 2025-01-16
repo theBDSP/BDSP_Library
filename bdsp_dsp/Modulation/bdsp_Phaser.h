@@ -27,8 +27,8 @@ namespace bdsp
 				lookup->waveLookups;
 
 
-				allpassL = std::make_unique<SecondOrderAllpassFilter<SampleType>>(lookup);
-				allpassR = std::make_unique<SecondOrderAllpassFilter<SampleType>>(lookup);
+				allpassL = std::make_unique<BiQuadFilters::SecondOrderAllpassFilter<SampleType>>(lookup);
+				allpassR = std::make_unique<BiQuadFilters::SecondOrderAllpassFilter<SampleType>>(lookup);
 
 
 			}
@@ -235,7 +235,7 @@ namespace bdsp
 
 			SampleType calculateResponseForFrequency(int channel, SampleType freq)
 			{
-				SecondOrderAllpassFilter<SampleType>* f = channel == 0 ? allpassL.get() : allpassR.get();
+				BiQuadFilters::SecondOrderAllpassFilter<SampleType>* f = channel == 0 ? allpassL.get() : allpassR.get();
 				juce::dsp::Complex<SampleType> stageResponse = f->calculateResponseForFrequency(f->parameters.get(), freq);
 
 				auto base = stageResponse;
@@ -258,7 +258,7 @@ namespace bdsp
 
 		protected:
 
-			std::unique_ptr<SecondOrderAllpassFilter<SampleType>> allpassL, allpassR;
+			std::unique_ptr<BiQuadFilters::SecondOrderAllpassFilter<SampleType>> allpassL, allpassR;
 
 			SampleType phaseChangeRate;
 			SampleType minPhase, maxPhase;

@@ -1,13 +1,17 @@
 #pragma once
 
-// 1/sqrt(2)
-#define BDSP_FILTER_DEFAULT_Q  0.7071067811865475
+constexpr double BDSP_FILTER_DEFAULT_Q = 0.7071067811865475; // 1 / sqrt(2)
+
 namespace bdsp
 {
 	namespace dsp
 	{
+		/**
+		 * A set of values used to calculate filter coefficients.
+		 * Derive a new struct from this one to add more parameters for a specific type of filter.
+		 */
 		template <typename SampleType>
-		struct BaseFilterParameters // set of values used to calculate plots for filter. inherit this into a new struct to add more parameters
+		struct BaseFilterParameters
 		{
 			BaseFilterParameters()
 			{
@@ -23,11 +27,19 @@ namespace bdsp
 			SampleType gain;
 		};
 
-		template <typename SampleType>
-		struct BaseFilterCoefficients // inherit this into a new struct for each child class
+		/**
+		 * Derive a new struct from this one to add more coefficients for a specific type of filter.
+		 */
+		struct BaseFilterCoefficients
 		{
-
+	
 		};
+
+		/**
+		 * Bolierplate class for everything needed to implement a filter processor (except the actual filtering).
+		 * To create a new filter class, derive from this class and define calculateResponseForFrequency and calculateCoefficients.
+		 * Don't forget to create instances of the proper type for all parameter and coefficient pointers in your constructor.
+		 */
 		template <typename SampleType>
 		class FilterBase : public BaseProcessingUnit<SampleType>
 		{
@@ -38,102 +50,78 @@ namespace bdsp
 
 			virtual ~FilterBase() override
 			{
-
 				parameters.reset();
 				coefficients.reset();
-
 
 				visualizerParameters.reset();
 				visualizerCoefficients.reset();
 			}
 
 
+			/* Calculates a complex response from a set of parameters for a given frequency */
+			virtual	juce::dsp::Complex<SampleType> calculateResponseForFrequency(BaseFilterParameters<SampleType>* paramsToUse, SampleType frequency) = 0;
 
-			juce::dsp::Complex<SampleType> calculateResponseForNormalizedFrequency( BaseFilterParameters<SampleType>* paramsToUse, SampleType normalizedFrequency)
+			/* Calculates a complex response from a set of parameters for a given normalized frequency */
+			juce::dsp::Complex<SampleType> calculateResponseForNormalizedFrequency(BaseFilterParameters<SampleType>* paramsToUse, SampleType normalizedFrequency)
 			{
 				return calculateResponseForFrequency(paramsToUse, normalizedFrequency * BaseProcessingUnit<SampleType>::sampleRate / 2);
 			}
 
-			virtual	juce::dsp::Complex<SampleType> calculateResponseForFrequency( BaseFilterParameters<SampleType>* paramsToUse, SampleType frequency) = 0;
+			/* Returns the maginatude response from a set of parameters for a given frequency */
 			SampleType getMagnitudeForFrequency(BaseFilterParameters<SampleType>* paramsToUse, SampleType frequency)
 			{
 				return std::abs(calculateResponseForFrequency(paramsToUse, frequency));
 			}
 
+			/* Returns the maginatude response from a set of parameters for a given normalized frequency */
 			SampleType getMagnitudeForNormalizedFrequency(BaseFilterParameters<SampleType>* paramsToUse, SampleType normalizedFrequency)
 			{
 				return std::abs(calculateResponseForNormalizedFrequency(paramsToUse, normalizedFrequency));
 			}
 
+			/* Returns the phase response from a set of parameters for a given frequency */
 			SampleType getPhaseForFrequency(BaseFilterParameters<SampleType>* paramsToUse, SampleType frequency)
 			{
 				return std::arg(calculateResponseForFrequency(paramsToUse, frequency));
-			}	
-			
+			}
+
+			/* Returns the phase response from a set of parameters for a given normalized frequency */
 			SampleType getPhaseForNormalizedFrequency(BaseFilterParameters<SampleType>* paramsToUse, SampleType normalizedFrequency)
 			{
 				return std::arg(calculateResponseForNormalizedFrequency(paramsToUse, normalizedFrequency));
 			}
 
-            virtual void calculateCoefficients(BaseFilterParameters<SampleType>* paramsToUse, BaseFilterCoefficients<SampleType>* coeffsToFill) = 0;
+			/* Calculates a set of coefficients for a given set of parameters and fills the results into the provided set of coefficients */
+			virtual void calculateCoefficients(BaseFilterParameters<SampleType>* paramsToUse, BaseFilterCoefficients* coeffsToFill) = 0;
 
 			void initFrequency(SampleType initFreq)
 			{
 				smoothedFrequency.setCurrentAndTargetValue(initFreq);
-				if (linkedFilter != nullptr)
-				{
-					linkedFilter->initFrequency(initFreq);
-				}
 			}
 
 			void initQFactor(SampleType initQ)
 			{
 				smoothedQ.setCurrentAndTargetValue(initQ);
-
-				if (linkedFilter != nullptr)
-				{
-					linkedFilter->initQFactor(initQ);
-				}
 			}
 			void initType(SampleType initType)
 			{
 				smoothedType.setCurrentAndTargetValue(initType);
-
-				if (linkedFilter != nullptr)
-				{
-					linkedFilter->initType(initType);
-				}
 			}
 
 
 			void setFrequency(SampleType newFreq)
 			{
 				smoothedFrequency.setTargetValue(newFreq);
-
-				if (linkedFilter != nullptr)
-				{
-					linkedFilter->setFrequency(newFreq);
-				}
 			}
 
 			void setQFactor(SampleType newQ)
 			{
 				smoothedQ.setTargetValue(newQ);
-
-				if (linkedFilter != nullptr)
-				{
-					linkedFilter->setQFactor(newQ);
-				}
 			}
 
 			void setType(SampleType newType)
 			{
 				smoothedType.setTargetValue(newType);
-
-				if (linkedFilter != nullptr)
-				{
-					linkedFilter->setType(newType);
-				}
 			}
 
 
@@ -141,19 +129,10 @@ namespace bdsp
 			{
 				smoothedGain.setCurrentAndTargetValue(newValue);
 
-				if (linkedFilter != nullptr)
-				{
-					linkedFilter->initGain(newValue);
-				}
 			}
 			void setGain(SampleType newValue)
 			{
 				smoothedGain.setTargetValue(newValue);
-
-				if (linkedFilter != nullptr)
-				{
-					linkedFilter->setGain(newValue);
-				}
 			}
 
 			SampleType getFrequency()
@@ -168,13 +147,12 @@ namespace bdsp
 			{
 				return smoothedType.getCurrentValue();
 			}
-
 			SampleType getGain()
 			{
 				return smoothedGain.getCurrentValue();
 			}
 
-
+			/* Additionally loads the smoothed values into the parameters*/
 			inline void updateSmoothedVariables() override
 			{
 				BaseProcessingUnit<SampleType>::updateSmoothedVariables();
@@ -196,8 +174,6 @@ namespace bdsp
 			void processInternal(bool isBypassed) noexcept override
 			{
 
-
-
 				if (isBypassed || BaseProcessingUnit<SampleType>::bypassed)
 				{
 					BaseProcessingUnit<SampleType>::internalWetBlock.copyFrom(BaseProcessingUnit<SampleType>::internalDryBlock);
@@ -216,29 +192,30 @@ namespace bdsp
 					updateSmoothedVariables();
 					calculateCoefficients(parameters.get(), coefficients.get());
 
-					if (linkedFilter != nullptr)
-					{
-						linkedFilter->calculateCoefficients(linkedFilter->parameters.get(), linkedFilter->coefficients.get());
-					}
 					for (int j = 0; j < numChannels; ++j)
 					{
-						auto smp = this->processSample(j, BaseProcessingUnit<SampleType>::internalDryBlock.getSample(j, i)); // calculate each sample
+						auto smp = this->processSample(j, BaseProcessingUnit<SampleType>::internalDryBlock.getSample(j, i));
 						BaseProcessingUnit<SampleType>::internalWetBlock.setSample(j, i, smp);
 					}
 
 				}
 
+#if JUCE_DSP_ENABLE_SNAP_TO_ZERO
 				snapToZero();
-				//applyDryWetMix();
-
+#endif			
 			}
 
-
+			/**
+			 * Ensure that the state variables are rounded to zero if the state variables are denormals.
+			 */
 			virtual void snapToZero()
 			{
 			}
+
+
 		protected:
-			juce::SmoothedValue<SampleType> smoothedFrequency, smoothedQ;
+			juce::SmoothedValue<SampleType> smoothedFrequency;
+			juce::SmoothedValue<SampleType> smoothedQ;
 			juce::SmoothedValue<SampleType> smoothedType;
 			juce::SmoothedValue<SampleType> smoothedGain;
 
@@ -247,20 +224,14 @@ namespace bdsp
 
 		public:
 
-			void setLinkedFilter(FilterBase* f)
-			{
-                BaseProcessingUnit<SampleType>::linkedProcessor = f;
-				linkedFilter = f;
-                BaseProcessingUnit<SampleType>::linkedProcessorCopiesMix = true;
-			}
+			//================================================================================================================================================================================================
+			// Create in derived class constructor
+			std::unique_ptr<BaseFilterParameters<SampleType>> parameters;
+			std::unique_ptr<BaseFilterCoefficients> coefficients; 
 
-			FilterBase* linkedFilter = nullptr; // filter that should share same parameter values
-			std::unique_ptr<BaseFilterParameters<SampleType>> parameters; //  create seperate struct instance in child class and assign its pointer to this
-			std::unique_ptr<BaseFilterCoefficients<SampleType>> coefficients; //  create seperate struct instance in child class and assign its pointer to this
-
-			std::unique_ptr<BaseFilterParameters<SampleType>> visualizerParameters; //  create seperate struct instance in child class and assign its pointer to this
-			std::unique_ptr<BaseFilterCoefficients<SampleType>> visualizerCoefficients; //  create seperate struct instance in child class and assign its pointer to this
-
+			std::unique_ptr<BaseFilterParameters<SampleType>> visualizerParameters; // parameters used by visualizers to generate a response graph
+			std::unique_ptr<BaseFilterCoefficients> visualizerCoefficients; // coefficients used by visualizers to calculate a response graph
+			//================================================================================================================================================================================================
 
 		};
 
