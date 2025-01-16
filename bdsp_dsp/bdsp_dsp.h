@@ -15,6 +15,10 @@
 
 namespace bdsp
 {
+
+	/**
+	 * For use in templated processor classes where the sample type can either be float or double, returns a random number of the proper type.
+	 */
 	template <typename SampleType>
 	class RandomOfType
 	{
@@ -159,7 +163,13 @@ namespace bdsp
 // Generators
 #include "Generators/bdsp_GeneratorBase.h"
 #include "Generators/bdsp_BasicWaveGenerator.h"
-#include "Generators/Noise/bdsp_NoiseGenerator.h"
+#include "Generators/bdsp_BasicShapesGenerator.h"
+#include "Generators/Noise/bdsp_WhiteNoiseGenerator.h"
+#include "Generators/Noise/bdsp_VelvetNoiseGenerator.h"
+#include "Generators/Noise/bdsp_BrownNoiseGenerator.h"
+#include "Generators/Noise/bdsp_PurpleNoiseGenerator.h"
+#include "Generators/Noise/bdsp_ColoredNoiseGenerator.h"
+#include "Generators/Noise/bdsp_StereoNoiseGenerator.h"
 
 
 

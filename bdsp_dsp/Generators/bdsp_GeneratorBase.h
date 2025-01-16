@@ -1,11 +1,13 @@
 #pragma once 
-
-
 namespace bdsp
 {
 	namespace dsp
 	{
-
+		/**
+		 * Base class for all processors that generate signal without the need for an input signal.
+		 * The generated signal is treated like a wet signal and can be mixed with the input signal using if desired.
+		 * To create a new generator all you need to do is derive from this class and override the getSample method.
+		 */
 		template <typename SampleType>
 		class GeneratorBase : public BaseProcessingUnit<SampleType>
 		{
@@ -40,10 +42,10 @@ namespace bdsp
 						updateSmoothedVariables();
 						for (int j = 0; j < BaseProcessingUnit<SampleType>::internalWetBlock.getNumChannels(); ++j)
 						{
-							BaseProcessingUnit<SampleType>::internalWetBlock.setSample(j, i, gain.processSample(j, (getSample(j, i))));
+							BaseProcessingUnit<SampleType>::internalWetBlock.setSample(j, i, gain.processSample(j, (getSample(j)))); // calcuate sample for each channel and apply output gain
 						}
 					}
-                    BaseProcessingUnit<SampleType>::applyDryWetMix();
+					BaseProcessingUnit<SampleType>::applyDryWetMix();
 				}
 			}
 
@@ -69,7 +71,10 @@ namespace bdsp
 				gain.setSmoothingTime(timeInSeconds);
 			}
 
-			virtual SampleType getSample(int channel, int smp) = 0;
+			/**
+			 * Derived classes override this to define how the signal is generated
+			 */
+			virtual SampleType getSample(int channel) = 0;
 
 		protected:
 
