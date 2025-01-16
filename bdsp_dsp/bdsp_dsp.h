@@ -119,8 +119,13 @@ namespace bdsp
 //================================================================================================================================================================================================
 //Filter
 #include "Filter/bdsp_FilterBase.h"
-#include "Filter/bdsp_BiQuad.h"
-#include "Filter/bdsp_AllpassFilter.h"
+#include "Filter/bdsp_CascadedFilter.h"
+#include "Filter/BiQuad/bdsp_BiQuadBase.h"
+#include "Filter/BiQuad/bdsp_AllpassFilter.h"
+#include "Filter/BiQuad/bdsp_StateVariableFilter.h"
+#include "Filter/BiQuad/bdsp_LowShelfFilter.h"
+#include "Filter/BiQuad/bdsp_HighShelfFilter.h"
+#include "Filter/BiQuad/bdsp_PeakingFilter.h"
 #include "Filter/bdsp_ParametricEQ.h"
 
 

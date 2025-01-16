@@ -79,5 +79,5 @@ namespace bdsp
 			SampleType reductionFactor = 1;
 		};
 
-	} //dsp namespace
-} //bdsp namespace
+	} //namespace dsp
+} //namespace bdsp
