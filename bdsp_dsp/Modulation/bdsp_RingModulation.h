@@ -104,7 +104,7 @@ namespace bdsp
 
 
 
-			void processInternal(bool isBypassed) noexcept
+			void processInternal(bool isBypassed) noexcept override
 			{
 				if (!isBypassed)
 				{
