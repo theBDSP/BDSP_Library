@@ -89,11 +89,6 @@ namespace bdsp
 				}
 			}
 
-			inline SampleType processSample(int channel, const SampleType& inputSample) noexcept override
-			{
-				return SampleType(0);
-			}
-
 			StereoSample<SampleType> processSampleStereo(const StereoSample<SampleType>& inputSample) noexcept override
 			{
 				auto gain = (depth.getCurrentValue() / pow(numVoices, 0.75) + (1 - depth.getCurrentValue()) / numVoices);
