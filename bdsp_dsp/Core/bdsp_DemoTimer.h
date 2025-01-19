@@ -75,11 +75,6 @@ namespace bdsp
 
 			}
 
-			virtual inline SampleType processSample(int channel, const SampleType& inputSample) noexcept override
-			{
-				return SampleType(0);
-			}
-
 			void processInternal(bool isBypassed) noexcept override
 			{
 

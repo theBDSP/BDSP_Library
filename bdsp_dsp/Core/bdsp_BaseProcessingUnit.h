@@ -77,7 +77,10 @@ namespace bdsp
 			 * @param inputSample The value of the sample to process
 			 * @return The processed sample
 			 */
-			virtual inline SampleType processSample(int channel, const SampleType& inputSample) noexcept = 0;
+			virtual inline SampleType processSample(int channel, const SampleType& inputSample) noexcept
+			{
+				return inputSample;
+			}
 
 
 			/**
@@ -436,12 +439,6 @@ namespace bdsp
 			{
 
 			}
-			inline SampleType processSample(int channel, const SampleType& inputSample) noexcept override
-			{
-				return inputSample;
-			}
-
-
 		};
 
 

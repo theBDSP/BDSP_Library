@@ -156,10 +156,6 @@ namespace bdsp
 				BaseProcessingUnit<SampleType>::applyDryWetMix();
 			}
 
-			inline SampleType processSample(int channel, const SampleType& inputSample) noexcept override
-			{
-				return SampleType();
-			}
 
 		protected:
 
