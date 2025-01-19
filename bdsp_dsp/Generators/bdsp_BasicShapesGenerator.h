@@ -34,15 +34,23 @@ namespace bdsp
 				skew = newSkew;
 			}
 
+
+			void setBipolar(bool shouldBeBipolar)
+			{
+				bipolar = shouldBeBipolar;
+			}
+
 			SampleType getSample(int channel) override
 			{
-				return BasicWaveGenerator<SampleType>::lookups->waveLookups->getLFOValue(shape, skew, BasicWaveGenerator<SampleType>::phase);
+				return BasicWaveGenerator<SampleType>::lookups->waveLookups->getLFOValue(shape, skew, BasicWaveGenerator<SampleType>::phase, bipolar);
 			}
 
 		private:
 			SampleType skew;
 
 			SampleType shape = 0;
+
+			bool bipolar = true;
 		};
 
 		//================================================================================================================================================================================================

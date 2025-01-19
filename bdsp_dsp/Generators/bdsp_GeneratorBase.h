@@ -76,6 +76,12 @@ namespace bdsp
 			 */
 			virtual SampleType getSample(int channel) = 0;
 
+
+			inline SampleType processSample(int channel, const SampleType& inputSample) noexcept override
+			{
+				return SampleType();
+			}
+
 		protected:
 
 			Gain<SampleType> gain;
