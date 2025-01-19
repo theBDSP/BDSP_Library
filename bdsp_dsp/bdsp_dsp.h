@@ -147,11 +147,6 @@ namespace bdsp
 #include "Delay/bdsp_DelayLine.h"
 
 #include "Stereo/bdsp_StereoWidener.h"
-//=====================================================================================================================
-//Modulation
-#include "Modulation/bdsp_Chorus.h"
-#include "Modulation/bdsp_Flanger.h"
-#include "Modulation/bdsp_Phaser.h"
 
 //================================================================================================================================================================================================
 //Pitch
@@ -172,12 +167,12 @@ namespace bdsp
 #include "Generators/Noise/bdsp_StereoNoiseGenerator.h"
 
 
-
-//================================================================================================================================================================================================
-//Multi Signal
-#include "Multi_Signal/bdsp_MultiSignalProcessorBase.h"
-#include "Multi_Signal/bdsp_RingModulation.h"
-
+//=====================================================================================================================
+//Modulation
+#include "Modulation/bdsp_Chorus.h"
+#include "Modulation/bdsp_Flanger.h"
+#include "Modulation/bdsp_Phaser.h"
+#include "Modulation/bdsp_RingModulation.h"
 
 
 
