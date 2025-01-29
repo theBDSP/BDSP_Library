@@ -5,15 +5,15 @@ namespace bdsp
 
 	BPMComponent::BPMComponent(BPMFollower* follower, GUI_Universals* universalsToUse, AlertWindow* alertToUse, const NamedColorsIdentifier& slider, const NamedColorsIdentifier& buttonDown, const NamedColorsIdentifier& buttonUp)
 		:Component(universalsToUse),
-		hostBPM(this, universalsToUse, "Host BPM"),
-		userBPM(this, universalsToUse, "User BPM"),
-		button(universalsToUse, true),
-		inc(universalsToUse),
-		dec(universalsToUse),
-		fineInc(universalsToUse),
-		fineDec(universalsToUse),
-		currentMods(juce::ModifierKeys()),
-		GUI_Universals::Listener(universalsToUse)
+        GUI_Universals::Listener(universalsToUse),
+        button(universalsToUse, true),
+        inc(universalsToUse),
+        dec(universalsToUse),
+        fineInc(universalsToUse),
+        fineDec(universalsToUse),
+        hostBPM(this, universalsToUse, "Host BPM"),
+        userBPM(this, universalsToUse, "User BPM"),
+        currentMods(juce::ModifierKeys())
 	{
 		;
 		alert = alertToUse;

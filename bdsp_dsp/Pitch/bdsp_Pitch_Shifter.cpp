@@ -107,11 +107,7 @@ namespace bdsp
 			stretchR.reset();
 			latencyComp.reset();
 		}
-		template<typename SampleType>
-		StereoSample<SampleType> StereoPitchShifter<SampleType>::processSampleStereo(const StereoSample<SampleType>& inputSample) noexcept
-		{
-			return StereoSample<SampleType>();
-		}
+
 		template<typename SampleType>
 		void StereoPitchShifter<SampleType>::updateSmoothedVariables()
 		{

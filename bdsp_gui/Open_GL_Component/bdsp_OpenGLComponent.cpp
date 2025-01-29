@@ -5,9 +5,9 @@ namespace bdsp
 
 	OpenGLComponent::OpenGLComponent(GUI_Universals* universalsToUse, int numAttr)
 		:Component(universalsToUse),
-		numAttributes(numAttr),
-		vertexBuffer(numAttr),
-		background(universalsToUse, this)
+        vertexBuffer(numAttr),
+        background(universalsToUse, this),
+        numAttributes(numAttr)
 	{
 		setBackgroundColor(BDSP_COLOR_PURE_BLACK, BDSP_COLOR_DARK);
 		setOpaque(true);
@@ -1102,7 +1102,7 @@ namespace bdsp
 
 				if (freqValsToPushTo != nullptr)
 				{
-					freqValsToPushTo->swapWithArray(response);
+					freqValsToPushTo->swapWith(response);
 				}
 
 				inputPtr = 0;
@@ -2032,6 +2032,8 @@ namespace bdsp
 		{
 			float x = 2 * (newCenter.x / getWidth()) - 1;
 			float y = -(2 * (newCenter.y / getHeight()) - 1);
+            
+            center = {x,y};
 		}
 
 	}

@@ -103,7 +103,7 @@ namespace bdsp
 			{
 				lookup = lookupToUse;
 
-				lookup->panningLookups;
+				lookup->panningLookups.operator->();
 
 
 			}

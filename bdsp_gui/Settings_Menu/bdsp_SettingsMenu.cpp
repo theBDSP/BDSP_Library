@@ -17,8 +17,8 @@ namespace bdsp
 
 	SettingsMenu::SettingsMenu(GUI_Universals* universalsToUse, Settings* structToLink, const juce::File& userManual)
 		:ComponentCore(this, universalsToUse),
-		manual(universalsToUse),
-		vp(universalsToUse)
+        vp(universalsToUse),
+        manual(universalsToUse)
 	{
 		;
 		settingsStruct = structToLink;

@@ -339,7 +339,7 @@ namespace bdsp
 #include "Linkable_Control/Components/General_Control_Component/bdsp_GeneralControlComponent.h"
 #include "Linkable_Control/Components/Macro_Component/bdsp_MacroComponent.h"
 #include "Linkable_Control/Components/LFO_Component/bdsp_LFOComponent.h"
-#include "Linkable_Control/Components/Envelope_Follower_Component/bdsp_EnvelopeFollowerComponent.h"
+#include "Linkable_Control/Components/Envelope_Follower_Component/bdsp_envelopeFollowerComponent.h"
 
 #include "Linkable_Control/Components/All_Linkable_Control_Components/All_Linkable_Control_Components.h"
 

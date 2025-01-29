@@ -242,7 +242,6 @@ namespace bdsp
 
 		//borderColor = borderColor == 0 ? screenRadius : borderColor;
 		float borderX = 2 * (border / (float)getWidth());
-		float borderY = 2 * (border / (float)getHeight());
 
 
 		glCenter.x = juce::jmap((float)freq->getNormalisableRange().convertTo0to1(freq->getActualValue()), -1 + borderX, 1 - borderX);

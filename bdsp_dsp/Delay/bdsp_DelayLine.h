@@ -134,7 +134,6 @@ namespace bdsp
 				const auto& inputBlock = BaseProcessingUnit<SampleType>::internalDryBlock;
 				const auto& outputBlock = BaseProcessingUnit<SampleType>::internalWetBlock;
 
-				const auto numChannels = outputBlock.getNumChannels();
 				const auto numSamples = outputBlock.getNumSamples();
 
 

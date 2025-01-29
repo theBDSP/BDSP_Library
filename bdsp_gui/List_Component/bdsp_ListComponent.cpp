@@ -175,14 +175,6 @@ namespace bdsp
 		return h;
 	}
 
-	void ListComponent::lookAndFeelChanged()
-	{
-		auto lnf = &getLookAndFeel();
-		for (auto i : List)
-		{
-//			i->setLookAndFeel(lnf);
-		}
-	}
 
 
 	void ListComponent::clearItems()

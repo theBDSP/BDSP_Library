@@ -10,7 +10,7 @@ namespace bdsp
 	{
 	public:
 		DSPComponent(Processor* processor);
-		~DSPComponent();
+		virtual ~DSPComponent();
 		virtual void prepare(const juce::dsp::ProcessSpec& spec) = 0; // should flip prepared bool to true in function call
 
 

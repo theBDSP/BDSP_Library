@@ -69,6 +69,7 @@ namespace bdsp
 		{
 		public:
 			PresetData(juce::XmlElement* xmlData)
+            :xmlState("Main")
 			{
 				if (xmlData == nullptr || !(xmlData->getTagName() == "Main" || xmlData->getTagName() == "APVTS"))
 				{
@@ -140,10 +141,10 @@ namespace bdsp
 				if (!(isAPVTSOnly || onlyParameters))
 				{
 
-					juce::XmlElement out("Main");
+					xmlState = juce::XmlElement("Main");
 					auto fillXML = [&](juce::String tagName, juce::StringPairArray& arr)
 					{
-						auto newChild = out.createNewChildElement(tagName);
+						auto newChild = xmlState.createNewChildElement(tagName);
 						auto keys = arr.getAllKeys();
 						auto values = arr.getAllValues();
 						for (int i = 0; i < keys.size(); ++i)
@@ -154,12 +155,12 @@ namespace bdsp
 					};
 
 					fillXML(InfoXMLTag, info);
-					out.createNewChildElement(FavoriteXMLTag)->setAttribute(FavoriteAttributeName, favorite);
+					xmlState.createNewChildElement(FavoriteXMLTag)->setAttribute(FavoriteAttributeName, favorite);
 					fillXML(TagsXMLTag, tags);
 					fillXML(SuperTagsXMLTag, superTags);
 					fillXML(MacroNamesXMLTag, macroNames);
 
-					auto APVTS = out.createNewChildElement("APVTS");
+					auto APVTS = xmlState.createNewChildElement("APVTS");
 					auto keys = parameters.getAllKeys();
 					auto values = parameters.getAllValues();
 					for (int i = 0; i < keys.size(); ++i)
@@ -168,21 +169,21 @@ namespace bdsp
 						child->setAttribute("id", keys[i]);
 						child->setAttribute("value", values[i]);
 					}
-					return &out;
+					return &xmlState;
 				}
 				else
 				{
-					juce::XmlElement out("APVTS");
+					xmlState = juce::XmlElement("APVTS");
 
 					auto keys = parameters.getAllKeys();
 					auto values = parameters.getAllValues();
 					for (int i = 0; i < keys.size(); ++i)
 					{
-						auto child = out.createNewChildElement("PARAM");
+						auto child = xmlState.createNewChildElement("PARAM");
 						child->setAttribute("id", keys[i]);
 						child->setAttribute("value", values[i]);
 					}
-					return &out;
+					return &xmlState;
 
 				}
 			}
@@ -269,7 +270,7 @@ namespace bdsp
 			juce::StringPairArray info, tags, superTags, macroNames, parameters, orderedListParameters;
 			bool favorite = false;
 			bool isAPVTSOnly = true;
-
+            juce::XmlElement xmlState;
 		};
 
 

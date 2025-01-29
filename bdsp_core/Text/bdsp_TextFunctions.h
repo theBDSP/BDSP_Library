@@ -102,7 +102,7 @@ namespace bdsp
 	{
 
 		juce::String out;
-		for (const auto& c : s) // for each character in the string append its integer value preceded by an underscore to the output
+        for (const auto c : s) // for each character in the string append its integer value preceded by an underscore to the output
 		{
 			out += '_' + juce::String(int(c));
 		}

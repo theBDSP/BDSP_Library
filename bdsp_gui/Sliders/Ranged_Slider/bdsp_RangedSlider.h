@@ -8,7 +8,7 @@ namespace bdsp
 
 
 
-	class RangedSlider : public AnimatedComponent, public RangedComponentCore, public juce::AsyncUpdater, public juce::DragAndDropTarget, public juce::ComponentListener, public juce::AudioProcessorParameter::Listener
+	class RangedSlider : public AnimatedComponent, public RangedComponentCore, public juce::AsyncUpdater, public juce::DragAndDropTarget, public juce::AudioProcessorParameter::Listener
 	{
 	public:
 		RangedSlider(GUI_Universals* universalsToUse);

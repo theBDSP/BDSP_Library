@@ -26,13 +26,10 @@ namespace bdsp
 
 		void postionItemsWithinRectangle(const juce::Rectangle<float>& rect);
 		void resized() override;
-		void paint(juce::Graphics& g);
-		void paintOverChildren(juce::Graphics& g);
+		void paint(juce::Graphics& g) override;
+		void paintOverChildren(juce::Graphics& g) override;
 
 		float getIdealHeight(float width);
-
-		void lookAndFeelChanged() override;
-
 
 		void setPreviewOnHighlight(bool newState);
 

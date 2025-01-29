@@ -147,11 +147,11 @@ namespace bdsp
 
 			if (isVertical)
 			{
-				buttons[i]->setBounds(juce::Rectangle<int>(0, i * h, w, h).translated(tabBar.getX(), tabBar.getY() + hasCutout ? (2 * i / buttons.size() > 0 ? cutoutRect.getHeight() : 0) : 0));
+                buttons[i]->setBounds(juce::Rectangle<int>(0, i * h, w, h).translated(tabBar.getX(), tabBar.getY() + (hasCutout ? (2 * i / buttons.size() > 0 ? cutoutRect.getHeight() : 0) : 0)));
 			}
 			else
 			{
-				buttons[i]->setBounds(juce::Rectangle<int>(i * w, 0, w, h).translated(tabBar.getX() + hasCutout ? (2 * i / buttons.size() > 0 ? cutoutRect.getWidth() : 0) : 0, tabBar.getY()));
+                buttons[i]->setBounds(juce::Rectangle<int>(i * w, 0, w, h).translated(tabBar.getX() + (hasCutout ? (2 * i / buttons.size() > 0 ? cutoutRect.getWidth() : 0) : 0), tabBar.getY()));
 			}
 
 

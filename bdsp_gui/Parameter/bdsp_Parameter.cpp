@@ -4,11 +4,11 @@ namespace bdsp
 {
 	Parameter::Parameter(const juce::ParameterID& parameterID, const juce::String& parameterName, juce::NormalisableRange<float> normalisableRange, float defaultVal, const juce::AudioParameterFloatAttributes& attributes)
 		:juce::RangedAudioParameter(parameterID, parameterName, attributes.getAudioProcessorParameterWithIDAttributes()),
-		range(normalisableRange),
-		value(defaultVal),
-		defaultValue(defaultVal),
-		valueToStringFunction(attributes.getStringFromValueFunction()),
-		stringToValueFunction(attributes.getValueFromStringFunction())
+            range(normalisableRange),
+            valueToStringFunction(attributes.getStringFromValueFunction()),
+            stringToValueFunction(attributes.getValueFromStringFunction()),
+            value(defaultVal),
+            defaultValue(defaultVal)
 	{
 	}
 	Parameter::Parameter(const juce::ParameterID& parameterID, const juce::String& parameterName, juce::NormalisableRange<float> normalisableRange, float defaultVal, const FloatParameterAttribute& attributes)

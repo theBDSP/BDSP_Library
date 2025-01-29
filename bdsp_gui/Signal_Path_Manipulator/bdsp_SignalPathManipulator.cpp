@@ -303,7 +303,7 @@ namespace bdsp
 		if (prevOccupant != -1) // collision, have to move comp that used to be here
 		{
 			int branch = minIdx / branches;
-			int stage = minIdx % branches;
+			//int stage = minIdx % branches;
 
 			int idx = -1;
 			for (int i = 0; i < stages; ++i) // same branch
