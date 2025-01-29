@@ -105,7 +105,7 @@ namespace bdsp
 				delayS->updateSmoothedVariables();
 
 			}
-			void setSmoothingTime(SampleType timeInSeconds)
+			void setSmoothingTime(SampleType timeInSeconds) override
 			{
 				StereoPanner<SampleType>::setSmoothingTime(timeInSeconds);
 

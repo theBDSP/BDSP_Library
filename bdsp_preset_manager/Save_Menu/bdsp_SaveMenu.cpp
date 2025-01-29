@@ -2,13 +2,13 @@
 namespace bdsp
 {
 	SaveMenu::SaveMenu(PresetManager* parent)
-		:fav(parent->universals, true),
-		cancel(parent->universals),
-		save(parent->universals),
-		nameBar(parent->universals),
-		DesktopComponent(parent->universals, true),
-		GUI_Universals::Listener(parent->universals),
-		vp(parent->universals)
+        :DesktopComponent(parent->universals, true),
+        GUI_Universals::Listener(parent->universals),
+        fav(parent->universals, true),
+        cancel(parent->universals),
+        save(parent->universals),
+        nameBar(parent->universals),
+        vp(parent->universals)
 	{
 
 		p = parent;

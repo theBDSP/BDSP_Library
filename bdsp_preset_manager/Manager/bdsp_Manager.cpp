@@ -3,13 +3,13 @@ namespace bdsp
 {
 
 	PresetManager::PresetManager(GUI_Universals* universalsToUse, StateHandler* handlerToUse, AlertWindow* alertToUse)
-		:fav(universalsToUse, true),
-		left(universalsToUse),
-		right(universalsToUse),
-		titleBarHamburgerMenu(universalsToUse, true),
-		browser(this, universalsToUse),
-		titleBar(this, universalsToUse),
-		pc(universalsToUse)
+        :pc(universalsToUse),
+        fav(universalsToUse, true),
+        left(universalsToUse),
+        right(universalsToUse),
+        browser(this, universalsToUse),
+        titleBar(this, universalsToUse),
+        titleBarHamburgerMenu(universalsToUse, true)
 	{
 		universals = universalsToUse;
 		Handler = handlerToUse;

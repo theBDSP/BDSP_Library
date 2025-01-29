@@ -52,7 +52,7 @@ namespace bdsp
 			}
 		}
 
-		void drawContent(juce::Graphics& g)
+		void drawContent(juce::Graphics& g) override
 		{
 			auto font = universals->Fonts[getFontIndex()].getFont().withHeight(getHeight() * 0.9);
 			auto selectedRange = getHighlightedRegion();

@@ -42,7 +42,6 @@ namespace bdsp
 					return;
 				}
 
-				const auto numChannels = BaseProcessingUnit<SampleType>::internalWetBlock.getNumChannels();
 				const auto numSamples = BaseProcessingUnit<SampleType>::internalWetBlock.getNumSamples();
 
 

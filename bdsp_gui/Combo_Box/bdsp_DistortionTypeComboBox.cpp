@@ -179,9 +179,6 @@ namespace bdsp
 	{
 		IncrementalComboBox<>::resized();
 
-
-		auto h = getHeight();
-
 		if (gridSibling == nullptr)
 		{
 

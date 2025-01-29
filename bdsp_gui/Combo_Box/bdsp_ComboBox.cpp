@@ -95,8 +95,8 @@ namespace bdsp
 
 
 	ComboBoxBase::ComboBoxBase(juce::AudioParameterChoice* param, GUI_Universals* universalsToUse, const juce::StringArray& dispNames, const std::function<void(int)>& changFunc)
-		:ChoiceComponentCore(param, this),
-		Component(universalsToUse)
+        :Component(universalsToUse),
+        ChoiceComponentCore(param, this)
 	{
 		;
 

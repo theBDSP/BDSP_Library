@@ -24,7 +24,7 @@ namespace bdsp
 
 
 
-				lookup->waveLookups;
+				lookup->waveLookups.operator->();
 
 
 				allpassL = std::make_unique<BiQuadFilters::SecondOrderAllpassFilter<SampleType>>(lookup);

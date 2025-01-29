@@ -4,8 +4,8 @@
 namespace bdsp
 {
 	RangedBarSlider::RangedBarSlider(GUI_Universals* universalsToUse, const juce::String& baseName)
-		:slider(universalsToUse, baseName),
-		RangedSlider(universalsToUse)
+        :RangedSlider(universalsToUse),
+        slider(universalsToUse, baseName)
 	{
 		setParent(&slider, false);
 		addAndMakeVisible(slider);

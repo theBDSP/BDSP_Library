@@ -196,7 +196,7 @@ namespace bdsp
 
 			for (int i = 0; i < num; i++)
 			{
-				arr.set(num * idx + i, va_arg(args, float));
+				arr.set(num * idx + i, va_arg(args, double));
 			}
 
 			if (idx * num >= n)
@@ -896,7 +896,7 @@ namespace bdsp
 
 		juce::OwnedArray<OpenGLComponent> subClasses;
 	protected:
-		virtual void generateVertexBuffer();
+		virtual void generateVertexBuffer() override;
 
 	};
 

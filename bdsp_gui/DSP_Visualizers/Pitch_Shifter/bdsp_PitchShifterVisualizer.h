@@ -10,7 +10,7 @@ namespace bdsp
 	public:
 		PitchShifterVisualizer(GUI_Universals* universalsToUse, BaseSlider* leftAmt, BaseSlider* rightAmt, BaseSlider* mixAmt);
 		void resized() override;
-		void paint(juce::Graphics& g);
+		void paint(juce::Graphics& g) override;
 
 		void setColor(const NamedColorsIdentifier& newColor, const NamedColorsIdentifier& newDryColor);
 

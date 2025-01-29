@@ -145,7 +145,7 @@ namespace bdsp
 			}
 
 		private:
-			int getIndex(size_t x, size_t y) const
+			size_t getIndex(size_t x, size_t y) const
 			{
 				return x + y * dimX;
 			}

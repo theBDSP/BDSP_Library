@@ -3,9 +3,9 @@ namespace bdsp
 {
 	PresetMenuItem::PresetMenuItem(PresetMenu* parent, int idx, const juce::File& f)
 		:ComponentCore(this, parent->parentManager->universals),
-		favIcon(parent->parentManager->universals, true),
-		label(this, parent->parentManager->universals),
-		GUI_Universals::Listener(parent->parentManager->universals)
+        GUI_Universals::Listener(parent->parentManager->universals),
+        label(this, parent->parentManager->universals),
+        favIcon(parent->parentManager->universals, true)
 	{
 		p = parent;
 		index = idx;
