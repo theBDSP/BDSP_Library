@@ -709,11 +709,6 @@ namespace bdsp
 
 	}
 
-	TagMenu::TagButton& TagMenu::TagButton::operator=(const TagButton& other)
-	{
-		return *this = TagButton(other);
-	}
-
 
 
 	inline float TagMenu::TagButton::getIdealWidth(int h, const juce::String& s)

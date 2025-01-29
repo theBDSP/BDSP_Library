@@ -10,7 +10,7 @@ namespace bdsp
 	LFOParameterListener::LFOParameterListener(dsp::DSP_Universals<float>* lookupsToUse)
 	{
 		lookups = lookupsToUse;
-		lookups->waveLookups;
+		lookups->waveLookups.operator->();
 	}
 
 	LFOParameterListener::~LFOParameterListener()

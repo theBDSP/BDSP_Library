@@ -33,10 +33,10 @@ namespace bdsp
 
 
 	MacroComponent::MacroComponent(GUI_Universals* universalsToUse, int macroIdx, juce::ValueTree* nameValueLocation)
-		:LinkableControlComponent(universalsToUse, macroIdx),
-		ComponentCore(this, universalsToUse),
-		slider(universalsToUse, "Macro " + juce::String(macroIdx + 1), true),
-		GUI_Universals::Listener(universalsToUse)
+        :ComponentCore(this, universalsToUse),
+        LinkableControlComponent(universalsToUse, macroIdx),
+        GUI_Universals::Listener(universalsToUse),
+        slider(universalsToUse, "Macro " + juce::String(macroIdx + 1), true)
 
 	{
 		displayName = "M" + juce::String(macroIdx + 1);

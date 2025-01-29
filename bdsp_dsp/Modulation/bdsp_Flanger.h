@@ -22,7 +22,7 @@ namespace bdsp
 			{
 				lookup = lookupToUse;
 
-				lookup->waveLookups;
+				lookup->waveLookups.operator->();
 
 
 			}

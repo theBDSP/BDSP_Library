@@ -105,6 +105,7 @@ namespace bdsp
 		class LambdaListener
 		{
 		public:
+            virtual ~LambdaListener()=default;
 
 			virtual void parameterLambdasUpdated() = 0;
 		};

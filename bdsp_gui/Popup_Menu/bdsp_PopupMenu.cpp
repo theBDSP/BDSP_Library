@@ -3,10 +3,10 @@
 namespace bdsp
 {
 	PopupMenu::PopupMenu(juce::Component* compToAttachTo, GUI_Universals* universalsToUse, bool preview)
-		:List(this),
-		DesktopComponent(universalsToUse),
-		vp(universalsToUse),
-		GUI_Universals::Listener(universalsToUse)
+        :DesktopComponent(universalsToUse),
+        GUI_Universals::Listener(universalsToUse),
+        List(this),
+        vp(universalsToUse)
 	{
 		;
 		setLossOfFocusClosesWindow(true, &vp.getVerticalScrollBar());

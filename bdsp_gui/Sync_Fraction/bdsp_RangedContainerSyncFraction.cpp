@@ -179,10 +179,10 @@ namespace bdsp
 
 	void RangedContainerSyncFraction::setCorners(CornerCurves newCurves)
 	{
-		containerFrac->slider.setCornerCurves(CornerCurves(newCurves & CornerCurves::topLeft | newCurves & CornerCurves::bottomLeft));
-		containerTime->slider.setCornerCurves(CornerCurves(newCurves & CornerCurves::topLeft | newCurves & CornerCurves::bottomLeft));
+        containerFrac->slider.setCornerCurves(CornerCurves((newCurves & CornerCurves::topLeft) | (newCurves & CornerCurves::bottomLeft)));
+        containerTime->slider.setCornerCurves(CornerCurves((newCurves & CornerCurves::topLeft) | (newCurves & CornerCurves::bottomLeft)));
 
-		corners = CornerCurves(newCurves & CornerCurves::topRight | newCurves & CornerCurves::bottomRight);
+        corners = CornerCurves((newCurves & CornerCurves::topRight) | (newCurves & CornerCurves::bottomRight));
 	}
 
 }// namnepace bdsp

@@ -20,6 +20,7 @@ namespace bdsp
 
 		}
 
+        virtual ~ParameterPointer() = default;
 		bool operator > (ParameterPointer<paramType, T>& other)
 		{
 			return loadedValue > other.get();

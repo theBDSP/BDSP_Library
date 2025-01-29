@@ -22,12 +22,12 @@ namespace bdsp
 		{
 		public:
 			Chorus(DSP_Universals<SampleType>* lookupToUse)
-				:modPhases(lookupToUse->chorusLookups->getChorusPhases()),
-				modMults(lookupToUse->chorusLookups->getChorusVelocityMults())
+            :modMults(lookupToUse->chorusLookups->getChorusVelocityMults()),
+            modPhases(lookupToUse->chorusLookups->getChorusPhases())
 			{
 				lookup = lookupToUse;
 
-				lookup->waveLookups;
+				lookup->waveLookups.operator->();
 
 
 

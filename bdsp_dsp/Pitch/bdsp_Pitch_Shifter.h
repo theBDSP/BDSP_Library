@@ -67,14 +67,7 @@ namespace bdsp
 					return;
 				}
 
-				const auto numChannels = BaseProcessingUnit<SampleType>::internalWetBlock.getNumChannels();
 				const auto numSamples = BaseProcessingUnit<SampleType>::internalWetBlock.getNumSamples();
-
-				//juce::AudioBuffer<SampleType> inputCopy(numChannels, numSamples);
-				//for (int i = 0; i < numChannels; ++i)
-				//{
-				//	inputCopy.copyFrom(i, 0,  BaseProcessingUnit<SampleType>::internalDryBlock.getChannelPointer(i), numSamples);
-				//}
 
 				SignalSmithBlockBridge<SampleType> inputBridge(BaseProcessingUnit<SampleType>::internalDryBlock);
 				SignalSmithBlockBridge<SampleType> outputBridge(BaseProcessingUnit<SampleType>::internalWetBlock);
@@ -83,8 +76,6 @@ namespace bdsp
 				stretch.setTransposeSemitones(pitchAmt.getCurrentValue());
 				stretch.process(inputBridge, numSamples, outputBridge, numSamples);
 
-				//juce::dsp::AudioBlock<SampleType> input(inputCopy);
-				//juce::dsp::ProcessContextNonReplacing<SampleType> latencyContext(input, BaseProcessingUnit<SampleType>::internalWetBlock);
 				latencyComp.mixWithLatencyCompensation(*BaseProcessingUnit<SampleType>::internalContext.get(), BaseProcessingUnit<SampleType>::smoothedDryMix, BaseProcessingUnit<SampleType>::smoothedWetMix);
 			}
 
@@ -136,7 +127,7 @@ namespace bdsp
 					return;
 				}
 
-				const auto numChannels = BaseProcessingUnit<SampleType>::internalWetBlock.getNumChannels();
+			
 				const auto numSamples = BaseProcessingUnit<SampleType>::internalWetBlock.getNumSamples();
 
 
@@ -167,11 +158,6 @@ namespace bdsp
 
 			}
 
-
-
-
-
-			inline StereoSample<SampleType> processSampleStereo(const StereoSample<SampleType>& inputSample) noexcept override;
 
 			void updateSmoothedVariables() override;
 

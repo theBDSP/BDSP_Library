@@ -350,7 +350,6 @@ namespace bdsp
 
 		auto freqLambdaText = [=](const juce::String& s)
 		{
-			float base;
 			auto txt = s.retainCharacters("0123456789.-abcdefgABCDEFG#");
 			if (isBetweenInclusive(static_cast<char>(txt[0]), 'a', 'g') || isBetweenInclusive(static_cast<char>(txt[0]), 'A', 'G')) // checks if string starts with valid note name
 			{
@@ -639,7 +638,7 @@ namespace bdsp
 				return a->attribute;
 			}
 		}
-
+        jassertfalse; // you've requested an attribute that doesn't exist
 	}
 
 
@@ -703,7 +702,7 @@ namespace bdsp
 			}
 		}
 
-		return BoolParameterAttribute();
+        jassertfalse; // you've requested an attribute that doesn't exist
 	}
 
 	void GenericParameterAttributes::addBoolAttribute(const BoolParameterAttribute& attributeToAdd)

@@ -105,7 +105,7 @@ namespace bdsp
 
 				}
 
-				~Listener()
+				virtual ~Listener()
 				{
 					p->removeListener(this);
 				}

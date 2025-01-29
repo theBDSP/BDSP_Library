@@ -667,8 +667,8 @@ namespace bdsp
 
 	BaseSlider::Label::Label(BaseSlider* s)
 		:bdsp::Label(s->universals, ""),
-		parentSlider(*s),
-		title(s->universals, "")
+        title(s->universals, ""),
+        parentSlider(*s)
 	{
 		addListener(this);
 		//title.addListener(this);

@@ -22,8 +22,8 @@ namespace bdsp
 			DistortionTypeBase(const juce::Array<floatType>& RMSValues, const unsigned char* iconData, size_t iconDataSize)
 			{
 				T minVal = arrayMin(RMSValues);
-				size_t endIDX = RMSValues.size();
-				/*
+                
+				/**
 				 * Returns the reciprocal (normalized to the minimum of all RMS Values) of the RMS gain for a given distortion amount.
 				*/
 				const std::function<T(T)> CompensationGainFunc = [=](T k)
