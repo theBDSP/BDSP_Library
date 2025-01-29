@@ -6,16 +6,17 @@ namespace bdsp
 
 	namespace dsp
 	{
-
-		//extension of juce Matrix class
-		//row major ordered (row, col) |||| itereate getNumColumns() then getNumRows()
+		/**
+		 * Extension of juce Matrix class.
+		 * Row major ordered (row, col).
+		 */
 		template <typename T>
 		class Matrix : public juce::dsp::Matrix<T>
 		{
 		public:
 
 			Matrix()
-				:juce::dsp::Matrix<T>(1,1)
+				:juce::dsp::Matrix<T>(1, 1)
 			{
 
 			}
@@ -40,23 +41,24 @@ namespace bdsp
 
 			}
 
-			Matrix<T> createHadamard(int stages, T scaling) // creates a 2^stages square matrix
+			/*creates a 2^stages square Hadamard matrix*/
+			Matrix<T> createHadamardMatrix(int stages, T scaling)
 			{
 				Matrix<T> out(1, 1);
 				out(0, 0) = scaling;
 
 				for (int i = 0; i < stages; ++i)
 				{
-					out = createHadamardInternal(out);
+					out = createHadamardMatrixInternal(out);
 				}
 
-				
+
 				return out;
 			}
 
 
 
-			// calculates the sum of every element in the matrix
+			/* Calculates the sum of every element in the matrix */ 
 			T sum()
 			{
 				T out = 0;
@@ -70,20 +72,20 @@ namespace bdsp
 				return out;
 			}
 
-			// calculates the mean value of all the elements in the matrix
+			/* Calculates the mean value of all the elements in the matrix	*/
 			T average()
 			{
 				jassert(!juce::dsp::Matrix<T>::isNullMatrix());
 				return sum() / (juce::dsp::Matrix<T>::getNumRows() * juce::dsp::Matrix<T>::getNumColumns());
 			}
 
+			/* Calulates the RMS (root-mean-squared) value of the enitre matrix */
 			T RMS()
 			{
-
 				return sqrt(1.0 / (juce::dsp::Matrix<T>::getNumRows() * juce::dsp::Matrix<T>::getNumColumns()) * sumOfSquares());
-
 			}
 
+			/* Calculates the sum of the square of each element */
 			T sumOfSquares()
 			{
 				T out = 0;
@@ -100,24 +102,35 @@ namespace bdsp
 
 		private:
 
-
-			Matrix<T> createHadamardInternal(Matrix<T> in)
+			/**
+			 * Creates the next iteration of a Hadamard matrix using Sylvester's construction.
+			 * Each iteration is created by copying the matrix H into a new matrix in the following way:
+			 * | H  H |
+			 * | H -H |
+			 */
+			Matrix<T> createHadamardMatrixInternal(Matrix<T> in)
 			{
 				jassert(in.isSquare());
 				int n = in.getNumRows();
 				Matrix<T> out(2 * n, 2 * n);
-				for (int i = 0; i < n; ++i)
+
+				// iterate each element in the starting matrix
+				for (int r = 0; r < n; ++r)
 				{
-					auto v = in(i, i);
-					out(i, i) = v;
-					out(n + i, i) = v;
-					out(i, n + i) = v;
-					out(n + i, n + i) = -v;
+					for (int c = 0; c < n; ++c)
+					{
+						// set the values in the new matrix according to Sylverster's construction
+						auto v = in(r, c);
+						out(r, c) = v;
+						out(n + r, c) = v;
+						out(r, n + c) = v;
+						out(n + r, n + c) = -v;
+					}
 				}
 				return out;
 			}
 
-			JUCE_LEAK_DETECTOR(Matrix);
+			JUCE_LEAK_DETECTOR(Matrix)
 		};
 	}// namespace dsp
 }// namespace bdsp
