@@ -108,9 +108,9 @@ namespace bdsp
 		juce::Array<float> influenceParameterValues;
 
 
-		float convertTo0to1(float v) const noexcept override;
+		float convertTo0to1(float v) const noexcept;
 
-		float convertFrom0to1(float v) const noexcept override;
+		float convertFrom0to1(float v) const noexcept;
 
 
 

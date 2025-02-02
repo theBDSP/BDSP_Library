@@ -6,26 +6,27 @@ namespace bdsp
 		
 		/**
 		 * A class that wraps a specific filter class and creates a higher order version of it.
-		 * @tparam order The number of identical filters to use in processing to create a higher order filter.
+		 * @tparam maxOrder The maximum number of identical filters to use in processing to create a higher order filter.
 		 * Note this does not necessarily exactly equal the actual order of the resulting filter, the order of the resulting filter will be order * the order of the derived filter class.
 		 * i.e. A BiQuad filter (2nd order) with an order of 2 will result in a final filter of order 4.
 		 */
 
-		template <typename SampleType, class FilterType, int order = 1>
+		template <typename SampleType, class FilterType, int maxOrder = 1>
 		class CascadedFilter : public FilterType
 		{
 		public:
 
 			template<class ... Types>
 			CascadedFilter(Types...args)
-				:FilterType(args...)
+				:FilterType(args...),
+				order(maxOrder)
 			{
 
 			}
 
 			void prepare(const juce::dsp::ProcessSpec& spec) override
 			{
-				juce::dsp::ProcessSpec multiSpec{ spec.sampleRate,spec.maximumBlockSize, order * spec.numChannels }; // repeated filters processed in dummy channels, can't reuse same channel because that would affect the values of previous samples and interfere with calculations.
+				juce::dsp::ProcessSpec multiSpec{ spec.sampleRate,spec.maximumBlockSize, maxOrder * spec.numChannels }; // repeated filters processed in dummy channels, can't reuse same channel because that would affect the values of previous samples and interfere with calculations.
 				FilterType::prepare(multiSpec);
 				channels = spec.numChannels;
 			}
@@ -47,8 +48,15 @@ namespace bdsp
 				return out;
 			}
 
+			void setOrder(int newOrder)
+			{
+				jassert(isBetweenInclusive(newOrder, 1, maxOrder));
+				order = newOrder;
+			}
+
 		private:
 			int channels;
+			int order;
 		};
 	} // namespace dsp
 } // namespace bdsp
