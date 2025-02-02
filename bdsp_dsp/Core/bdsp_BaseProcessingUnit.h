@@ -246,6 +246,14 @@ namespace bdsp
 			{
 				return getDryMix() * drySample + getWetMix() * wetSample;
 			}
+			
+			/**
+			 * Applies the current values for dry mix and wet mix to the provided samples, sums the results together, and returns the sum
+			 */
+			StereoSample<SampleType> applyDryWetMix(StereoSample<SampleType> drySample, StereoSample<SampleType> wetSample)
+			{
+				return getDryMix() * drySample + getWetMix() * wetSample;
+			}
 
 			/**
 			 * Mixes the internal dry and wet blocks and replaces the outBlock with the result

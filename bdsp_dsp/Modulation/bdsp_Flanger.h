@@ -11,7 +11,9 @@ namespace bdsp
 	namespace dsp
 	{
 
-
+		/**
+		 * Basic flanger unit. Has seperate delay lines for each stereo channel.
+		 */
 		template <typename SampleType>
 		class Flanger : public BaseProcessingUnit<SampleType>
 		{
@@ -22,21 +24,19 @@ namespace bdsp
 			{
 				lookup = lookupToUse;
 
-				lookup->waveLookups.operator->();
+				lookup->waveLookups.operator->(); // creates the lookup object if necessary
 
 
 			}
 			~Flanger() = default;
 
-			//==============================================================================
-			/** Initialises the processor. */
 			void prepare(const juce::dsp::ProcessSpec& spec) override
 			{
 				const juce::dsp::ProcessSpec monoSpec = { spec.sampleRate,spec.maximumBlockSize,1 };
 				delayL.prepare(monoSpec);
 				delayR.prepare(monoSpec);
 
-				maxDelay = (BDSP_FLANGER_BASE_DELAY_MAX_MS + BDSP_FLANGER_DELAY_CHANGE_MAX_MS) / 1000.0 * spec.sampleRate + 1;
+				maxDelay = (BDSP_FLANGER_BASE_DELAY_MAX_MS + BDSP_FLANGER_DELAY_CHANGE_MAX_MS) / 1000.0 * spec.sampleRate + 1; // max delay in samples
 				delayL.setMaxDelay(maxDelay);
 				delayR.setMaxDelay(maxDelay);
 
@@ -54,8 +54,8 @@ namespace bdsp
 
 				BaseProcessingUnit<SampleType>::reset();
 
-				modPosL = 0;
-				modPosR = 0;
+				modPhaseL = 0;
+				modPhaseR = 0;
 			}
 
 
@@ -117,15 +117,15 @@ namespace bdsp
 
 				float tmp;
 				auto modInc = delayChangeRate.getCurrentValue() / (BaseProcessingUnit<SampleType>::sampleRate);
-				modPosL *= !!modInc; // if change amt is 0 reset otherwise modPos can get stuck at intermediate value
+				modPhaseL *= bool(modInc); // if change amt is 0 reset otherwise modPhase can get stuck at intermediate value
 
-				float depth = delayChangeMax.getCurrentValue();
-				modPosL = modf(modPosL + modInc, &tmp);
-				auto modValL = lookup->waveLookups->lookupSin(0.5, modPosL, false, depth);
+				auto depth = delayChangeMax.getCurrentValue();
+				modPhaseL = modf(modPhaseL + modInc, &tmp);
+				auto modValL = lookup->waveLookups->lookupSin(0.5, modPhaseL, false, depth);
 				delayL.snapDelay(BaseProcessingUnit<SampleType>::sampleRate / 1000 * (baseDelay.getCurrentValue() + modValL));
 
-				modPosR = modf(modPosL + stereoSpread.getCurrentValue() * 0.5 + modInc, &tmp);
-				auto modValR = lookup->waveLookups->lookupSin(0.5, modPosR, false, depth);
+				modPhaseR = modf(modPhaseL + stereoSpread.getCurrentValue() * 0.5 + modInc, &tmp);
+				auto modValR = lookup->waveLookups->lookupSin(0.5, modPhaseR, false, depth);
 				delayR.snapDelay(BaseProcessingUnit<SampleType>::sampleRate / 1000 * ((baseDelay.getCurrentValue() + modValR) + stereoSpread.getCurrentValue() * (BDSP_FLANGER_DELAY_CHANGE_MAX_MS - depth) / 2));
 
 
@@ -156,25 +156,30 @@ namespace bdsp
 				baseDelay.setTargetValue(newBase);
 			}
 
+			/* Set the maximum change in delay time (depth) without smoothing */
 			void initDelayChangeMax(SampleType newBase)
 			{
 				delayChangeMax.setCurrentAndTargetValue(newBase);
 			}
+
+			/* Set the maximum change in delay time (depth) with smoothing */
 			void setDelayChangeMax(SampleType newBase)
 			{
 				delayChangeMax.setTargetValue(newBase);
 			}
 
 
-			void initDelayChangeRate(SampleType newBase)
+			/* Set new Rate in Hz without smoothing */
+			void initDelayChangeRate(SampleType newRate)
 			{
-				delayChangeRate.setCurrentAndTargetValue(newBase);
-			}
-			void setDelayChangeRate(SampleType newBase)
-			{
-				delayChangeRate.setTargetValue(newBase);
+				delayChangeRate.setCurrentAndTargetValue(newRate);
 			}
 
+			/* Set new Rate in Hz with smoothing */
+			void setDelayChangeRate(SampleType newRate)
+			{
+				delayChangeRate.setTargetValue(newRate);
+			}
 
 			void initStereoSpread(SampleType newBase)
 			{
@@ -198,53 +203,18 @@ namespace bdsp
 				feedback.setTargetValue(newBase);
 			}
 
-			SampleType getModPos() const
-			{
-				return modPosL;
-			}
-
-
-			SampleType getCurrentModPosProportionally(bool left)
-			{
-				return (left ? delayL.getTargetDelay() : delayR.getTargetDelay()) / maxDelay;
-			}
-
 			juce::dsp::Complex<SampleType> calculateResponseForNormalizedFrequency(int channel, SampleType normalizedFrequency)
 			{
-
 				SampleType d = channel == 0 ? delayL.getDelay() : delayR.getDelay();
-				//juce::dsp::Complex<SampleType> jw = std::exp(juce::dsp::Complex<SampleType>(0, -d * 2 * PI * normalizedFrequency);
 				juce::dsp::Complex<SampleType> jw = std::polar(SampleType(1), SampleType(-d * 2 * PI * normalizedFrequency));
-
 
 				return SampleType(1) / (SampleType(1) - (feedback.getCurrentValue() * jw));
 			}
 
 			juce::dsp::Complex<SampleType> calculateResponseForFrequency(int channel, SampleType frequency)
 			{
-
 				return calculateResponseForNormalizedFrequency(channel, frequency / BaseProcessingUnit<SampleType>::sampleRate);
 			}
-
-
-			juce::dsp::Complex<SampleType> approximateResponseForNormalizedFrequency(int channel, SampleType normalizedFrequency, SampleType maxBands)
-			{
-
-				SampleType d = channel == 0 ? delayL.getDelay() : delayR.getDelay();
-				d = juce::jmap(d, SampleType(BDSP_FLANGER_BASE_DELAY_MIN_MS / 1000 * BaseProcessingUnit<SampleType>::sampleRate), SampleType(BDSP_FLANGER_BASE_DELAY_MAX_MS + BDSP_FLANGER_DELAY_CHANGE_MAX_MS) / 1000 * BaseProcessingUnit<SampleType>::sampleRate, SampleType(2), 2 * maxBands);
-				//juce::dsp::Complex<SampleType> jw = std::exp(juce::dsp::Complex<SampleType>(0, -d * 2 * PI * normalizedFrequency);
-				juce::dsp::Complex<SampleType> jw = std::polar(SampleType(1), SampleType(-d * 2 * PI * normalizedFrequency));
-
-
-				return SampleType(1) / (SampleType(1) - (feedback.getCurrentValue() * jw));
-			}
-
-			juce::dsp::Complex<SampleType> approximateResponseForFrequency(int channel, SampleType frequency, SampleType maxBands)
-			{
-
-				return approximateResponseForNormalizedFrequency(channel, frequency / BaseProcessingUnit<SampleType>::sampleRate, maxBands);
-			}
-
 
 
 		protected:
@@ -256,7 +226,7 @@ namespace bdsp
 			juce::SmoothedValue<SampleType> stereoSpread;
 
 			juce::SmoothedValue<SampleType> feedback;
-			SampleType modPosL = 0, modPosR = 0;
+			SampleType modPhaseL = 0, modPhaseR = 0;
 
 			DSP_Universals<SampleType>* lookup;
 

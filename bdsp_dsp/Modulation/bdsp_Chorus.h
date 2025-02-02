@@ -16,22 +16,24 @@ namespace bdsp
 	namespace dsp
 	{
 
-
+		/**
+		 * Basic Chorus unit. Has a set of delay lines that constantly change their delay time at varying rates.
+		 */
 		template <typename SampleType>
 		class Chorus : public BaseProcessingUnit<SampleType>
 		{
 		public:
 			Chorus(DSP_Universals<SampleType>* lookupToUse)
-            :modMults(lookupToUse->chorusLookups->getChorusVelocityMults()),
-            modPhases(lookupToUse->chorusLookups->getChorusPhases())
+				:modMults(lookupToUse->chorusLookups->getChorusVelocityMults()),
+				modPhases(lookupToUse->chorusLookups->getChorusPhases())
 			{
 				lookup = lookupToUse;
 
-				lookup->waveLookups.operator->();
+				lookup->waveLookups.operator->(); // creates the lookup object if necessary
 
 
 
-				for (int i = 0; i < BDSP_CHORUS_MAX_VOICES; ++i)
+				for (int i = 0; i < BDSP_CHORUS_MAX_VOICES; ++i) // add all possible delay lines to the arrays
 				{
 					delayL.add(new DelayLine<SampleType, DelayTypes::Basic, DelayLineInterpolationTypes::Lagrange3rd>(4, lookup));
 					delayR.add(new DelayLine<SampleType, DelayTypes::Basic, DelayLineInterpolationTypes::Lagrange3rd>(4, lookup));
@@ -40,33 +42,32 @@ namespace bdsp
 			}
 			~Chorus() = default;
 
-			//==============================================================================
-			/** Initialises the processor. */
 			void prepare(const juce::dsp::ProcessSpec& spec) override
 			{
 				const juce::dsp::ProcessSpec monoSpec = { spec.sampleRate,spec.maximumBlockSize,1 };
-				maxDelay = (BDSP_CHORUS_DELAY_MAX_MS) / 1000.0 * spec.sampleRate;
-				for (auto d : delayL)
+				maxDelay = (BDSP_CHORUS_DELAY_MAX_MS) / 1000.0 * spec.sampleRate; // max delay in samples
+				for (auto* d : delayL)
 				{
 					d->prepare(monoSpec);
 					d->setMaxDelay(maxDelay);
 				}
 
-				for (auto d : delayR)
+				for (auto* d : delayR)
 				{
 					d->prepare(monoSpec);
 					d->setMaxDelay(maxDelay);
 				}
 
-				modPosL.resize(delayL.size());
+				modPhase.resize(delayL.size());
 
 
-
-
+				//================================================================================================================================================================================================
+				// centers the input delay on the range of possible chorus voice delays
 				inputDelay.prepare(spec);
 				auto inputDelaySmps = BDSP_CHORUS_BASE_DELAY_MS / 1000.0 * spec.sampleRate;
 				inputDelay.setMaxDelay(inputDelaySmps);
 				inputDelay.setDelay(inputDelaySmps);
+				//================================================================================================================================================================================================
 
 				BaseProcessingUnit<SampleType>::prepare(spec);
 
@@ -76,7 +77,11 @@ namespace bdsp
 
 			void reset() override
 			{
-				for (auto d : delayL)
+				for (auto* d : delayL)
+				{
+					d->reset();
+				}
+				for (auto* d : delayR)
 				{
 					d->reset();
 				}
@@ -85,28 +90,26 @@ namespace bdsp
 
 				for (int i = 0; i < BDSP_CHORUS_MAX_VOICES; ++i)
 				{
-					modPosL.set(i, modPhases.getUnchecked(i));
+					modPhase.set(i, modPhases.getUnchecked(i));
 				}
 			}
 
 			StereoSample<SampleType> processSampleStereo(const StereoSample<SampleType>& inputSample) noexcept override
 			{
-				auto gain = (depth.getCurrentValue() / pow(numVoices, 0.75) + (1 - depth.getCurrentValue()) / numVoices);
+				auto gain = (depth.getCurrentValue() / pow(numVoices, 0.75) + (1 - depth.getCurrentValue()) / numVoices); // attempts to maintain a consistent output volume as the number of voices is changed
 
 				SampleType l = 0;
 				SampleType r = 0;
+
+				/* Process signal through every delay line, otherwise increasing the number of voices would have unexpected results*/
 				for (int i = 0; i < delayL.size(); ++i)
 				{
-					bool inSum = i < numVoices;
+					bool inSum = i < numVoices; // checks if this voice should be added to the final output
 					auto currL = delayL.getUnchecked(i);
 					auto currR = delayR.getUnchecked(i);
 
-
 					l += inSum * currL->popSampleUpdateRead(0);
 					r += inSum * currR->popSampleUpdateRead(0);
-
-
-
 
 					currL->pushSample(0, inputSample.left);
 					currR->pushSample(0, inputSample.right);
@@ -117,7 +120,7 @@ namespace bdsp
 				r *= gain;
 
 				//================================================================================================================================================================================================
-
+				// delay the input signal
 
 				auto inL = inputDelay.popSampleUpdateRead(0);
 				auto inR = inputDelay.popSampleUpdateRead(1);
@@ -174,22 +177,24 @@ namespace bdsp
 				stereoWidth.getNextValue();
 
 				float tmp;
-				auto modInc = delayChangeRate.getCurrentValue() / (BaseProcessingUnit<SampleType>::sampleRate);
+				auto modInc = delayChangeRate.getCurrentValue() / (BaseProcessingUnit<SampleType>::sampleRate); // how much to increment the LFO's phase this sample
 
 				for (int i = 0; i < BDSP_CHORUS_MAX_VOICES; ++i)
 				{
-					auto pos = modf(modPosL.getUnchecked(i) + modInc * modMults.getUnchecked(i), &tmp);
-					modPosL.set(i, pos);
-
-					auto modValL = lookup->waveLookups->getLFOValue(0, 0.5, pos, true, depth.getCurrentValue());
-					delayL.getUnchecked(i)->snapDelay(BaseProcessingUnit<SampleType>::sampleRate / 1000 * (BDSP_CHORUS_BASE_DELAY_MS + modValL));
-
 					//================================================================================================================================================================================================
-
-
-					pos = modf(pos + stereoWidth.getCurrentValue() / 4, &tmp);
-					auto modValR = lookup->waveLookups->getLFOValue(0, 0.5, pos, true, depth.getCurrentValue());
+					// get and set new LFO phase for this voice
+					auto phase = modf(modPhase.getUnchecked(i) + modInc * modMults.getUnchecked(i), &tmp);
+					modPhase.set(i, phase);
+					//================================================================================================================================================================================================
+					// calculate the delay time for the left channel of this voice based on the mod phase
+					auto modValL = lookup->waveLookups->getLFOValue(0, 0.5, phase, true, depth.getCurrentValue());
+					delayL.getUnchecked(i)->snapDelay(BaseProcessingUnit<SampleType>::sampleRate / 1000 * (BDSP_CHORUS_BASE_DELAY_MS + modValL));
+					//================================================================================================================================================================================================
+					// calculate the delay time for the right channel of this voice based on the mod phase and the stereo width
+					phase = modf(phase + stereoWidth.getCurrentValue() / 4, &tmp);
+					auto modValR = lookup->waveLookups->getLFOValue(0, 0.5, phase, true, depth.getCurrentValue());
 					delayR.getUnchecked(i)->snapDelay(BaseProcessingUnit<SampleType>::sampleRate / 1000 * (BDSP_CHORUS_BASE_DELAY_MS + modValR));
+					//================================================================================================================================================================================================
 
 
 					delayL.getUnchecked(i)->updateSmoothedVariables();
@@ -208,52 +213,47 @@ namespace bdsp
 					d->setSmoothingTime(timeInSeconds);
 				}
 
-
 				for (auto d : delayR)
 				{
 					d->setSmoothingTime(timeInSeconds);
 				}
 
-
-
-
 				delayChangeRate.reset(BaseProcessingUnit<SampleType>::sampleRate, timeInSeconds);
 				depth.reset(BaseProcessingUnit<SampleType>::sampleRate, timeInSeconds);
 
 				stereoWidth.reset(BaseProcessingUnit<SampleType>::sampleRate, timeInSeconds);
-
 			}
 
-
-			// new Rate in Hz
+			/* Set new Rate in Hz without smoothing */
 			void initDelayChangeRate(SampleType newRate)
 			{
 				delayChangeRate.setCurrentAndTargetValue(newRate);
 			}
 
-			// new Rate in Hz
+			/* Set new Rate in Hz with smoothing */
 			void setDelayChangeRate(SampleType newRate)
 			{
 				delayChangeRate.setTargetValue(newRate);
 			}
 
-			void initDepth(SampleType newBase)
+
+			void initDepth(SampleType newDepth)
 			{
-				depth.setCurrentAndTargetValue(newBase);
+				depth.setCurrentAndTargetValue(newDepth);
 			}
-			void setDepth(SampleType newBase)
+			void setDepth(SampleType newDepth)
 			{
-				depth.setTargetValue(newBase);
+				depth.setTargetValue(newDepth);
 			}
 
 
-			void initStereoWidth(SampleType newBase)
+			void initStereoWidth(SampleType newWidth)
 			{
-				stereoWidth.setCurrentAndTargetValue(newBase);
+				stereoWidth.setCurrentAndTargetValue(newWidth);
 			}
-			void setStereoWidth(SampleType newBase)
+			void setStereoWidth(SampleType newWidth)
 			{
-				stereoWidth.setTargetValue(newBase);
+				stereoWidth.setTargetValue(newWidth);
 			}
 
 
@@ -264,12 +264,12 @@ namespace bdsp
 
 
 
-			SampleType getModPos(int voice)
+			SampleType getModPhase(int voice)
 			{
-				return modPosL.getUnchecked(voice);
+				return modPhase.getUnchecked(voice);
 			}
 
-			SampleType getCurrentModPosProportionally(int voice, bool left)
+			SampleType getCurrentModPhaseProportionally(int voice, bool left)
 			{
 				auto msFactor = BaseProcessingUnit<SampleType>::sampleRate / 1000;
 
@@ -288,7 +288,7 @@ namespace bdsp
 
 			int numVoices = 4;
 
-			juce::Array<SampleType> modPosL;
+			juce::Array<SampleType> modPhase;
 
 			DSP_Universals<SampleType>* lookup;
 

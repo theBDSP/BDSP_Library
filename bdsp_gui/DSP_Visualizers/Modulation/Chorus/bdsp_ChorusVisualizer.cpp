@@ -236,24 +236,7 @@ namespace bdsp
 
 	float ChorusVisualizerInternal::getModPosition(int voice, bool left)
 	{
-		//float prop;
-		//if (left)
-		//{
-		//	prop = lookup->lookupSin(0.5, chorus->getModPos(voice), true);
-		//}
-		//else
-		//{
-		//	prop = lookup->lookupSin(0.5, fmodf(chorus->getModPos(voice) + (stereoWidthParam != nullptr ? stereoWidth / 4 : 0), 1), true);
-		//}
-		//if (depthParam != nullptr)
-		//{
-		//	return juce::jmap(prop, -depth, depth);
-		//}
-		//else
-		//{
-		//	return chorus->getCurrentModPosProportionally(voice, left);
-		//}
-		return chorus->getCurrentModPosProportionally(voice, left);
+		return chorus->getCurrentModPhaseProportionally(voice, left);
 	}
 
 
