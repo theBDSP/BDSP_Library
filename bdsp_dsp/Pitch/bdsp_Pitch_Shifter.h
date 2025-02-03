@@ -5,27 +5,27 @@ namespace bdsp
 {
 	namespace dsp
 	{
-
+		/**
+		 * Takes an audio block and wraps it in a way that the signal smith stretcher can use it
+		 */
 		template<typename SampleType>
-		class SignalSmithBlockBridge // takes audio block and wraps it in a way that signal smith stretcher can use it
+		class SignalSmithBlockBridge
 		{
 		public:
 			SignalSmithBlockBridge(juce::dsp::AudioBlock<SampleType>& block)
 			{
 				arr.addArray(block.getChannelPointer(0), block.getNumSamples());
 			}
+		
 			SignalSmithBlockBridge(const juce::dsp::AudioBlock<const SampleType>& block)
 			{
 				arr.addArray(block.getChannelPointer(0), block.getNumSamples());
 			}
 
-
-
 			SignalSmithBlockBridge(juce::AudioBuffer<SampleType>& buffer)
 			{
 				arr.addArray(buffer.getReadPointer(0), buffer.getNumSamples());
 			}
-
 
 			SampleType* operator[](int ch)
 			{
@@ -40,7 +40,10 @@ namespace bdsp
 			juce::Array<SampleType> arr;
 		};
 
-
+		/**
+		 * Wraps Signal Smith's pitch shifting library in a BDSP context.
+		 * https://github.com/Signalsmith-Audio/signalsmith-stretch
+		 */
 		template<typename SampleType>
 		class PitchShifter : public BaseProcessingUnit<SampleType>
 		{
@@ -50,8 +53,8 @@ namespace bdsp
 			~PitchShifter() = default;
 
 
-			void initShiftAmount(SampleType semitones);
-			void setShiftAmount(SampleType semitones);
+			void initShiftAmount(int channel, SampleType semitones);
+			void setShiftAmount(int channel, SampleType semitones);
 
 			void prepare(const juce::dsp::ProcessSpec& spec) override;
 
@@ -59,105 +62,30 @@ namespace bdsp
 
 			void processInternal(bool isBypassed) noexcept override
 			{
-			
-
 				if (isBypassed || BaseProcessingUnit<SampleType>::bypassed)
 				{
 					BaseProcessingUnit<SampleType>::internalWetBlock.copyFrom(BaseProcessingUnit<SampleType>::internalDryBlock);
 					return;
 				}
 
+				const auto numChannels = BaseProcessingUnit<SampleType>::internalWetBlock.getNumChannels();
 				const auto numSamples = BaseProcessingUnit<SampleType>::internalWetBlock.getNumSamples();
 
-				SignalSmithBlockBridge<SampleType> inputBridge(BaseProcessingUnit<SampleType>::internalDryBlock);
-				SignalSmithBlockBridge<SampleType> outputBridge(BaseProcessingUnit<SampleType>::internalWetBlock);
-
-				pitchAmt.skip(numSamples);
-				stretch.setTransposeSemitones(pitchAmt.getCurrentValue());
-				stretch.process(inputBridge, numSamples, outputBridge, numSamples);
-
-				latencyComp.mixWithLatencyCompensation(*BaseProcessingUnit<SampleType>::internalContext.get(), BaseProcessingUnit<SampleType>::smoothedDryMix, BaseProcessingUnit<SampleType>::smoothedWetMix);
-			}
-
-
-
-			inline StereoSample<SampleType> processSampleStereo(const StereoSample<SampleType>& inputSample) noexcept override;
-
-			void updateSmoothedVariables() override;
-
-			void setSmoothingTime(SampleType timeInSeconds) override;
-
-			int getLatency() override
-			{
-				return stretch.inputLatency() + stretch.outputLatency();
-			}
-
-		private:
-			signalsmith::stretch::SignalsmithStretch<SampleType> stretch;
-			juce::SmoothedValue<SampleType> pitchAmt;
-
-			LatencyCompensator<SampleType> latencyComp;
-
-
-
-
-		};
-
-		template<typename SampleType>
-		class StereoPitchShifter : public BaseProcessingUnit<SampleType>
-		{
-		public:
-			StereoPitchShifter();
-			~StereoPitchShifter() = default;
-
-			void initShiftAmount(SampleType semitonesL, SampleType semitonesR);
-			void setShiftAmount(SampleType semitonesL, SampleType semitonesR);
-
-			void prepare(const juce::dsp::ProcessSpec& spec) override;
-
-			void reset() override;
-
-			void processInternal(bool isBypassed) noexcept override
-			{
-			
-
-				if (isBypassed || BaseProcessingUnit<SampleType>::bypassed || BaseProcessingUnit<SampleType>::internalDryBlock.getNumChannels() < 2 || BaseProcessingUnit<SampleType>::internalWetBlock.getNumChannels() < 2)
+				for (size_t c = 0; c < numChannels; ++c)
 				{
-					BaseProcessingUnit<SampleType>::internalWetBlock.copyFrom(BaseProcessingUnit<SampleType>::internalDryBlock);
-					return;
+
+					SignalSmithBlockBridge<SampleType> inputBridge(BaseProcessingUnit<SampleType>::internalDryBlock.getSingleChannelBlock(c));
+					SignalSmithBlockBridge<SampleType> outputBridge(BaseProcessingUnit<SampleType>::internalWetBlock.getSingleChannelBlock(c));
+
+					pitchAmt[c]->skip(numSamples);
+					stretch[c]->setTransposeSemitones(pitchAmt[c]->getCurrentValue());
+					stretch[c]->process(inputBridge, numSamples, outputBridge, numSamples);
+
+					juce::FloatVectorOperations::copy(BaseProcessingUnit<SampleType>::internalWetBlock.getChannelPointer(0), outputBridge.data(), BaseProcessingUnit<SampleType>::internalWetBlock.getNumSamples());
 				}
 
-			
-				const auto numSamples = BaseProcessingUnit<SampleType>::internalWetBlock.getNumSamples();
-
-
-
-
-
-				SignalSmithBlockBridge<SampleType> inputBridgeL(BaseProcessingUnit<SampleType>::internalDryBlock.getSingleChannelBlock(0));
-				SignalSmithBlockBridge<SampleType> inputBridgeR(BaseProcessingUnit<SampleType>::internalDryBlock.getSingleChannelBlock(1));
-
-				SignalSmithBlockBridge<SampleType> outputBridgeL(BaseProcessingUnit<SampleType>::internalWetBlock.getSingleChannelBlock(0));
-				SignalSmithBlockBridge<SampleType> outputBridgeR(BaseProcessingUnit<SampleType>::internalWetBlock.getSingleChannelBlock(1));
-
-				pitchAmtL.skip(numSamples);
-				pitchAmtR.skip(numSamples);
-				stretchL.setTransposeSemitones(pitchAmtL.getCurrentValue());
-				stretchR.setTransposeSemitones(pitchAmtR.getCurrentValue());
-				stretchL.process(inputBridgeL, numSamples, outputBridgeL, numSamples);
-				stretchR.process(inputBridgeR, numSamples, outputBridgeR, numSamples);
-
-				juce::FloatVectorOperations::copy(BaseProcessingUnit<SampleType>::internalWetBlock.getChannelPointer(0), outputBridgeL.data(), BaseProcessingUnit<SampleType>::internalWetBlock.getNumSamples());
-				juce::FloatVectorOperations::copy(BaseProcessingUnit<SampleType>::internalWetBlock.getChannelPointer(1), outputBridgeR.data(), BaseProcessingUnit<SampleType>::internalWetBlock.getNumSamples());
-
-
-
-
 				latencyComp.mixWithLatencyCompensation(*BaseProcessingUnit<SampleType>::internalContext.get(), BaseProcessingUnit<SampleType>::smoothedDryMix, BaseProcessingUnit<SampleType>::smoothedWetMix);
-
-
 			}
-
 
 			void updateSmoothedVariables() override;
 
@@ -165,19 +93,15 @@ namespace bdsp
 
 			int getLatency() override
 			{
-				return stretchL.inputLatency() + stretchL.outputLatency();
+				jassert(!stretch.isEmpty());
+				return stretch.getFirst()->inputLatency() + stretch.getFirst()->outputLatency();
 			}
 
 		private:
-			signalsmith::stretch::SignalsmithStretch<SampleType> stretchL, stretchR;
-			juce::SmoothedValue<SampleType> pitchAmtL, pitchAmtR;
+			juce::OwnedArray<signalsmith::stretch::SignalsmithStretch<SampleType>> stretch;
+			juce::OwnedArray<juce::SmoothedValue<SampleType>> pitchAmt;
 
 			LatencyCompensator<SampleType> latencyComp;
-
 		};
-
-
-
-
 	} // namespace dsp
 } // namespace bdsp
