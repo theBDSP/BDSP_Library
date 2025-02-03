@@ -6,6 +6,9 @@ namespace bdsp
 	namespace dsp
 	{
 
+		/**
+		 * Simple stereo widener with built in panning before widening, slightly delayR one channel of the signal to create stereo seperation.
+		 */
 		template <typename SampleType>
 		class StereoWidener : public StereoPanner<SampleType>
 		{
@@ -25,10 +28,10 @@ namespace bdsp
 
 				maxDelay = spec.sampleRate * BDSP_STEREO_WIDTH_MAX_DELAY_MS / 1000.0;
 
-				delayM = std::make_unique< DelayLine<SampleType, DelayTypes::Basic, DelayLineInterpolationTypes::Lagrange3rd>>(maxDelay, StereoPanner<SampleType>::lookup);
-				delayS = std::make_unique< DelayLine<SampleType, DelayTypes::Basic, DelayLineInterpolationTypes::Lagrange3rd>>(maxDelay, StereoPanner<SampleType>::lookup);
-				delayM->prepare(monoSpec);
-				delayS->prepare(monoSpec);
+				delayL = std::make_unique< DelayLine<SampleType, DelayTypes::Basic, DelayLineInterpolationTypes::Lagrange3rd>>(maxDelay, StereoPanner<SampleType>::lookup);
+				delayR = std::make_unique< DelayLine<SampleType, DelayTypes::Basic, DelayLineInterpolationTypes::Lagrange3rd>>(maxDelay, StereoPanner<SampleType>::lookup);
+				delayL->prepare(monoSpec);
+				delayR->prepare(monoSpec);
 			}
 
 
@@ -53,12 +56,11 @@ namespace bdsp
 				{
 					updateSmoothedVariables();
 
-
 					StereoSample<SampleType> panned = StereoPanner<SampleType>::processSampleStereo(StereoSample<SampleType>(BaseProcessingUnit<SampleType>::internalDryBlock.getSample(0, i), BaseProcessingUnit<SampleType>::internalDryBlock.getSample(1, i)));
-					delayM->pushSample(0, panned.left);
-					delayS->pushSample(0, panned.right);
+					delayL->pushSample(0, panned.left);
+					delayR->pushSample(0, panned.right);
 
-					auto popped = StereoSample<SampleType>(delayM->popSampleUpdateRead(0), delayS->popSampleUpdateRead(0));
+					auto popped = StereoSample<SampleType>(delayL->popSampleUpdateRead(0), delayR->popSampleUpdateRead(0));
 
 					BaseProcessingUnit<SampleType>::internalWetBlock.setSample(0, i, popped.left);
 					BaseProcessingUnit<SampleType>::internalWetBlock.setSample(1, i, popped.right);
@@ -93,16 +95,14 @@ namespace bdsp
 				StereoPanner<SampleType>::updateSmoothedVariables();
 				smoothedWidth.getNextValue();
 
-				delayMVal = juce::jmax(SampleType(1), -smoothedWidth.getCurrentValue() * maxDelay);
-				delaySVal = juce::jmax(SampleType(1), smoothedWidth.getCurrentValue() * maxDelay);
+				delayLVal = juce::jmax(SampleType(1), -smoothedWidth.getCurrentValue() * maxDelay);
+				delayRVal = juce::jmax(SampleType(1), smoothedWidth.getCurrentValue() * maxDelay);
 
+				delayL->snapDelay(delayLVal);
+				delayR->snapDelay(delayRVal);
 
-				delayM->snapDelay(delayMVal);
-				delayS->snapDelay(delaySVal);
-
-
-				delayM->updateSmoothedVariables();
-				delayS->updateSmoothedVariables();
+				delayL->updateSmoothedVariables();
+				delayR->updateSmoothedVariables();
 
 			}
 			void setSmoothingTime(SampleType timeInSeconds) override
@@ -113,15 +113,10 @@ namespace bdsp
 			}
 
 		protected:
-			std::unique_ptr<DelayLine<SampleType, DelayTypes::Basic, DelayLineInterpolationTypes::Lagrange3rd>> delayM, delayS;
+			std::unique_ptr<DelayLine<SampleType, DelayTypes::Basic, DelayLineInterpolationTypes::Lagrange3rd>> delayL, delayR;
 			juce::SmoothedValue<SampleType> smoothedWidth;
-			SampleType maxDelay, delayMVal, delaySVal;
+			SampleType maxDelay, delayLVal, delayRVal;
 		};
-
-
-
-
-
 
 	}// namespace dsp
 }// namnepace bdsp
