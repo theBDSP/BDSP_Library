@@ -155,7 +155,7 @@ namespace bdsp
 
 	private:
 		juce::OwnedArray<LFOComponent> LFOs;
-		juce::OwnedArray<Component> LFOuniversalss;
+		juce::OwnedArray<Component> LFOHolders;
 
 		;
 

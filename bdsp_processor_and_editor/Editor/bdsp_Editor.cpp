@@ -76,7 +76,7 @@ namespace bdsp
 
 		audioProcessor.settingsTree.setPropertyExcludingListener(this, "WindowWidth", topLevelComp->mainArea.getWidth() / scale, nullptr);
 
-		GUIUniversals.visualizerLineThickness = getHeight() / 1500.0f;
+		GUIUniversals.visualizerLineThickness = getHeight() / 250.0f;
 
 
 		//topLevelComp->aspectRatio = (double)getWidth() / getHeight();

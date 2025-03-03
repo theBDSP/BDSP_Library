@@ -1,7 +1,5 @@
 #pragma once
 
-
-
 //adapted from 
 // https://forum.juce.com/t/opengl-how-do-3d-with-custom-shaders-and-2d-with-juce-paint-methods-work-together/28026/6
 namespace bdsp

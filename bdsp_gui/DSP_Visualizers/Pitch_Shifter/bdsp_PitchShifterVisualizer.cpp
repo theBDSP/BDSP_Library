@@ -24,7 +24,6 @@ namespace bdsp
 		bars = dynamic_cast<OpenGLLineRenderer*>(subClasses[1]);
 		dots = dynamic_cast<OpenGLCirclePlotter*>(subClasses[2]);
 
-		bars->setHasAlpha(false);
 
 
 	}
@@ -41,11 +40,11 @@ namespace bdsp
 
 		dots->setRadius(dotW);
 
-		for (int i = 0; i < scale->linePoints.size(); i++)
+		for (int i = 0; i < scale->lineVertexBuffer.size(); i++)
 		{
 			scale->setThickness(i, scaleW);
 		}
-		for (int i = 0; i < bars->linePoints.size(); i++)
+		for (int i = 0; i < bars->lineVertexBuffer.size(); i++)
 		{
 			bars->setThickness(i, barW);
 		}
@@ -126,7 +125,7 @@ namespace bdsp
 			y = scaleY;
 			float l = i % 2 == 0 ? -scaleX : in;
 			float r = i % 2 == 0 ? -in : scaleX;
-			auto p = scale->linePoints[5 * i];
+			auto p = scale->lineVertexBuffer[5 * i];
 			p->set(0, {
 				l,0,
 				red, green, blue,1.0
@@ -137,7 +136,7 @@ namespace bdsp
 				});
 
 			//================================================================================================================================================================================================
-			p = scale->linePoints[5 * i + 1];
+			p = scale->lineVertexBuffer[5 * i + 1];
 			p->set(0, {
 				l,y,
 				red, green, blue,1.0
@@ -148,7 +147,7 @@ namespace bdsp
 				});
 
 			//================================================================================================================================================================================================
-			p = scale->linePoints[5 * i + 2];
+			p = scale->lineVertexBuffer[5 * i + 2];
 			p->set(0, {
 				l,-y,
 				red, green, blue,1.0
@@ -160,7 +159,7 @@ namespace bdsp
 
 			//================================================================================================================================================================================================
 			y *= 7.0 / 12.0;
-			p = scale->linePoints[5 * i + 3];
+			p = scale->lineVertexBuffer[5 * i + 3];
 			p->set(0, {
 				l,y,
 				red, green, blue,1.0
@@ -171,7 +170,7 @@ namespace bdsp
 				});
 
 			//================================================================================================================================================================================================
-			p = scale->linePoints[5 * i + 4];
+			p = scale->lineVertexBuffer[5 * i + 4];
 			p->set(0, {
 				l,-y,
 				red, green, blue,1.0
@@ -263,7 +262,7 @@ namespace bdsp
 		//================================================================================================================================================================================================
 
 
-		auto p = bars->linePoints[0];
+		auto p = bars->lineVertexBuffer[0];
 		p->set(0, {
 			-x, 0,
 			0, 0, 0, 0
@@ -278,7 +277,7 @@ namespace bdsp
 
 		//================================================================================================================================================================================================
 
-		p = bars->linePoints[1];
+		p = bars->lineVertexBuffer[1];
 
 		p->set(0, {
 			x, 0,
@@ -295,16 +294,12 @@ namespace bdsp
 
 
 		//================================================================================================================================================================================================
-		scale->generateLineTriangles();
-		bars->generateLineTriangles();
 		dots->generateCircleVerticies();
 
 	}
 
 	void PitchShifterVisualizer::PitchShifterVisualizerInternal::onShaderCreation()
 	{
-		bars->setFeatherRatio(1.5f);
-		dots->setFeatherRatio(1.5f);
 	}
 
 

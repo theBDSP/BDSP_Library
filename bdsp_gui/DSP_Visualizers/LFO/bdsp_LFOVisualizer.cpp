@@ -30,8 +30,8 @@ namespace bdsp
 	void LFOWaveVisualizerInternal::resized()
 	{
 		OpenGLFunctionVisualizer::resized();
-		lineThicknessX.set(0, lineThicknessX.getFirst() * 2);
-		lineThicknessY.set(0, lineThicknessY.getFirst() * 2);
+		lineThicknessX.set(0, lineThicknessX.getFirst());
+		lineThicknessY.set(0, lineThicknessY.getFirst());
 	}
 	inline float LFOWaveVisualizerInternal::calculateAlpha(float x, float y)
 	{
@@ -108,6 +108,7 @@ namespace bdsp
 		:OpenGLControlValuesOverTime(control, universalsToUse, false, false)
 	{
 		forceFullRange = true;
+		setThicknessRamp(0,0);
 	}
 
 	LFOResultVisualizerInternal::~LFOResultVisualizerInternal()

@@ -31,9 +31,8 @@ namespace bdsp
 		line = dynamic_cast<OpenGLLineRenderer*>(subClasses[1]);
 		dry = dynamic_cast<OpenGLLineRenderer*>(subClasses[2]);
 
-		dry->setHasAlpha(true);
 
-		int num = dry->linePoints.getFirst()->getNumVerticies();
+		int num = dry->lineVertexBuffer.getFirst()->getNumVerticies();
 		for (int i = 0; i < num; ++i)
 		{
 			float x = 2 * i / (num - 1.0f) - 1.0f;
@@ -159,7 +158,7 @@ namespace bdsp
 		color.getInterpolatedComponents(r, g, b, a, background, 1 - mixVal);
 
 
-		auto p = line->linePoints.getFirst();
+		auto p = line->lineVertexBuffer.getFirst();
 		int mid = 2 * xSamps - 1;
 		for (int i = 0; i < xSamps; ++i)
 		{
@@ -196,7 +195,7 @@ namespace bdsp
 
 		color.getComponents(r, g, b, a);
 
-		p = dry->linePoints.getFirst();
+		p = dry->lineVertexBuffer.getFirst();
 		int num = p->getNumVerticies();
 		for (int i = 0; i < num; ++i)
 		{
@@ -211,9 +210,7 @@ namespace bdsp
 		grid->circleData.resize(n);
 		grid->generateCircleVerticies();
 
-		line->generateLineTriangles();
 
-		dry->generateLineTriangles();
 
 
 

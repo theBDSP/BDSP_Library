@@ -126,8 +126,10 @@ namespace bdsp
 
 //================================================================================================================================================================================================
 // Open GL
-#include "Open_GL_Component/bdsp_OpenGLComponent.cpp"
 #include "Open_GL_Component/bdsp_OpenGLContextHolder.cpp"
+#include "Open_GL_Component/bdsp_OpenGLComponent.cpp"
+#include "Open_GL_Component/Line/bdsp_LineRenderer.cpp"
+#include "Open_GL_Component/Data_Vis/bdsp_FunctionVisualizer.cpp"
 
 
 

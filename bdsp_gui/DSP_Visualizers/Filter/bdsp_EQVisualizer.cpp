@@ -85,7 +85,6 @@ namespace bdsp
 		mouseComp = std::make_unique<MouseComp>(this);
 
 
-		featherRatio = 1.25;
 
 	}
 
@@ -350,7 +349,7 @@ namespace bdsp
 			h->setRadius(handleSize);
 		}
 		OpenGLCompositeComponent::resized();
-		setScaling(1 - borderX + cast->lineFeatherX[0] + cast->lineThicknessX[0], 1);
+		setScaling(1 - borderX +  cast->lineThicknessX[0], 1);
 
 
 	}

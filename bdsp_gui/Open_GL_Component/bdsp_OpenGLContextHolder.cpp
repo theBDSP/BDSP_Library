@@ -10,8 +10,8 @@ namespace bdsp
 
 
 		juce::OpenGLPixelFormat pixelFormat;
-		//pixelFormat.multisamplingLevel = 4; // Change this value to your needs.
-
+		pixelFormat.multisamplingLevel = 8; // Change this value to your needs.
+		pixelFormat.stencilBufferBits = 8;
 		context.setPixelFormat(pixelFormat);
 
 		context.setSwapInterval(1);

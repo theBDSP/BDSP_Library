@@ -25,6 +25,8 @@ namespace bdsp
 		:OpenGLControlValuesOverTime(parentComp->control, universalsToUse, false)
 	{
 		setBipolar(false);
+		setJointType(0,JointType::Bevel);
+		setCapType(0,CapType::Butt);
 		alphaFalloff = false;
 		forceFullRange = true;
 	}

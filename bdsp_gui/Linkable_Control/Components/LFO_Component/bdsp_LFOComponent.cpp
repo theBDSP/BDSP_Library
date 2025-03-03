@@ -480,10 +480,10 @@ namespace bdsp
 		;
 		for (int i = 0; i < BDSP_NUMBER_OF_LFOS; ++i)
 		{
-			LFOuniversalss.add(std::make_unique<Component>(universals));
-			addAndMakeVisible(LFOuniversalss[i]);
+			LFOHolders.add(std::make_unique<Component>(universals));
+			addAndMakeVisible(LFOHolders[i]);
 			LFOs.add(std::make_unique<LFOComponent>(universals, BPMComp, i, nameValueLocation));
-			LFOuniversalss[i]->addAndMakeVisible(LFOs[i]);
+			LFOHolders[i]->addAndMakeVisible(LFOs[i]);
 			LFOs.getLast()->setColor(BDSP_COLOR_COLOR, BDSP_COLOR_COLOR);
 		}
 
@@ -508,7 +508,7 @@ namespace bdsp
 		{
 			//macros[i]->setBounds(expandRectangleToInt(juce::Rectangle<float>(getHeight() * 0.8, getHeight() * 0.8).withCentre(getLocalBounds().toFloat().getRelativePoint((i + 1) * (w + b) + w / 2, 0.5))));
 			//macros[i]->setBoundsRelative((i+1) * (w + b), 0, w, 1);
-			LFOuniversalss[i]->setBounds(shrinkRectangleToInt(getLocalBounds().getProportion(juce::Rectangle<float>(i * w, 0, w, 1))));
+			LFOHolders[i]->setBounds(shrinkRectangleToInt(getLocalBounds().getProportion(juce::Rectangle<float>(i * w, 0, w, 1))));
 			LFOs[i]->setBoundsRelative(0.05, 0.05, 0.9, 0.9);
 		}
 	}
@@ -519,7 +519,7 @@ namespace bdsp
 
 		//for (int i = 0; i < LFOs.size() - 1; ++i)
 		//{
-		//	auto x = (LFOuniversalss[i]->getRight() + LFOuniversalss[i + 1]->getX()) / 2.0;
+		//	auto x = (LFOHolders[i]->getRight() + LFOHolders[i + 1]->getX()) / 2.0;
 		//	drawDivider(g, juce::Line<float>(x, universals->dividerBorder, x, getHeight() - universals->dividerBorder), universals->colors.getColor(BDSP_COLOR_LIGHT), universals->dividerSize);
 		//}
 	}
