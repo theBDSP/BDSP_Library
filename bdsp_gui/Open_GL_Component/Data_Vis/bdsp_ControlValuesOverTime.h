@@ -37,7 +37,7 @@ namespace bdsp
 			}
 
 			jassert(listener != nullptr);
-
+			
 			initArrays(listener->functionSamples.getSize());
 
 		}
@@ -82,23 +82,6 @@ namespace bdsp
 				}
 
 				float alpha = alphaFalloff ? prop : 1.0f;
-
-				if (renderAreaUnderCurve)
-				{
-
-					vertexBuffer.set(i,
-						{
-							x, y,
-							r,g,b, alpha * calculateAlpha(x, y)
-						} // AUC Top-i
-					);
-					vertexBuffer.set(samplePoints + i,
-						{
-							x, zeroY,
-							r,g,b, alpha * calculateAlpha(x, zeroY)
-						} // line AUC-i
-					);
-				}
 
 				p->set(i,
 					{

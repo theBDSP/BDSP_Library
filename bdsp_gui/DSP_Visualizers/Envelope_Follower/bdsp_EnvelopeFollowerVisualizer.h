@@ -28,11 +28,6 @@ namespace bdsp
 
 
 
-		float calculateAlpha(float x, float y) override; // calculates alpha of area under curve based on height of function
-
-	
-
-
 
 	};
 
@@ -42,7 +37,7 @@ namespace bdsp
 	public:
 		EnvelopeFollowerVisualizer(GUI_Universals* universalsToUse, EnvelopeFollowerComponent<SampleType>* parentComp);
 		virtual ~EnvelopeFollowerVisualizer() = default;
-		void setColor(const NamedColorsIdentifier& c, const NamedColorsIdentifier& line, float topCurveOpacity, float botCurveOpacity);
+		void setColor(const NamedColorsIdentifier& newLineColor, const NamedColorsIdentifier& newZeroLineColor = NamedColorsIdentifier(), const NamedColorsIdentifier& newTopCurveColor = NamedColorsIdentifier(), const NamedColorsIdentifier& newBotCurveColor = NamedColorsIdentifier());
 
 
 

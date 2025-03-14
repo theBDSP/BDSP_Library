@@ -22,12 +22,12 @@ namespace bdsp
 
 
 
-		subClasses.add(new OpenGLCirclePlotter(universals, 29 * 33));
+		subClasses.add(new OpenGLCircleRenderer(universals, 29 * 33));
 		subClasses.add(new OpenGLLineRenderer(universals, 2 * 29));
 		subClasses.add(new OpenGLLineRenderer(universals, 50));
 		initSubClasses();
 
-		grid = dynamic_cast<OpenGLCirclePlotter*>(subClasses[0]);
+		grid = dynamic_cast<OpenGLCircleRenderer*>(subClasses[0]);
 		line = dynamic_cast<OpenGLLineRenderer*>(subClasses[1]);
 		dry = dynamic_cast<OpenGLLineRenderer*>(subClasses[2]);
 
@@ -57,14 +57,13 @@ namespace bdsp
 		line->setThickness(0, universals->visualizerLineThickness);
 		dry->setThickness(0, universals->visualizerLineThickness);
 		//grid->setRadius(juce::jmax(universals->roundedRectangleCurve / 4, 2.0f));
-		grid->setRadius(universals->visualizerLineThickness);
 		OpenGLCompositeComponent::resized();
 
 	}
 
-	void BitCrushVisualizerInternal::setColor(const NamedColorsIdentifier& c, const NamedColorsIdentifier& line, float topCurveOpacity, float botCurveOpacity)
+	void BitCrushVisualizerInternal::setColor(const NamedColorsIdentifier& newLineColor, const NamedColorsIdentifier& newZeroLineColor, const NamedColorsIdentifier& newTopCurveColor, const NamedColorsIdentifier& newBotCurveColor)
 	{
-		color.setColors(c, background.getColorID(false).mixedWith(&c, universals->disabledAlpha));
+		color.setColors(newLineColor, background.getColorID(false).mixedWith(&newLineColor, universals->disabledAlpha));
 	}
 
 	void BitCrushVisualizerInternal::setScaling(float x, float y)
@@ -108,41 +107,42 @@ namespace bdsp
 		int n = 0;
 		float xBounds;
 		int xSamps = 0;
+		float w = universals->visualizerLineThickness;
 		juce::Array<juce::Point<float>> samples;
 
-		while (x <= 1.0 + grid->pointW)
+		while (x <= 1.0)
 		{
 			samples.add({ x * xScaling,yScaling * truncf(sin(PI * x) / depthVal) * depthVal });
 			xBounds = x;
 			xSamps++;
 			y = 0;
-			while (y <= 1.0 + grid->pointH)
+			while (y <= 1.0)
 			{
-				grid->circleData.set(++n, {
-					xScaling * x,yScaling * y,
+				grid->circleVertexBuffer.set(++n, {
+					xScaling * x,yScaling * y, w,w,
 					r,g,b, mixVal
 					});
 
 				if (x > 0)
 				{
-					grid->circleData.set(++n, {
-						-xScaling * x,yScaling * y,
+					grid->circleVertexBuffer.set(++n, {
+						-xScaling * x,yScaling * y, w,w,
 						r,g,b, mixVal
 						});
 
 
 					if (y > 0)
 					{
-						grid->circleData.set(++n, {
-							-xScaling * x,-yScaling * y,
+						grid->circleVertexBuffer.set(++n, {
+							-xScaling * x,-yScaling * y,w,w,
 							r,g,b, mixVal
 							});
 					}
 				}
 				if (y > 0)
 				{
-					grid->circleData.set(++n, {
-						xScaling * x,-yScaling * y,
+					grid->circleVertexBuffer.set(++n, {
+						xScaling * x,-yScaling * y,w,w,
 						r,g,b, mixVal
 						});
 				}
@@ -207,8 +207,7 @@ namespace bdsp
 
 
 
-		grid->circleData.resize(n);
-		grid->generateCircleVerticies();
+		grid->circleVertexBuffer.resize(n);
 
 
 

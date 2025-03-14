@@ -30,7 +30,8 @@ namespace bdsp
 
 		void renderWithoutGenerating() override;
 
-
+		void newOpenGLContextCreated() override;
+		void openGLContextClosing() override;
 
 		/**
 		* @param idx Index of line to set the cap type for, negative value will change all lines
@@ -86,8 +87,7 @@ namespace bdsp
 
 	private:
 
-		void newOpenGLContextCreated() override;
-		void openGLContextClosing() override;
+
 
 
 

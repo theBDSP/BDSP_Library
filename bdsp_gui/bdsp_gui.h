@@ -270,7 +270,8 @@ namespace bdsp
 #include "Open_GL_Component/bdsp_OpenGLContextHolder.h"
 #include "Open_GL_Component/bdsp_OpenGLComponent.h"
 #include "Open_GL_Component/Line/bdsp_LineRenderer.h"
-#include "Open_GL_Component/Data_Vis/bdsp_FunctionVisualizer.h"
+#include "Open_GL_Component/Circle/bdsp_CircleRenderer.h"
+#include "Open_GL_Component/Data_Vis/Function_Visulaizer/bdsp_FunctionVisualizer.h"
 #include "Open_GL_Component/Data_Vis/bdsp_FFTLineVisualizer.h"
 #include "Open_GL_Component/Data_Vis/bdsp_ControlValuesOverTime.h"
 
@@ -367,7 +368,6 @@ namespace bdsp
 #include "DSP_Visualizers/LFO/bdsp_LFOVisualizer.h"
 #include "DSP_Visualizers/Envelope_Follower/bdsp_EnvelopeFollowerVisualizer.h"
 #include "DSP_Visualizers/Distortion/bdsp_BitCrushVisualizer.h"
-#include "DSP_Visualizers/Diffusor/bdsp_DiffusorVisualizer.h"
 #include "DSP_Visualizers/Pitch_Shifter/bdsp_PitchShifterVisualizer.h"
 
 

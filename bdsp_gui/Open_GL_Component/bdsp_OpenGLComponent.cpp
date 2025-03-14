@@ -53,7 +53,7 @@ namespace bdsp
 
 	void OpenGLComponent::resized()
 	{
-
+		vpBounds = getBoundsRelativeToDesktopManager();
 	}
 
 
@@ -108,6 +108,13 @@ namespace bdsp
 
 		generateVertexBuffer();
 
+		juce::gl::glEnable(juce::gl::GL_BLEND);
+		juce::gl::glBlendFunc(juce::gl::GL_SRC_ALPHA, juce::gl::GL_ONE_MINUS_SRC_ALPHA);
+
+		if (shouldDrawBackground)
+		{
+			juce::OpenGLHelpers::clear(background);
+		}
 
 		renderWithoutGenerating();
 
@@ -140,14 +147,6 @@ namespace bdsp
 
 	void OpenGLComponent::renderWithoutGenerating()
 	{
-		juce::gl::glEnable(juce::gl::GL_BLEND);
-		juce::gl::glBlendFunc(juce::gl::GL_SRC_ALPHA, juce::gl::GL_ONE_MINUS_SRC_ALPHA);
-
-		if (shouldDrawBackground)
-		{
-			juce::OpenGLHelpers::clear(background);
-		}
-
 
 		// Tell the renderer to use this shader program
 		shaderProgram->use();
@@ -911,232 +910,6 @@ namespace bdsp
 
 	}
 
-
-	//================================================================================================================================================================================================
-	OpenGLCirclePlotter::OpenGLCirclePlotter(GUI_Universals* universalsToUse, int maxCircles)
-		:OpenGLComponent(universalsToUse, 10),
-		circleData(6)
-	{
-
-		for (int i = 0; i < maxCircles; ++i)
-		{
-			indexBuffer.addArray({
-				4 * i, 4 * i + 1, 4 * i + 2,
-				4 * i + 1, 4 * i + 2, 4 * i + 3
-				});
-		}
-	}
-
-	OpenGLCirclePlotter::~OpenGLCirclePlotter()
-	{
-		universals->contextHolder->unregisterOpenGlRenderer(this);
-	}
-
-	void OpenGLCirclePlotter::resized()
-	{
-		OpenGLComponent::resized();
-		if (!getBounds().isEmpty())
-		{
-			pointW = screenRadius / getWidth();
-			pointH = screenRadius / getHeight();
-
-		}
-	}
-
-	void OpenGLCirclePlotter::setRadius(float newRadius)
-	{
-		screenRadius = newRadius;
-		resized();
-	}
-
-	void OpenGLCirclePlotter::setFeatherRatio(float newRatio)
-	{
-		resized();
-	}
-
-	float OpenGLCirclePlotter::getScreenRadius()
-	{
-		return screenRadius;
-	}
-
-
-	void OpenGLCirclePlotter::generateCircleVerticies()
-	{
-		int n = 0;
-		indexBuffer.resize(circleData.size());
-		for (int i = 0; i < circleData.size(); ++i)
-		{
-			auto x = circleData.getAttribute(i, 0);
-			auto y = circleData.getAttribute(i, 1);
-			auto r = circleData.getAttribute(i, 2);
-			auto g = circleData.getAttribute(i, 3);
-			auto b = circleData.getAttribute(i, 4);
-			auto a = circleData.getAttribute(i, 5);
-			vertexBuffer.set(n, {
-				x - featherW , y - featherH ,
-				x, y,
-				pointW, pointH,
-				r, g, b, a
-				});
-			vertexBuffer.set(n + 1, {
-				x + featherW , y - featherH ,
-				x, y,
-				pointW, pointH,
-				r, g, b, a
-				});
-			vertexBuffer.set(n + 2, {
-				x - featherW , y + featherH ,
-				x, y,
-				pointW, pointH,
-				r, g, b, a
-				});
-			vertexBuffer.set(n + 3, {
-				x + featherW , y + featherH ,
-				x, y,
-				pointW, pointH,
-				r, g, b, a
-				});
-
-			n += 4;
-		}
-	}
-
-	void OpenGLCirclePlotter::createShaders()
-	{
-		vertexShader =
-			R"(
-            #version 410 core
-            
-            // Input attributes.
-                       layout(location = 0) in vec4 position;
-                       layout(location = 1) in vec2 center;
-                       layout(location = 2) in vec2 radius;
-                       layout(location = 3) in vec4 color;
-            
-            // Output to fragment shader.
-					layout(location = 0) out vec4 frag_position;
-                    layout(location = 1) out vec2 frag_center;
-                    layout(location = 2) out vec2 frag_radius;            
-                    layout(location = 3) out vec4 frag_color;            
-            void main()
-            {
-                gl_Position = position;
-
-                frag_position = position;
-				frag_center = center;
-				frag_radius = radius;
-				frag_color = color;
-            }
-        )";
-
-		fragmentShader =
-			R"(
-            #version 410 core
-            
-          
-					layout(location = 0) in vec4 frag_position;
-                    layout(location = 1) in vec2 frag_center;
-                    layout(location = 2) in vec2 frag_radius;   
-                    layout(location = 3) in vec4 frag_color;   
-				
-					uniform float u_feather;
-
-
-           layout(location = 0) out vec4 out_color;
-            void main()
-            {
-
-				float x = frag_position.x - frag_center.x;
-				float y = frag_position.y - frag_center.y;
-            
-				float r = sqrt(x*x/(frag_radius.x*frag_radius.x) + y*y/(frag_radius.y*frag_radius.y));
-
-				float a = 1.0;
-				if(r>1)
-				{
-					a = -(r-u_feather)/(u_feather-1.0);
-				}
-
-		
-                out_color = vec4(frag_color.rgb,frag_color.a * a);
-            }
-        )";
-	}
-
-	void OpenGLCirclePlotter::createUniforms()
-	{
-	}
-
-
-	void OpenGLCirclePlotter::createVertexAttributes()
-	{
-		juce::gl::glEnableVertexAttribArray(0);
-		// Enable the position attribute.
-		juce::gl::glVertexAttribPointer(
-			0,              // The attribute's index (AKA location).
-			2,              // How many values this attribute contains.
-			juce::gl::GL_FLOAT,       // The attribute's type (float).
-			juce::gl::GL_FALSE,       // Tells OpenGL NOT to normalise the values.
-			sizeof(float) * numAttributes, // How many bytes to move to find the attribute with
-			// the same index in the next vertex.
-			nullptr         // How many bytes to move from the start of this vertex
-							// to find this attribute (the default is 0 so we just
-							// pass nullptr here).
-		);
-
-		juce::gl::glEnableVertexAttribArray(1);
-		// Enable to center attribute.
-		juce::gl::glVertexAttribPointer(
-			1,                              // This attribute has an index of 1
-			2,                              // This time we have four values for the
-			juce::gl::GL_FLOAT,
-			juce::gl::GL_FALSE,
-			sizeof(float) * numAttributes,
-			(GLvoid*)(sizeof(float) * 2)    // This attribute comes after the
-			// position attribute in the Vertex
-			// struct, so we need to skip over the
-			// size of the position array to find
-			// the start of this attribute.
-		);
-
-		juce::gl::glEnableVertexAttribArray(2);
-		// Enable to radius attribute.
-		juce::gl::glVertexAttribPointer(
-			2,                              // This attribute has an index of 1
-			2,                              // This time we have four values for the
-			juce::gl::GL_FLOAT,
-			juce::gl::GL_FALSE,
-			sizeof(float) * numAttributes,
-			(GLvoid*)(sizeof(float) * 4)    // This attribute comes after the
-			// position attribute in the Vertex
-			// struct, so we need to skip over the
-			// size of the position array to find
-			// the start of this attribute.
-		);
-
-		juce::gl::glEnableVertexAttribArray(3);
-		// Enable to radius attribute.
-		juce::gl::glVertexAttribPointer(
-			3,                              // This attribute has an index of 1
-			4,                              // This time we have four values for the
-			juce::gl::GL_FLOAT,
-			juce::gl::GL_FALSE,
-			sizeof(float) * numAttributes,
-			(GLvoid*)(sizeof(float) * 6)    // This attribute comes after the
-			// position attribute in the Vertex
-			// struct, so we need to skip over the
-			// size of the position array to find
-			// the start of this attribute.
-		);
-	}
-
-	void OpenGLCirclePlotter::removeVertexAttributes()
-	{
-		juce::gl::glDisableVertexAttribArray(0);
-		juce::gl::glDisableVertexAttribArray(1);
-		juce::gl::glDisableVertexAttribArray(2);
-		juce::gl::glDisableVertexAttribArray(3);
-	}
 
 
 

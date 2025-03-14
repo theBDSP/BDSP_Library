@@ -16,13 +16,13 @@ namespace bdsp
 
 		subClasses.add(new OpenGLLineRenderer(universals, { 2,2,2,2,2,2,2,2,2,2 }));
 		subClasses.add(new OpenGLLineRenderer(universals, { 2,2 }));
-		subClasses.add(new OpenGLCirclePlotter(universals, 4));
+		subClasses.add(new OpenGLCircleRenderer(universals, 4));
 
 		initSubClasses();
 
 		scale = dynamic_cast<OpenGLLineRenderer*>(subClasses[0]);
 		bars = dynamic_cast<OpenGLLineRenderer*>(subClasses[1]);
-		dots = dynamic_cast<OpenGLCirclePlotter*>(subClasses[2]);
+		dots = dynamic_cast<OpenGLCircleRenderer*>(subClasses[2]);
 
 
 
@@ -36,9 +36,7 @@ namespace bdsp
 	{
 		auto barW = barSize > 0 ? barSize * getWidth() : universals->visualizerLineThickness;
 		auto scaleW = scaleSize > 0 ? scaleSize * getWidth() : universals->visualizerLineThickness;
-		auto dotW = dotSize > 0 ? dotSize * getWidth() : 2 * universals->visualizerLineThickness;
-
-		dots->setRadius(dotW);
+		dotRadius = dotSize > 0 ? dotSize * getWidth() : 2 * universals->visualizerLineThickness;
 
 		for (int i = 0; i < scale->lineVertexBuffer.size(); i++)
 		{
@@ -51,7 +49,7 @@ namespace bdsp
 
 		OpenGLCompositeComponent::resized();
 
-		scaleY = (getHeight() - 2 * dotW) / getHeight();
+		scaleY = (getHeight() - 2 * dotRadius) / getHeight();
 	}
 
 	void PitchShifterVisualizer::PitchShifterVisualizerInternal::setColor(const NamedColorsIdentifier& newColor, const NamedColorsIdentifier& newScaleColor, const NamedColorsIdentifier& newTextColor)
@@ -207,50 +205,50 @@ namespace bdsp
 
 		//================================================================================================================================================================================================
 
-		auto& cd = dots->circleData;
+		auto& cd = dots->circleVertexBuffer;
 		if (mixVal >= 0.5f)
 		{
 
 			cd.set(0, {
-				-x,0,
+				-x,0, dotRadius,dotRadius,
 				dryRed,dryGreen,dryBlue,1,
 				});
 
 			cd.set(1, {
-				x,0,
+				x,0, dotRadius,dotRadius,
 				dryRed,dryGreen,dryBlue,1,
 				});
 
 
 			cd.set(2, {
-				-x,leftVal,
+				-x,leftVal, dotRadius,dotRadius,
 				red, green, blue, 1
 				});
 
 			cd.set(3, {
-				x,rightVal,
+				x,rightVal, dotRadius,dotRadius,
 				red, green, blue, 1
 				});
 		}
 		else
 		{
 			cd.set(0, {
-				-x,leftVal,
+				-x,leftVal, dotRadius,dotRadius,
 				red, green, blue, 1
 				});
 
 			cd.set(1, {
-				x,rightVal,
+				x,rightVal, dotRadius,dotRadius,
 				red, green, blue, 1
 				});
 
 			cd.set(2, {
-				-x,0,
+				-x,0, dotRadius,dotRadius,
 				dryRed,dryGreen,dryBlue,1,
 				});
 
 			cd.set(3, {
-				x,0,
+				x,0, dotRadius,dotRadius,
 				dryRed,dryGreen,dryBlue,1,
 				});
 
@@ -294,7 +292,6 @@ namespace bdsp
 
 
 		//================================================================================================================================================================================================
-		dots->generateCircleVerticies();
 
 	}
 

@@ -31,6 +31,8 @@ namespace bdsp
 		mixVal = mixParam == nullptr ? 1 : mixParam->getActualValue();
 		colorVal = colorParam == nullptr ? 1 : colorParam->getActualValue();
 
+		//topAlpha->set(topCurveAlpha * mixVal);
+		//botAlpha->set(botCurveAlpha * mixVal);
 
 	}
 
@@ -47,11 +49,6 @@ namespace bdsp
 		}
 		return minmax * (2 * out - 1);
 
-	}
-
-	float NoiseVisualizerInternal::calculateAlpha(float x, float y)
-	{
-		return OpenGLFunctionVisualizer::calculateAlpha(x, y) * mixVal;
 	}
 
 	NoiseVisualizer::NoiseVisualizer(GUI_Universals* universalsToUse)

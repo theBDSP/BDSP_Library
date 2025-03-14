@@ -54,6 +54,7 @@ namespace bdsp
 			float scaleX = 0.9, scaleY = 0.9;
 			float gap = 0.2;
 			float barSize = -1.0f, scaleSize = -1.0f, dotSize = -1.0f;
+			float dotRadius;
 			void generateVertexBuffer() override;
 			void onShaderCreation() override;
 
@@ -67,7 +68,7 @@ namespace bdsp
 
 			OpenGLColor color, scaleColor, textColor;
 
-			OpenGLCirclePlotter* dots = nullptr;
+			OpenGLCircleRenderer* dots = nullptr;
 			OpenGLLineRenderer* scale = nullptr;
 			OpenGLLineRenderer* bars = nullptr;
 		}vis;

@@ -10,12 +10,6 @@ namespace bdsp
 		LFOWaveVisualizerInternal(GUI_Universals* universalsToUse, LFOComponent* parentComp, dsp::DSP_Universals<float>* lookupsToUse);
 		~LFOWaveVisualizerInternal();
 
-		void paint(juce::Graphics& g) override;
-
-		void resized() override;
-
-		inline float calculateAlpha(float x, float y) override;
-
 		void generateVertexBuffer() override;
 
 
@@ -52,13 +46,7 @@ namespace bdsp
 
 		void resized() override;
 
-		inline float calculateAlpha(float x, float y) override;
 
-
-
-
-
-		
 
 		
 		inline float calculateFunctionSample(int sampleNumber, float openGL_X, float normX) override;
@@ -85,7 +73,7 @@ namespace bdsp
 		LFOWaveVisualizer* getWaveComponent();
 		LFOResultVisualizer* getResultComponent();
 
-		void setColor(const NamedColorsIdentifier& c, const NamedColorsIdentifier& line = NamedColorsIdentifier(), float topCurveOpacity = BDSP_OPEN_GL_FUNCTION_DEFAULT_TOP_ALPHA, float botCurveOpacity = BDSP_OPEN_GL_FUNCTION_DEFAULT_BOTTOM_ALPHA);
+		void setColor(const NamedColorsIdentifier& newLineColor, const NamedColorsIdentifier& newZeroLineColor = NamedColorsIdentifier(), const NamedColorsIdentifier& newTopCurveColor = NamedColorsIdentifier(), const NamedColorsIdentifier& newBotCurveColor = NamedColorsIdentifier(), const NamedColorsIdentifier& newPosColor = NamedColorsIdentifier());
 	private:
 		LFOWaveVisualizer wave;
 		LFOResultVisualizer result;

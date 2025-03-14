@@ -285,7 +285,7 @@ namespace bdsp
 
 		if (visualizer != nullptr)
 		{
-			visualizer->setColor(c, BDSP_COLOR_LIGHT, 0.25f, 0.25f);
+			visualizer->setColor(c, c);
 		}
 
 
@@ -310,7 +310,7 @@ namespace bdsp
 		LFOObject->setParameters(rate->getMsSlider()->controlParam, rate->getFraction()->controlParam, rate->getDivision()->getParameter(), shape->getControlParamter(), skew->getControlParamter(), amplitude->getControlParamter(), polarityParam, BPM->linkedFollower);
 		visualizer = std::make_unique<LFOVisualizer>(universals, this, LFOObject->lookups);
 		//newControlObject->addListener(visualizer.get());
-		visualizer->setColor(c, BDSP_COLOR_LIGHT, 0.25f, 0.25f);
+		visualizer->setColor(c, c);
 
 		polarityParam->sendValueChangedMessageToListeners(polarityParam->get());
 		addAndMakeVisible(visualizer.get());

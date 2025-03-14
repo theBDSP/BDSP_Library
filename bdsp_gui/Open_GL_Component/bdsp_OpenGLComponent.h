@@ -573,49 +573,6 @@ namespace bdsp
 	};
 
 
-	class OpenGLCirclePlotter : public OpenGLComponent
-	{
-	public:
-		OpenGLCirclePlotter(GUI_Universals* universalsToUse, int maxCircles = 250);
-		virtual ~OpenGLCirclePlotter();
-
-
-
-		void resized() override;
-
-		void setRadius(float newRadius);
-		void setFeatherRatio(float newRatio);
-
-		float getScreenRadius();
-
-		void generateCircleVerticies();
-		float pointW = 0.1, pointH = 0.1;
-		float featherW = 0.1, featherH = 0.1;
-		VertexArray circleData;
-	protected:
-
-
-
-
-		void createShaders() override;
-		void createUniforms() override;
-		void createVertexAttributes() override;
-		void removeVertexAttributes() override;
-
-
-
-		std::unique_ptr<juce::OpenGLShaderProgram::Uniform> featherRatioUniform;
-
-
-
-
-
-
-		float screenRadius = 1;
-
-
-
-	};
 
 
 	//================================================================================================================================================================================================
@@ -660,15 +617,7 @@ namespace bdsp
 			g.fillRoundedRectangle(getLocalBounds().toFloat(), universals->roundedRectangleCurve);
 		}
 
-		void setColor(const NamedColorsIdentifier& c, const NamedColorsIdentifier& line = NamedColorsIdentifier(), float topCurveOpacity = BDSP_OPEN_GL_FUNCTION_DEFAULT_TOP_ALPHA, float botCurveOpacity = BDSP_OPEN_GL_FUNCTION_DEFAULT_BOTTOM_ALPHA)
-		{
-			vis->setColor(c, line, topCurveOpacity, botCurveOpacity);
-		}
 
-		void setBackgroundColor(const NamedColorsIdentifier& bkgd, const NamedColorsIdentifier& bkgdBehind)
-		{
-			vis->setBackgroundColor(bkgd, bkgdBehind);
-		}
 		InternalClass* getVis()
 		{
 			return vis.get();

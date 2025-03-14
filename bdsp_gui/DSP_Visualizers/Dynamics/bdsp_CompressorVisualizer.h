@@ -30,7 +30,6 @@ namespace bdsp
 		float calculateFunctionSample(int sampleNumber, float openGL_X, float normX) override;
 
 
-		float calculateAlpha(float x, float y) override; // calculates alpha of area under curve based on height of function
 
 
 

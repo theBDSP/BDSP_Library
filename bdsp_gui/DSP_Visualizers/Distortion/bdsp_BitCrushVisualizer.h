@@ -15,7 +15,7 @@ namespace bdsp
 
 		void resized() override;
 
-		void setColor(const NamedColorsIdentifier& c, const NamedColorsIdentifier& line = NamedColorsIdentifier(), float topCurveOpacity = BDSP_OPEN_GL_FUNCTION_DEFAULT_TOP_ALPHA, float botCurveOpacity = BDSP_OPEN_GL_FUNCTION_DEFAULT_BOTTOM_ALPHA);
+		void setColor(const NamedColorsIdentifier& newLineColor, const NamedColorsIdentifier& newZeroLineColor = NamedColorsIdentifier(), const NamedColorsIdentifier& newTopCurveColor = NamedColorsIdentifier(), const NamedColorsIdentifier& newBotCurveColor = NamedColorsIdentifier());
 
 		void setScaling(float x, float y);
 
@@ -42,7 +42,7 @@ namespace bdsp
 
 
 
-		OpenGLCirclePlotter* grid = nullptr;
+		OpenGLCircleRenderer* grid = nullptr;
 		OpenGLLineRenderer* line = nullptr, * dry = nullptr;
 
 		juce::Array<juce::Point<float>> dryPoints;

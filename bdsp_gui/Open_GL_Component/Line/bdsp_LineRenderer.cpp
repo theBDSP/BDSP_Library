@@ -131,6 +131,9 @@ namespace bdsp
 
 	void OpenGLLineRenderer::renderWithoutGenerating()
 	{
+		juce::gl::glEnable(juce::gl::GL_BLEND);
+		juce::gl::glBlendFunc(juce::gl::GL_SRC_ALPHA, juce::gl::GL_ONE_MINUS_SRC_ALPHA);
+
 		juce::gl::glEnable(juce::gl::GL_MULTISAMPLE); // enable MSAA
 
 
@@ -209,7 +212,6 @@ namespace bdsp
 
 
 			juce::gl::glStencilFunc(juce::gl::GL_NOTEQUAL, 1, 0xFF); // only render fragments not rendered by the previous shader pass
-			juce::gl::glStencilMask(0x00); // disable writing to the stencil buffer
 
 			// set this shaders uniforms
 			jointThickness->set(lineThicknessX[i], lineThicknessY[i]);
@@ -265,6 +267,8 @@ namespace bdsp
 
 		//================================================================================================================================================================================================
 
+		juce::gl::glDisable(juce::gl::GL_STENCIL_TEST);
+		juce::gl::glDisable(juce::gl::GL_DEPTH_TEST);
 
 		removeVertexAttributes();
 
@@ -313,7 +317,7 @@ namespace bdsp
 		{
 			lineScreenThickness.set(idx, thickness);
 		}
-		resized();
+		//resized();
 	}
 
 	void OpenGLLineRenderer::setThicknessRamp(int idx, float newValue)
