@@ -4,7 +4,7 @@ namespace bdsp
 {
 
 
-	
+
 	PropertiesFolder::PropertiesFolder()
 	{
 
@@ -133,6 +133,9 @@ namespace bdsp
 #include "Open_GL_Component/Data_Vis/Function_Visulaizer/bdsp_FunctionVisualizer.cpp"
 
 
+#include "Open_GL_Component/Grids/bdsp_GridBase.cpp"
+
+
 
 //=====================================================================================================================
 //ComboBox
@@ -230,7 +233,7 @@ namespace bdsp
 #include "DSP_Visualizers/Demo_Alert/bdsp_DemoAlert.cpp"
 #include "DSP_Visualizers/LFO/bdsp_LFOVisualizer.cpp"
 #include "DSP_Visualizers/Envelope_Follower/bdsp_EnvelopeFollowerVisualizer.cpp"
-#include "DSP_Visualizers/Distortion/bdsp_BitCrushVisualizer.cpp"
+#include "DSP_Visualizers/Bit_Crush/bdsp_BitCrushVisualizer.cpp"
 #include "DSP_Visualizers/Pitch_Shifter/bdsp_PitchShifterVisualizer.cpp"
 
 #include "DSP_Visualizers/Modulation/Phaser/bdsp_PhaserVisualizer.cpp"

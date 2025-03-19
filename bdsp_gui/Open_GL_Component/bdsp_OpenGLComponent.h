@@ -332,6 +332,7 @@ namespace bdsp
 
 		virtual void createShaders();
 		virtual void createUniforms();
+		virtual void deleteUniforms();
 		virtual void createVertexAttributes();
 		virtual void removeVertexAttributes();
 
@@ -488,36 +489,6 @@ namespace bdsp
 
 
 	//================================================================================================================================================================================================
-
-	class OpenGLGrid : public OpenGLComponent, public GUI_Universals::Listener
-	{
-	public:
-
-		OpenGLGrid(GUI_Universals* universalsToUse, int maxRows, int maxCols);
-		~OpenGLGrid();
-
-		void resized() override;
-
-
-		void setXSpacing(float newSpacing);
-		void setYSpacing(float newSpacing);
-		void setThickness(float newThickness);
-
-		void setColor(const NamedColorsIdentifier& newColor);
-
-		void generateVertexBuffer() override;
-
-	private:
-		NamedColorsIdentifier color;
-		float  xThickness, yThickness, xSpacing, ySpacing;
-
-		float thickness;
-
-		float r, g, b;
-
-		void GUI_UniversalsChanged() override;
-
-	};
 
 
 	//================================================================================================================================================================================================

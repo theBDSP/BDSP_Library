@@ -18,6 +18,7 @@ namespace bdsp
 				lineIndexBuffer[i]->add(j);
 			}
 
+			lineScreenThickness.add(1);
 			// set default values
 			joint.set(i, OpenGLLineRenderer::JointType::Bevel);
 			cap.set(i, OpenGLLineRenderer::CapType::Butt);

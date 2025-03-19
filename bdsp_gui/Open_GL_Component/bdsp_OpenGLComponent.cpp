@@ -127,7 +127,7 @@ namespace bdsp
 		//vertexBuffer.clear();
 		//indexBuffer.clear();
 
-
+		deleteUniforms();
 		shaderProgram.reset();
 		if (buffersCreated)
 		{
@@ -211,6 +211,11 @@ namespace bdsp
 
 
 	void OpenGLComponent::createUniforms()
+	{
+	}
+	
+
+	void OpenGLComponent::deleteUniforms()
 	{
 	}
 
@@ -698,219 +703,6 @@ namespace bdsp
 
 
 	//================================================================================================================================================================================================
-
-
-
-	OpenGLGrid::OpenGLGrid(GUI_Universals* universalsToUse, int maxRows, int maxCols)
-		:OpenGLComponent(universalsToUse),
-		GUI_Universals::Listener(universalsToUse)
-	{
-		thickness = universals->visualizerLineThickness;
-
-		int maxNum = maxRows * maxCols;
-		vertexBuffer.init(maxNum * 4);
-
-		for (int i = 0; i < maxNum; ++i)
-		{
-			indexBuffer.addArray({
-				4 * i,4 * i + 1, 4 * i + 2,
-				4 * i + 1,4 * i + 2,4 * i + 3
-				});
-		}
-
-	}
-
-	OpenGLGrid::~OpenGLGrid()
-	{
-		universals->contextHolder->unregisterOpenGlRenderer(this);
-	}
-
-	void OpenGLGrid::resized()
-	{
-		xThickness = thickness / getWidth();
-		yThickness = thickness / getHeight();
-	}
-
-
-
-
-
-	void OpenGLGrid::setXSpacing(float newSpacing)
-	{
-		xSpacing = newSpacing;
-	}
-
-	void OpenGLGrid::setYSpacing(float newSpacing)
-	{
-		ySpacing = newSpacing;
-	}
-
-	void OpenGLGrid::setThickness(float newThickness)
-	{
-		thickness = newThickness;
-		resized();
-	}
-
-	void OpenGLGrid::generateVertexBuffer()
-	{
-		int n = 2;
-		float x = 0;
-
-		vertexBuffer.set(0, {
-			-xThickness,-1,
-			r,g,b,1
-			});
-		vertexBuffer.set(1, {
-			xThickness,-1,
-			r,g,b,1
-			});
-
-		vertexBuffer.set(2, {
-			-xThickness,1,
-			r,g,b,1
-			});
-		vertexBuffer.set(3, {
-			xThickness,1,
-			r,g,b,1
-			});
-
-
-		//================================================================================================================================================================================================
-
-		vertexBuffer.set(4, {
-			-1,-yThickness,
-			r,g,b,1
-			});
-		vertexBuffer.set(5, {
-			1,-yThickness,
-			r,g,b,1
-			});
-
-		vertexBuffer.set(6, {
-			-1,yThickness,
-			r,g,b,1
-			});
-		vertexBuffer.set(7, {
-			1,yThickness,
-			r,g,b,1
-			});
-
-		while (x <= 1.0f)
-		{
-			vertexBuffer.set(4 * n, {
-				x - xThickness,-1,
-				r,g,b,1
-				});
-			vertexBuffer.set(4 * n + 1, {
-				x + xThickness,-1,
-				r,g,b,1
-				});
-
-			vertexBuffer.set(4 * n + 2, {
-				x - xThickness,1,
-				r,g,b,1
-				});
-			vertexBuffer.set(4 * n + 3, {
-				x + xThickness,1,
-				r,g,b,1
-				});
-
-
-			//================================================================================================================================================================================================
-
-			vertexBuffer.set(4 * n + 4, {
-				-x - xThickness,-1,
-				r,g,b,1
-				});
-			vertexBuffer.set(4 * n + 5, {
-				-x + xThickness,-1,
-				r,g,b,1
-				});
-
-			vertexBuffer.set(4 * n + 6, {
-				-x - xThickness,1,
-				r,g,b,1
-				});
-			vertexBuffer.set(4 * n + 7, {
-				-x + xThickness,1,
-				r,g,b,1
-				});
-
-
-			x += xSpacing;
-			n += 2;
-		}
-
-		float y = 0;
-
-
-		while (y <= 1.0f)
-		{
-			vertexBuffer.set(4 * n, {
-				-1,y - yThickness,
-				r,g,b,1
-				});
-			vertexBuffer.set(4 * n + 1, {
-				1, y - yThickness,
-				r,g,b,1
-				});
-
-			vertexBuffer.set(4 * n + 2, {
-				-1, y + yThickness,
-				r,g,b,1
-				});
-			vertexBuffer.set(4 * n + 3, {
-				1, y + yThickness,
-				r,g,b,1
-				});
-
-
-			//================================================================================================================================================================================================
-
-			vertexBuffer.set(4 * n + 4, {
-					-1,-y - yThickness,
-					r,g,b,1
-				});
-			vertexBuffer.set(4 * n + 5, {
-				1, -y - yThickness,
-				r,g,b,1
-				});
-
-			vertexBuffer.set(4 * n + 6, {
-				-1, -y + yThickness,
-				r,g,b,1
-				});
-			vertexBuffer.set(4 * n + 7, {
-				1, -y + yThickness,
-				r,g,b,1
-				});
-
-
-
-			y += ySpacing;
-			n += 2;
-		}
-
-		vertexBuffer.resize(4 * n);
-		indexBuffer.resize(6 * n);
-	}
-
-	void OpenGLGrid::setColor(const NamedColorsIdentifier& newColor)
-	{
-		color = newColor;
-		GUI_UniversalsChanged();
-	}
-
-	void OpenGLGrid::GUI_UniversalsChanged()
-	{
-		auto c = getColor(color);
-		r = c.getFloatRed();
-		g = c.getFloatGreen();
-		b = c.getFloatBlue();
-
-	}
-
-
 
 
 	//================================================================================================================================================================================================

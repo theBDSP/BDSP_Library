@@ -275,6 +275,9 @@ namespace bdsp
 #include "Open_GL_Component/Data_Vis/bdsp_FFTLineVisualizer.h"
 #include "Open_GL_Component/Data_Vis/bdsp_ControlValuesOverTime.h"
 
+#include "Open_GL_Component/Grids/bdsp_GridBase.h"
+#include "Open_GL_Component/Grids/bdsp_LineGrid.h"
+#include "Open_GL_Component/Grids/bdsp_DotGrid.h"
 
 
 //=====================================================================================================================
@@ -367,7 +370,7 @@ namespace bdsp
 #include "DSP_Visualizers/Demo_Alert/bdsp_DemoAlert.h"
 #include "DSP_Visualizers/LFO/bdsp_LFOVisualizer.h"
 #include "DSP_Visualizers/Envelope_Follower/bdsp_EnvelopeFollowerVisualizer.h"
-#include "DSP_Visualizers/Distortion/bdsp_BitCrushVisualizer.h"
+#include "DSP_Visualizers/Bit_Crush/bdsp_BitCrushVisualizer.h"
 #include "DSP_Visualizers/Pitch_Shifter/bdsp_PitchShifterVisualizer.h"
 
 
