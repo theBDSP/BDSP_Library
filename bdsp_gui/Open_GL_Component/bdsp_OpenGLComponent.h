@@ -239,6 +239,8 @@ namespace bdsp
 			return arr[num * vertexIdx + attributeIdx];
 		}
 
+
+	private:
 		int n = 0;
 		const int num;
 		juce::Array<float> arr;
@@ -493,55 +495,6 @@ namespace bdsp
 
 	//================================================================================================================================================================================================
 
-	class OpenGLRing : public OpenGLComponent, public GUI_Universals::Listener
-	{
-	public:
-
-		OpenGLRing(GUI_Universals* universalsToUse, int numSamples = 16);
-		virtual ~OpenGLRing();
-
-		void generateVertexBuffer() override;
-
-		void resized() override;
-
-		void setRadius(float newRadius);
-		void setThickness(float newThickness);
-		void setFeatherRatio(float newFeatherRatio);
-		void setCenter(juce::Point<float> newCenter, bool isGLCoord = true);
-
-
-		void setColor(const NamedColorsIdentifier& newColor);
-
-
-	protected:
-
-
-		float r, g, b, a;
-
-
-
-		float screenRadius = 1, screenThickness = 1;
-
-		float featherRatio = 4;
-
-		int samplePoints = 32;
-
-		juce::Point<float> center;
-
-		juce::Array<juce::Point<float>> angles;
-		float thicknessX = 0.01, thicknessY = 0.01;
-		float radX = 0.01, radY = 0.01;
-
-		float featherOutX, radOutX, radInX, featherInX;
-		float featherOutY, radOutY, radInY, featherInY;
-
-		NamedColorsIdentifier color;
-
-
-		// Inherited via Listener
-		void GUI_UniversalsChanged() override;
-
-	};
 
 
 

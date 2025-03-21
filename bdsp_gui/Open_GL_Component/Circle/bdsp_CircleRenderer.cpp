@@ -22,12 +22,7 @@ namespace bdsp
 	{
 		//================================================================================================================================================================================================
 
-		circleVertexShader = circle_vertex_shader;
-
-		circleFragmentShader = circle_fragment_shader;
-
-		circleGeometryShader = circle_geometry_shader;
-
+		createShaders();
 
 
 
@@ -42,8 +37,7 @@ namespace bdsp
 			&& circleShaderProgram->link())
 		{
 			circleShaderProgram->use();
-			viewportUniform = std::make_unique<juce::OpenGLShaderProgram::Uniform>(*circleShaderProgram.get(), "u_viewport");
-			viewportUniform->set(vpBounds.getWidth(), vpBounds.getHeight());
+			createUniforms();
 		}
 		else
 		{
@@ -179,5 +173,20 @@ namespace bdsp
 
 
 
+
+	void OpenGLCircleRenderer::createShaders()
+	{
+		circleVertexShader = circle_vertex_shader;
+
+		circleFragmentShader = circle_fragment_shader;
+
+		circleGeometryShader = circle_geometry_shader;
+	}
+
+	void OpenGLCircleRenderer::createUniforms()
+	{
+		viewportUniform = std::make_unique<juce::OpenGLShaderProgram::Uniform>(*circleShaderProgram.get(), "u_viewport");
+		viewportUniform->set(vpBounds.getWidth(), vpBounds.getHeight());
+	}
 
 } //namespace bdsp

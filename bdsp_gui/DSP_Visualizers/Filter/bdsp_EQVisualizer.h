@@ -79,7 +79,7 @@ namespace bdsp
 
 
 
-			void setColor(const NamedColorsIdentifier& norm, const NamedColorsIdentifier& down, const OpenGLColor& bkgd);
+			void setColor(const NamedColorsIdentifier& norm, const NamedColorsIdentifier& down);
 
 
 			juce::Point<float> getGLCenter();
@@ -140,6 +140,8 @@ namespace bdsp
 
 		juce::Array<EQVisualizerHandle*> handlePointers;
 		OpenGLRing* ringPointer;
+		OpenGLColor ringColor;
+		float ringRadius;
 
 		juce::ComponentBoundsConstrainer constrainer;
 

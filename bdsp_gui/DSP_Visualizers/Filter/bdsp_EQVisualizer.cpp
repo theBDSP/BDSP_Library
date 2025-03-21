@@ -14,6 +14,8 @@ namespace bdsp
 
 		newFrameInit();
 
+		setJointType(-1, OpenGLLineRenderer::JointType::Rounded);
+
 	}
 
 
@@ -159,17 +161,17 @@ namespace bdsp
 
 		circleVertexBuffer.set(0, {
 			glCenter.x, glCenter.y,radius,radius,
-			r,g,b,1
+			r,g,b,a
 			});
 
 
 	}
 
 
-	void EQVisualizerInternal::EQVisualizerHandle::setColor(const NamedColorsIdentifier& norm, const NamedColorsIdentifier& down, const OpenGLColor& bkgd)
+	void EQVisualizerInternal::EQVisualizerHandle::setColor(const NamedColorsIdentifier& norm, const NamedColorsIdentifier& down)
 	{
-		normColor.setColors(norm, bkgd.getColorID(false).mixedWith(norm, universals->disabledAlpha));
-		downColor.setColors(down, bkgd.getColorID(false).mixedWith(down, universals->disabledAlpha));
+		normColor.setColors(norm, norm.withMultipliedAlpha(universals->disabledAlpha));
+		downColor.setColors(down, down.withMultipliedAlpha(universals->disabledAlpha));
 	}
 
 	juce::Point<float> EQVisualizerInternal::EQVisualizerHandle::getGLCenter()
@@ -204,8 +206,7 @@ namespace bdsp
 
 	juce::Rectangle<float> EQVisualizerInternal::EQVisualizerHandle::getHandleBounds()
 	{
-		auto glBounds = juce::Rectangle<float>(2 * radius, 2 * radius).withCentre(glCenter);
-		return GLBoundsToCompBounds(glBounds);
+		return juce::Rectangle<float>(4 * radius, 4 * radius).withCentre(GLPointToCompPoint(glCenter));
 	}
 
 	void EQVisualizerInternal::EQVisualizerHandle::setParamsFromGLCenter()
@@ -257,7 +258,8 @@ namespace bdsp
 
 
 	EQVisualizerInternal::EQVisualizerInternal(GUI_Universals* universalsToUse, dsp::ParametricEQ<float>* EQToUse, int numSamples)
-		:OpenGLCompositeComponent(universalsToUse)
+		:OpenGLCompositeComponent(universalsToUse),
+		ringColor(universalsToUse, this)
 	{
 		subClasses.add(new EQFuncitonVisualizer(this, EQToUse, numSamples));
 		for (int i = 0; i < EQToUse->getNumProcessors(); ++i)
@@ -299,15 +301,18 @@ namespace bdsp
 
 	void EQVisualizerInternal::generateVertexBuffer()
 	{
-
-
-		ringPointer->setCenter(handlePointers[selectedHandle]->getGLCenter());
-
-
 		for (auto c : subClasses)
 		{
 			c->generateVertexBuffer();
 		}
+		auto center = handlePointers[selectedHandle]->getGLCenter();
+		float r, g, b, a;
+		ringColor.getComponents(r, g, b, a);
+
+
+		ringPointer->circleVertexBuffer.set(0, { center.x,center.y,ringRadius,ringRadius,r,g,b,a });
+
+
 	}
 
 	void EQVisualizerInternal::setScaling(float x, float y)
@@ -322,28 +327,28 @@ namespace bdsp
 
 		for (auto* h : handlePointers)
 		{
-			h->setColor(newLineColor.withMultipliedSaturation(1 - universals->buttonDesaturation), newLineColor, cast->getBackgroundColor());
+			h->setColor(newLineColor.withMultipliedSaturation(1 - universals->buttonDesaturation), newLineColor);
 		}
 
-		ringPointer->setColor(newLineColor);
+		ringColor.setColors(newLineColor, newLineColor.withMultipliedAlpha(universals->disabledAlpha));
 	}
 
 	void EQVisualizerInternal::resized()
 	{
 
 
-		auto handleSize = 15 * universals->visualizerLineThickness;
+		auto handleSize = 1.5 * universals->visualizerLineThickness;
 		constrainer.setMinimumOnscreenAmounts(handleSize, handleSize, handleSize, handleSize);
 
 		borderX = 2 * (handleSize / (float)getWidth());
 		borderY = 2 * (handleSize / (float)getHeight());
 
-		ringPointer->setRadius(2 * handleSize);
-		ringPointer->setThickness(universals->visualizerLineThickness);
+		ringRadius = 2 * handleSize;
+		ringPointer->setThickness(universals->visualizerLineThickness / 4.0);
 
 		auto cast = dynamic_cast<OpenGLFunctionVisualizer*>(subClasses.getFirst());
 
-		for (auto h : handlePointers)
+		for (auto* h : handlePointers)
 		{
 			h->radius = handleSize;
 		}

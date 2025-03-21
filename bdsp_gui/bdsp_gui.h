@@ -271,6 +271,7 @@ namespace bdsp
 #include "Open_GL_Component/bdsp_OpenGLComponent.h"
 #include "Open_GL_Component/Line/bdsp_LineRenderer.h"
 #include "Open_GL_Component/Circle/bdsp_CircleRenderer.h"
+#include "Open_GL_Component/Circle/Ring/bdsp_OpenGLRing.h"
 #include "Open_GL_Component/Data_Vis/Function_Visulaizer/bdsp_FunctionVisualizer.h"
 #include "Open_GL_Component/Data_Vis/bdsp_FFTLineVisualizer.h"
 #include "Open_GL_Component/Data_Vis/bdsp_ControlValuesOverTime.h"

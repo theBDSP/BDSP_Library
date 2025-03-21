@@ -215,6 +215,8 @@ namespace bdsp
 									// need to pass that again here, so pass nullptr.
 			);
 		}
+		juce::gl::glDisable(juce::gl::GL_STENCIL_TEST);
+		juce::gl::glDisable(juce::gl::GL_DEPTH_TEST);
 	}
 
 	void OpenGLFunctionVisualizer::newOpenGLContextCreated()

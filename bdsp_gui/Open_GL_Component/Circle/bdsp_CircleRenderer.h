@@ -19,7 +19,8 @@ namespace bdsp
 
 		void resized() override;
 
-
+		void createShaders() override;
+		void createUniforms() override;
 
 
 		void renderWithoutGenerating() override;

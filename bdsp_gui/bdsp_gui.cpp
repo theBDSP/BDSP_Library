@@ -130,6 +130,8 @@ namespace bdsp
 #include "Open_GL_Component/bdsp_OpenGLComponent.cpp"
 #include "Open_GL_Component/Line/bdsp_LineRenderer.cpp"
 #include "Open_GL_Component/Circle/bdsp_CircleRenderer.cpp"
+#include "Open_GL_Component/Circle/Ring/bdsp_OpenGLRing.cpp"
+
 #include "Open_GL_Component/Data_Vis/Function_Visulaizer/bdsp_FunctionVisualizer.cpp"
 
 
