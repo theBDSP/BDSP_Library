@@ -9,6 +9,7 @@ namespace bdsp
 		{
 			circleIndexBuffer.add(i);
 		}
+		circleVertexBuffer.init(maxCircles);
 	}
 
 

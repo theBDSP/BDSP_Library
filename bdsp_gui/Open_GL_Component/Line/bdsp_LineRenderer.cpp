@@ -147,14 +147,19 @@ namespace bdsp
 			lineShaderProgram->use();
 
 			juce::gl::glEnable(juce::gl::GL_DEPTH_TEST); // depth testing for overdraw during a single shader pass
-			juce::gl::glClear(juce::gl::GL_DEPTH_BUFFER_BIT); // reset the depth buffer from the previous line
 
 			juce::gl::glStencilMask(0xFF); // enable writing to the stencil buffer
-			juce::gl::glClear(juce::gl::GL_STENCIL_BUFFER_BIT); // reset the stencil buffer from the previous line
+
+			if (interLineOverdraw)
+			{
+				juce::gl::glClear(juce::gl::GL_DEPTH_BUFFER_BIT); // reset the depth buffer from the previous line
+				juce::gl::glClear(juce::gl::GL_STENCIL_BUFFER_BIT); // reset the stencil buffer from the previous line
+			}
+
 
 			// set all fragments rendered this pass to 1 in the stencil buffer 
 			juce::gl::glStencilOp(juce::gl::GL_KEEP, juce::gl::GL_KEEP, juce::gl::GL_REPLACE);
-			juce::gl::glStencilFunc(juce::gl::GL_ALWAYS, 1, 0xFF);
+			juce::gl::glStencilFunc(juce::gl::GL_NOTEQUAL, 1, 0xFF); // only render fragments not rendered by the previous shader pass
 
 			// grab the current vertex and index buffer
 			auto& vb = *lineVertexBuffer[i];
@@ -196,7 +201,7 @@ namespace bdsp
 			//================================================================================================================================================================================================
 
 			juce::gl::glDrawElements(
-				juce::gl::GL_LINE_STRIP, 
+				juce::gl::GL_LINE_STRIP,
 				ib.size(), // How many indices we have.
 				juce::gl::GL_UNSIGNED_INT,    // What type our indices are.
 				nullptr             // We already gave OpenGL our indices so we don't
@@ -255,7 +260,7 @@ namespace bdsp
 			//================================================================================================================================================================================================
 
 			juce::gl::glDrawElements(
-				juce::gl::GL_LINE_STRIP_ADJACENCY, 
+				juce::gl::GL_LINE_STRIP_ADJACENCY,
 				ib.size(), // How many indices we have.
 				juce::gl::GL_UNSIGNED_INT,    // What type our indices are.
 				nullptr             // We already gave OpenGL our indices so we don't
@@ -334,6 +339,11 @@ namespace bdsp
 		{
 			thickRamp.set(idx, newValue);
 		}
+	}
+
+	void OpenGLLineRenderer::setInterLineOverdraw(bool linesCanOverdrawEachOther)
+	{
+		interLineOverdraw = linesCanOverdrawEachOther;
 	}
 
 

@@ -57,6 +57,12 @@ namespace bdsp
 		void setThicknessRamp(int idx, float newValue);
 
 
+		/**
+		 * Sets whether seperate line test for and eliminate overdraws bewteen each other
+		 * @param linesCanOverdrawEachOther If true, speperate lines will not check or eliminate overdraw between them
+		 */
+		void setInterLineOverdraw(bool linesCanOverdrawEachOther);
+
 		juce::Array<float> lineThicknessX, lineThicknessY; // line thicknesses converted to GL space
 		juce::Array<float> lineScreenThickness; // line thicknesses in pixels
 
@@ -96,6 +102,8 @@ namespace bdsp
 		juce::Array<CapType> cap;
 		juce::Array<JointType> joint;
 		juce::Array<float> thickRamp;
+
+		bool interLineOverdraw = true; // if true each line will have seperate depth and stencil tests allowing for overdraw between seperate lines
 
 	protected:
 		int numLines = 1;
