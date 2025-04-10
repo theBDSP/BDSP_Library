@@ -1,39 +1,44 @@
 #pragma once
-
-
-
 namespace bdsp
 {
-	class FlangerVisualizer : public OpenGLSpectrumVisualizer
+	/**
+	 * Displays a general visual representation of a flanger's state
+	 */
+	class FlangerVisualizer : public OpenGLCompositeComponent
 	{
 	public:
 
-		FlangerVisualizer(GUI_Universals* universalsToUse, dsp::Flanger<float>* FlangerToUse, dsp::DSP_Universals<float>* lookupsToUse);
+		FlangerVisualizer(GUI_Universals* universalsToUse, dsp::Flanger<float>* FlangerToUse, dsp::DSP_Universals<float>* lookupsToUse, int numSamplePoints = 50);
 		~FlangerVisualizer();
 
-
-
+		void setColor(const NamedColorsIdentifier& newColor);
+		void generateVertexBuffer() override;
+		void resized() override;
 
 	private:
-		inline float calculateFrequencyResponse(int channel, float freq) override;
-
-		inline void newFrameInit() override;
-
+		
 		dsp::Flanger<float>* flanger;
 
+		OpenGLColor color;
 
 	public:
 
-		Parameter* baseParam = nullptr, * depthParam = nullptr;
-		Parameter* stereoWidthParam = nullptr, * feedbackParam = nullptr;
+		Parameter* feedbackParam = nullptr;
 		Parameter* mixParam = nullptr;
 
 	private:
-		float base, depth;
 		float stereoWidth, feedback;
 		float mix;
 
+		float xScaling = 1.0f, yScaling = 0.9f;
+
 		dsp::DSP_Universals<float>* lookup;
+
+		juce::Array<OpenGLFunctionVisualizer*> curves;
+		OpenGLLineRenderer* dry;
+		juce::Array<juce::Point<float>> dryPoints;
+
+		int numEchos = 8; // number of echos to display
 	};
 
 

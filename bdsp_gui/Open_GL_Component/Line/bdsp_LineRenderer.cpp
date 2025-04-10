@@ -72,6 +72,8 @@ namespace bdsp
 
 			thicknessRamp = std::make_unique<juce::OpenGLShaderProgram::Uniform>(*lineShaderProgram.get(), "u_thicknessRamp");
 			numVerts = std::make_unique<juce::OpenGLShaderProgram::Uniform>(*lineShaderProgram.get(), "u_numVerts");
+			
+			viewport = std::make_unique<juce::OpenGLShaderProgram::Uniform>(*lineShaderProgram.get(), "u_viewport");
 		}
 		else
 		{
@@ -114,6 +116,7 @@ namespace bdsp
 			capType = std::make_unique<juce::OpenGLShaderProgram::Uniform>(*jointShaderProgram.get(), "u_capType");
 
 			jointNumVerts = std::make_unique<juce::OpenGLShaderProgram::Uniform>(*jointShaderProgram.get(), "u_numVerts");
+			jointViewport = std::make_unique<juce::OpenGLShaderProgram::Uniform>(*jointShaderProgram.get(), "u_viewport");
 
 		}
 		else
@@ -166,10 +169,10 @@ namespace bdsp
 			auto& ib = *lineIndexBuffer[i];
 
 			// set this shaders uniforms
-			thickness->set(lineThicknessX[i], lineThicknessY[i]);
+			thickness->set(lineScreenThickness[i]);
 			thicknessRamp->set(thickRamp[i]);
 			numVerts->set(vb.getNumVerticies());
-
+			viewport->set(vpBounds.getWidth(), vpBounds.getHeight());
 
 			juce::gl::glBindBuffer(juce::gl::GL_ARRAY_BUFFER, lineVbo[i]);
 
@@ -220,11 +223,12 @@ namespace bdsp
 			juce::gl::glStencilFunc(juce::gl::GL_NOTEQUAL, 1, 0xFF); // only render fragments not rendered by the previous shader pass
 
 			// set this shaders uniforms
-			jointThickness->set(lineThicknessX[i], lineThicknessY[i]);
+			jointThickness->set(lineScreenThickness[i]);
 			jointThicknessRamp->set(thickRamp[i]);
 			jointType->set(joint[i]);
 			capType->set(cap[i]);
 			jointNumVerts->set(vb.getNumVerticies());
+			jointViewport->set(vpBounds.getWidth(), vpBounds.getHeight());
 
 
 
@@ -323,7 +327,7 @@ namespace bdsp
 		{
 			lineScreenThickness.set(idx, thickness);
 		}
-		//resized();
+		OpenGLLineRenderer::resized();
 	}
 
 	void OpenGLLineRenderer::setThicknessRamp(int idx, float newValue)
@@ -361,17 +365,6 @@ namespace bdsp
 	}
 
 
-
-	void OpenGLLineRenderer::resized()
-	{
-		for (int i = 0; i < numLines; ++i)
-		{
-			lineThicknessX.set(i, lineScreenThickness[i] / getWidth());
-			lineThicknessY.set(i, lineScreenThickness[i] / getHeight());
-		}
-
-		OpenGLComponent::resized();
-	}
 
 
 

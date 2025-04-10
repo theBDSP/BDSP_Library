@@ -98,7 +98,7 @@ namespace bdsp
 
 				}
 
-                BaseProcessingUnit<SampleType>::applyDryWetMix();
+				BaseProcessingUnit<SampleType>::applyDryWetMix();
 			}
 
 
@@ -121,11 +121,11 @@ namespace bdsp
 
 				auto depth = delayChangeMax.getCurrentValue();
 				modPhaseL = modf(modPhaseL + modInc, &tmp);
-				auto modValL = lookup->waveLookups->lookupSin(0.5, modPhaseL, false, depth);
+				modValL = lookup->waveLookups->lookupSin(0.5, modPhaseL, false, depth);
 				delayL.snapDelay(BaseProcessingUnit<SampleType>::sampleRate / 1000 * (baseDelay.getCurrentValue() + modValL));
 
-				modPhaseR = modf(modPhaseL + stereoSpread.getCurrentValue() * 0.5 + modInc, &tmp);
-				auto modValR = lookup->waveLookups->lookupSin(0.5, modPhaseR, false, depth);
+				modPhaseR = modf(modPhaseL + stereoSpread.getCurrentValue() / 2, &tmp);
+				modValR = lookup->waveLookups->lookupSin(0.5, modPhaseR, false, depth);
 				delayR.snapDelay(BaseProcessingUnit<SampleType>::sampleRate / 1000 * ((baseDelay.getCurrentValue() + modValR) + stereoSpread.getCurrentValue() * (BDSP_FLANGER_DELAY_CHANGE_MAX_MS - depth) / 2));
 
 
@@ -217,6 +217,14 @@ namespace bdsp
 			}
 
 
+			/**
+			 * Returns the depth of a channel's flanging relative to the maximum depth possible
+			 */
+			float getModValue(int channel)
+			{
+				return (baseDelay.getCurrentValue() + (channel == 0 ? modValL : modValR)) / BDSP_FLANGER_DELAY_CHANGE_MAX_MS;
+			}
+
 		protected:
 
 			DelayLine<SampleType, DelayTypes::Basic, DelayLineInterpolationTypes::Lagrange3rd> delayL, delayR;
@@ -227,7 +235,7 @@ namespace bdsp
 
 			juce::SmoothedValue<SampleType> feedback;
 			SampleType modPhaseL = 0, modPhaseR = 0;
-
+			SampleType modValL = 0, modValR = 0;
 			DSP_Universals<SampleType>* lookup;
 
 

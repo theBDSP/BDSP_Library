@@ -4,11 +4,11 @@ namespace bdsp
 {
 	Parameter::Parameter(const juce::ParameterID& parameterID, const juce::String& parameterName, juce::NormalisableRange<float> normalisableRange, float defaultVal, const juce::AudioParameterFloatAttributes& attributes)
 		:juce::RangedAudioParameter(parameterID, parameterName, attributes.getAudioProcessorParameterWithIDAttributes()),
-            range(normalisableRange),
-            valueToStringFunction(attributes.getStringFromValueFunction()),
-            stringToValueFunction(attributes.getValueFromStringFunction()),
-            value(defaultVal),
-            defaultValue(defaultVal)
+		range(normalisableRange),
+		valueToStringFunction(attributes.getStringFromValueFunction()),
+		stringToValueFunction(attributes.getValueFromStringFunction()),
+		value(defaultVal),
+		defaultValue(defaultVal)
 	{
 	}
 	Parameter::Parameter(const juce::ParameterID& parameterID, const juce::String& parameterName, juce::NormalisableRange<float> normalisableRange, float defaultVal, const FloatParameterAttribute& attributes)
@@ -34,7 +34,7 @@ namespace bdsp
 		valueToStringFunction = newValueToString;
 		stringToValueFunction = newStringToValue;
 
-		auto prop = range.convertTo0to1(getValue()); // store current normalized value before changing the range
+		auto prop = getValue(); // store current normalized value before changing the range
 		range = newRange;
 		this->operator=(range.convertFrom0to1(prop));
 
@@ -64,7 +64,7 @@ namespace bdsp
 
 
 
-	 float Parameter::getValueForText(const juce::String& text) const
+	float Parameter::getValueForText(const juce::String& text) const
 	{
 		if (stringToValueFunction.operator bool())
 		{

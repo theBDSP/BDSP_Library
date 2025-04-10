@@ -23,7 +23,6 @@ namespace bdsp
 		OpenGLLineRenderer(GUI_Universals* universalsToUse, juce::Array<int> lineMaxPoints = juce::Array<int>(100));
 		virtual ~OpenGLLineRenderer();
 
-		void resized() override;
 
 
 
@@ -63,7 +62,6 @@ namespace bdsp
 		 */
 		void setInterLineOverdraw(bool linesCanOverdrawEachOther);
 
-		juce::Array<float> lineThicknessX, lineThicknessY; // line thicknesses converted to GL space
 		juce::Array<float> lineScreenThickness; // line thicknesses in pixels
 
 
@@ -97,8 +95,8 @@ namespace bdsp
 
 
 
-		std::unique_ptr<juce::OpenGLShaderProgram::Uniform> thickness, numVerts, thicknessRamp; // line shader uniforms
-		std::unique_ptr<juce::OpenGLShaderProgram::Uniform> jointThickness, jointType, capType, jointNumVerts, jointThicknessRamp; // joint shader uniforms
+		std::unique_ptr<juce::OpenGLShaderProgram::Uniform> thickness, numVerts, thicknessRamp, viewport; // line shader uniforms
+		std::unique_ptr<juce::OpenGLShaderProgram::Uniform> jointThickness, jointType, capType, jointNumVerts, jointThicknessRamp, jointViewport; // joint shader uniforms
 		juce::Array<CapType> cap;
 		juce::Array<JointType> joint;
 		juce::Array<float> thickRamp;

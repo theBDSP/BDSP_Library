@@ -57,8 +57,8 @@ namespace bdsp
 			OpenGLLineRenderer::resized();
 
 			// account for line thickness when setting scaling factors to avoid curve extending beyond the intended bounds
-			scalingX = baseScalingX - (lineThicknessX.getFirst());
-			scalingY = baseScalingY - (lineThicknessY.getFirst());
+			scalingX = baseScalingX - lineScreenThickness.getFirst() / getWidth();
+			scalingY = baseScalingY - lineScreenThickness.getFirst() / getHeight();
 			calculateZeroLine();
 
 		}
@@ -117,26 +117,27 @@ namespace bdsp
 			float r, g, b, a;
 			zeroLine.getComponents(r, g, b, a);
 
+			float dH = lineScreenThickness.getFirst() / (4 * getHeight());
 			vertexBuffer.set(0,
 				{
-					-scalingX, zeroY + lineThicknessY.getFirst() / 4,
+					-scalingX, zeroY + dH,
 					r,g,b,a
 				});
 
 			vertexBuffer.set(1,
 				{
-					scalingX, zeroY + lineThicknessY.getFirst() / 4,
+					scalingX, zeroY + dH,
 					r,g,b,a
 				});
 			vertexBuffer.set(2,
 				{
-					-scalingX, zeroY - lineThicknessY.getFirst() / 4,
+					-scalingX, zeroY - dH,
 					r,g,b,a
 				});
 
 			vertexBuffer.set(3,
 				{
-					scalingX, zeroY - lineThicknessY.getFirst() / 4,
+					scalingX, zeroY -dH,
 					r,g,b,a
 				});
 		}
@@ -272,7 +273,7 @@ namespace bdsp
 
 	void OpenGLFunctionVisualizer::initArrays(int numOfSamplePoints)
 	{
-		lineVertexBuffer.getFirst()->resizeByVertex(numOfSamplePoints);
+		lineVertexBuffer.getFirst()->init(numOfSamplePoints);
 		auto& ib = *lineIndexBuffer.getFirst();
 		ib.clear();
 

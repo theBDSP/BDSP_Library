@@ -4,240 +4,129 @@ namespace bdsp
 {
 
 
-	ChorusVisualizerInternal::ChorusVisualizerInternal(GUI_Universals* universalsToUse, dsp::Chorus<float>* chorusToUse, dsp::DSP_Universals<float>* lookupsToUse)
-		:OpenGLComponent(universalsToUse),
+	ChorusVisualizer::ChorusVisualizer(GUI_Universals* universalsToUse, dsp::Chorus<float>* chorusToUse, dsp::DSP_Universals<float>* lookupsToUse)
+		:OpenGLCompositeComponent(universalsToUse),
 		color(universalsToUse, this)
 	{
 		chorus = chorusToUse;
 		lookup = lookupsToUse;
 
-		vertexBuffer.init(BDSP_CHORUS_MAX_VOICES * 8 * 2 + 8);
+		int numPoints = 50;
+		subClasses.add(new OpenGLLineRenderer(universals, 2 * numPoints)); // dry
+		dry = dynamic_cast<OpenGLLineRenderer*>(subClasses.getLast());
 
-		for (int i = 0; i < 2 * BDSP_CHORUS_MAX_VOICES + 1; ++i)
+		dry->lineVertexBuffer.getFirst()->init(2 * numPoints);
+		dryPoints.resize(2 * numPoints);
+		for (int i = 0; i < dryPoints.size(); ++i)
 		{
-
-
-			int n = 8 * i;
-			indexBuffer.addArray({
-				n,n + 1,n + 4,
-				n + 1,n + 4,n + 5,
-
-				n + 1,n + 2,n + 5,
-				n + 2,n + 5,n + 6,
-
-
-				n + 2,n + 3,n + 6,
-				n + 3,n + 6,n + 7
-
-				});
+			float x = 2.0f * i / (dryPoints.size() - 1.0f) - 1.0f;
+			dryPoints.set(i, { x,sin(PI * x) });
 		}
 
+		for (int i = 0; i < BDSP_CHORUS_MAX_VOICES; ++i)
+		{
+			subClasses.add(new OpenGLFunctionVisualizer(universals, false, true, numPoints)); // i-th left voice
+			curves.add(dynamic_cast<OpenGLFunctionVisualizer*>(subClasses.getLast()));
 
+			subClasses.add(new OpenGLFunctionVisualizer(universals, false, true, numPoints)); // i-th right voice
+			curves.add(dynamic_cast<OpenGLFunctionVisualizer*>(subClasses.getLast()));
+		}
 
+		initSubClasses();
+
+		for (auto* c : curves)
+		{
+			c->setBipolar(true);
+		}
 
 	}
 
-	ChorusVisualizerInternal::~ChorusVisualizerInternal()
+	ChorusVisualizer::~ChorusVisualizer()
 	{
 
 	}
 
-	void ChorusVisualizerInternal::setColor(const NamedColorsIdentifier& newColor)
+	void ChorusVisualizer::generateVertexBuffer()
 	{
-		color.setColors(newColor, NamedColorsIdentifier(newColor).withMultipliedAlpha(universals->disabledAlpha));
-	}
-
-	void ChorusVisualizerInternal::generateVertexBuffer()
-	{
-		float r, g, b, a;
-		color.getComponents(r, g, b, a);
-
-
-		//================================================================================================================================================================================================
 		numVoices = numVoicesParam != nullptr ? juce::jmap(numVoicesParam->getValue(), (float)BDSP_CHORUS_MIN_VOICES, (float)BDSP_CHORUS_MAX_VOICES) : BDSP_CHORUS_MIN_VOICES;
-
 
 		depth = depthParam != nullptr ? depthParam->getActualValue() / BDSP_CHORUS_DEPTH_MAX_MS : 1;
 
-
 		stereoWidth = stereoWidthParam != nullptr ? stereoWidthParam->getActualValue() : 0;
-
 
 		mix = mixParam != nullptr ? mixParam->getActualValue() : 0.5f;
 
 
+		float r, g, b, a;
+		color.getComponents(r, g, b, a);
+		float dryA = a * (1 - mix);
+		a *= mix;
 
-		//================================================================================================================================================================================================
+		float gray = (r + g + b) / 3.0f;
+		for (int i = 0; i < dryPoints.size(); ++i)
+		{
+			dry->lineVertexBuffer[0]->set(i, { xScaling * dryPoints[i].x, yScaling * dryPoints[i].y,gray,gray,gray,dryA });
+		}
 
+		auto fillColor = color.getColorID(true).withMultipliedAlpha(mix / numVoices);
+		auto fillColorDisabled = color.getColorID(true).withMultipliedAlpha(mix / numVoices * universals->disabledAlpha);
 
-
-
-		indexBuffer.resize((2 * numVoices) * 18 + 12);
-		vertexBuffer.resize((2 * numVoices) * 8 + 8);
-
-
-		auto barW = 0.01f;
-
-		auto barH = yScale * 0.35f;
-
-		float alpha = a * (1 - mix);
-		vertexBuffer.set(0,
-			{
-				-barW, 1,
-				r,g,b, 0
-			});
-		vertexBuffer.set(1,
-			{
-				-barW / 2, 1,
-				r,g,b, alpha
-			});
-		vertexBuffer.set(2,
-			{
-				barW / 2, 1,
-				r,g,b, alpha
-			});
-		vertexBuffer.set(3,
-			{
-				barW, 1,
-				r,g,b, 0
-			});
-		vertexBuffer.set(4,
-			{
-				-barW, -1,
-				r,g,b, 0
-			});
-		vertexBuffer.set(5,
-			{
-				-barW / 2, -1,
-				r,g,b, alpha
-			});
-		vertexBuffer.set(6,
-			{
-				barW / 2, -1,
-				r,g,b, alpha
-			});
-		vertexBuffer.set(7,
-			{
-				barW, -1,
-				r,g,b, 0
-			});
-
-
-
-
-		alpha = a * mix;
+		int num = curves.getFirst()->lineVertexBuffer.getFirst()->getNumVerticies(); // num vertices in each curve
 		for (int i = 0; i < numVoices; ++i)
 		{
-			auto wL = xScale * getModPosition(i);
-			auto wR = xScale * getModPosition(i, false);
+			curves[2 * i]->botCurve.setColors(fillColor.withMultipliedAlpha(0.0f), fillColorDisabled.withMultipliedAlpha(0.0f));
+			curves[2 * i]->topCurve.setColors(fillColor, fillColorDisabled);
+			curves[2 * i]->setThickness(-1, universals->visualizerLineThickness / numVoices);
 
+			curves[2 * i + 1]->botCurve.setColors(fillColor.withMultipliedAlpha(0.0f), fillColorDisabled.withMultipliedAlpha(0.0f));
+			curves[2 * i + 1]->topCurve.setColors(fillColor, fillColorDisabled);
+			curves[2 * i + 1]->setThickness(-1, universals->visualizerLineThickness / numVoices);
 
-
-			float x = wL;
-			float c = yScale * 0.5f;
-			int n = 16 * i + 8;
-
-			vertexBuffer.set(n,
-				{
-					x - 2 * barW, c + barH,
-					r,g,b,0
-				});
-			vertexBuffer.set(n + 1,
-				{
-					x - barW , c + barH,
-					r,g,b,alpha
-				});
-			vertexBuffer.set(n + 2,
-				{
-					x + barW , c + barH,
-					r,g,b,alpha
-				});
-			vertexBuffer.set(n + 3,
-				{
-					x + 2 * barW, c + barH,
-					r,g,b,0
-				});
-			vertexBuffer.set(n + 4,
-				{
-					x - 2 * barW, c - barH,
-					r,g,b,0
-				});
-			vertexBuffer.set(n + 5,
-				{
-					x - barW , c - barH,
-					r,g,b,alpha
-				});
-			vertexBuffer.set(n + 6,
-				{
-					x + barW , c - barH,
-					r,g,b,alpha
-				});
-			vertexBuffer.set(n + 7,
-				{
-					x + 2 * barW, c - barH,
-					r,g,b,0
-				});
-
-
-
-			c *= -1;
-			x = wR;
-			vertexBuffer.set(n + 8,
-				{
-					x - 2 * barW, c + barH,
-					r,g,b,0
-				});
-			vertexBuffer.set(n + 9,
-				{
-					x - barW , c + barH,
-					r,g,b,alpha
-				});
-			vertexBuffer.set(n + 10,
-				{
-					x + barW , c + barH,
-					r,g,b,alpha
-				});
-			vertexBuffer.set(n + 11,
-				{
-					x + 2 * barW, c + barH,
-					r,g,b,0
-				});
-			vertexBuffer.set(n + 12,
-				{
-					x - 2 * barW, c - barH,
-					r,g,b,0
-				});
-			vertexBuffer.set(n + 13,
-				{
-					x - barW , c - barH,
-					r,g,b,alpha
-				});
-			vertexBuffer.set(n + 14,
-				{
-					x + barW , c - barH,
-					r,g,b,alpha
-				});
-			vertexBuffer.set(n + 15,
-				{
-					x + 2 * barW, c - barH,
-					r,g,b,0
-				});
-
-
+			float offset = (float)i / numVoices * sin(2 * PI * chorus->getModPhase()); // distance to offset this voice
+			for (int j = 0; j < num; ++j)
+			{
+				float x = xScaling * (float)j / num;
+				float L = yScaling * sin(PI * (-x - depth * offset));
+				float R = yScaling * sin(PI * (x - depth * offset - stereoWidth));
+				curves[2 * i]->lineVertexBuffer[0]->set(j, { -x,L, r,g,b,a });
+				curves[2 * i + 1]->lineVertexBuffer[0]->set(j, { x,R, r,g,b,a });
+			}
 		}
 
 	}
 
-	void ChorusVisualizerInternal::setScaling(float xScaling, float yScaling)
+	void ChorusVisualizer::renderOpenGL()
 	{
-		xScale = xScaling;
-		yScale = yScaling;
+		juce::gl::glEnable(juce::gl::GL_BLEND);
+		juce::gl::glBlendFunc(juce::gl::GL_SRC_ALPHA, juce::gl::GL_ONE_MINUS_SRC_ALPHA);
+
+		juce::OpenGLHelpers::clear(background);
+
+		generateVertexBuffer();
+
+		dry->renderWithoutGenerating();
+
+		for (int i = 0; i < numVoices; ++i) // only render up to the number of voices
+		{
+			curves[2 * i]->renderWithoutGenerating();
+			curves[2 * i + 1]->renderWithoutGenerating();
+		}
 	}
 
-	float ChorusVisualizerInternal::getModPosition(int voice, bool left)
+	void ChorusVisualizer::setColor(const NamedColorsIdentifier& newLineColor)
 	{
-		return chorus->getCurrentModPhaseProportionally(voice, left);
+		color.setColors(newLineColor, newLineColor.withMultipliedAlpha(universals->disabledAlpha));
 	}
+
+	void ChorusVisualizer::resized()
+	{
+		OpenGLCompositeComponent::resized();
+		dry->setThickness(-1, universals->visualizerLineThickness);
+	}
+
+
+
+
 
 
 } // namespace bdsp

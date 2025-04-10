@@ -39,6 +39,7 @@ namespace bdsp
 
 		void initArrays(int numOfSamplePoints);
 
+		OpenGLColor topCurve, botCurve;
 	protected:
 
 		const char* fillVertexShader;
@@ -59,7 +60,6 @@ namespace bdsp
 		bool isBipolar = false;
 		bool hasZeroLine;
 		OpenGLColor lineColor, zeroLine;
-		OpenGLColor topCurve, botCurve;
 		OpenGLColor positionColor;
 
 		int samplePoints = 2;
@@ -67,7 +67,7 @@ namespace bdsp
 		bool renderAreaUnderCurve = true;
 
 
-		float fillPos = 0.0f;
+		float fillPos = -1.0f;
 		float fillWidth = 0.0f;
 		float zeroY = 0.0f;
 		float scalingX = 1.0f, scalingY = 1.0f, baseScalingX = 1.0f, baseScalingY = 1.0f;

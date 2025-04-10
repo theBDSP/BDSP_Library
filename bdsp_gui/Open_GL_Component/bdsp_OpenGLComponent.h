@@ -239,6 +239,10 @@ namespace bdsp
 			return arr[num * vertexIdx + attributeIdx];
 		}
 
+		void clear()
+		{
+			arr.clear();
+		}
 
 	private:
 		int n = 0;

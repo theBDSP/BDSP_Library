@@ -22,8 +22,9 @@ namespace bdsp
 
             void main()
             {
-
-                vec4 c = mix(u_botColor, u_topColor, abs(fragPos.y-u_zeroY)/(1+abs(u_zeroY))); // base color, mix between top and bottom color based on y position
+                float y = 2*fragPos.y-1;
+                float v =  abs(y-u_zeroY)/(1+abs(u_zeroY));
+                vec4 c = mix(u_botColor, u_topColor,v); // base color, mix between top and bottom color based on y position
                 float wrap = fract(fragPos.x-u_pos); // adjusted x value of fragment based on its position and the position uniform
                 float m = 0; // amount of position color to add in
                 if(wrap>1-u_width) // only calculate if within the width of the falloff
@@ -32,7 +33,6 @@ namespace bdsp
                     m*=m;
                 }
                 frag_color =  c + m*u_posColor;
-
             }
 				)";
 } //namespace bdsp

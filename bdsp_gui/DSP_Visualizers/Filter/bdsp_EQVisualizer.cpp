@@ -353,7 +353,7 @@ namespace bdsp
 			h->radius = handleSize;
 		}
 		OpenGLCompositeComponent::resized();
-		setScaling(1 - borderX + cast->lineThicknessX[0], 1);
+		setScaling(1 - borderX + cast->lineScreenThickness[0]/getWidth(), 1);
 
 
 	}
