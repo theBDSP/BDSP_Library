@@ -20,7 +20,7 @@ namespace bdsp
 			RingModulation(DSP_Universals<SampleType>* lookupsToUse)
 				:tone(lookupsToUse)
 			{
-				tone.setBipolar(false);
+				tone.setBipolar(true);
 			}
 
 			/**

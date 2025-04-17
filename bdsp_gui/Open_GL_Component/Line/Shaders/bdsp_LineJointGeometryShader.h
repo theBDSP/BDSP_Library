@@ -231,7 +231,7 @@ namespace bdsp
 					if((index[3]+2)>u_numVerts) //last
 					{
 						createCap(false, angleCD, vec4(thicknessD*polarCD,0,0), thicknessD, vec4(vertexColor[3].rgb,vertexColor[3].a*alphaMultD));
-						createJoint(B,C,D,thicknessB,thicknessC,thicknessD,polarBC,polarCD,vec4(vertexColor[2].rgb,vertexColor[2].a*alphaMultC), dirBCD); // if this is the last set of 4 vertices we need to also create the joint for BCD
+						createJoint(B,C,D,thicknessB,thicknessC,thicknessD,(dirABC==dirBCD?1:-1)*polarBC,polarCD,vec4(vertexColor[2].rgb,vertexColor[2].a*alphaMultC), dirBCD); // if this is the last set of 4 vertices we need to also create the joint for BCD
 					}
 	
 				createJoint(A,B,C,thicknessA,thicknessB,thicknessC,polarAB,polarBC,vec4(vertexColor[1].rgb,vertexColor[1].a*alphaMultB), dirABC);

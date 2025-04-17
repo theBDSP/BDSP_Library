@@ -11,6 +11,7 @@ namespace bdsp
 			lineVertexBuffer.add(new VertexArray());
 			lineIndexBuffer.add(new IndexArray());
 
+			lineVertexBuffer.getLast()->init(lineMaxPoints[i]);
 
 
 			for (int j = 0; j < lineMaxPoints[i]; ++j)
