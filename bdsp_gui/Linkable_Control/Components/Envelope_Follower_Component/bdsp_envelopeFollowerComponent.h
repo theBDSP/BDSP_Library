@@ -159,7 +159,7 @@ namespace bdsp
 		//================================================================================================================================================================================================
 		float update() override
 		{
-            EnvelopeFollowerParameterListener<SampleType>::getEnvelopeValue();
+			EnvelopeFollowerParameterListener<SampleType>::getEnvelopeValue();
 			EnvelopeFollowerParameterListener<SampleType>::v = EnvelopeFollowerParameterListener<SampleType>::outputBuffer.getSample(0, 0);
 			value = EnvelopeFollowerParameterListener<SampleType>::v;
 			pushToListeners();
@@ -281,7 +281,7 @@ namespace bdsp
 
 			if (visualizer != nullptr)
 			{
-				visualizer->setColor(c, BDSP_COLOR_LIGHT, 0.25f, 0.25f);
+				visualizer->setColor(c, BDSP_COLOR_LIGHT, c.withMultipliedAlpha(0.25f), c.withMultipliedAlpha(0.25f));
 			}
 
 		}
@@ -300,7 +300,7 @@ namespace bdsp
 			EnvObject->setParameters(attack->getControlParamter(), decay->getControlParamter(), boost->getControlParamter(), source->getParameter(), sourceList);
 			visualizer = std::make_unique<EnvelopeFollowerVisualizer<SampleType>>(universals, this);
 			//source->parameter->sendValueChangedMessageToListeners(source->parameter->get());
-			visualizer->setColor(c, BDSP_COLOR_LIGHT, 0.25f, 0.25f);
+			visualizer->setColor(c, BDSP_COLOR_LIGHT, c.withMultipliedAlpha(0.25f), c.withMultipliedAlpha(0.25f));
 			addAndMakeVisible(visualizer.get());
 		}
 
@@ -455,8 +455,8 @@ namespace bdsp
 	{
 	public:
 
-        EnvelopeFollowerSection(GUI_Universals* universalsToUse, dsp::SampleSourceList<SampleType>* list, const NamedColorsIdentifier& backgroundColor, juce::ValueTree* nameValueLocation);
-        
+		EnvelopeFollowerSection(GUI_Universals* universalsToUse, dsp::SampleSourceList<SampleType>* list, const NamedColorsIdentifier& backgroundColor, juce::ValueTree* nameValueLocation);
+
 		virtual ~EnvelopeFollowerSection()
 		{
 			stopTimer();
@@ -513,7 +513,7 @@ namespace bdsp
 
 
 		// Inherited via Timer
-        void timerCallback() override;
+		void timerCallback() override;
 
 	};
 

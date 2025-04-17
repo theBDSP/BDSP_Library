@@ -1,7 +1,7 @@
 #pragma once
 
 
-#define BDSP_RING_MOD_VISUALIZER_MAX_PERIODS 25
+#define BDSP_RING_MOD_VISUALIZER_MAX_PERIODS 10
 namespace bdsp
 {
 
@@ -24,6 +24,7 @@ namespace bdsp
 
 		float sampleRate = 44100.0f;
 		dsp::DSP_Universals<float>* lookups = nullptr;
+		dsp::RingModulation<float>::RingModSource source;
 
 	};
 

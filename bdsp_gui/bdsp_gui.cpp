@@ -4,7 +4,7 @@ namespace bdsp
 {
 
 
-	
+
 	PropertiesFolder::PropertiesFolder()
 	{
 
@@ -126,8 +126,16 @@ namespace bdsp
 
 //================================================================================================================================================================================================
 // Open GL
-#include "Open_GL_Component/bdsp_OpenGLComponent.cpp"
 #include "Open_GL_Component/bdsp_OpenGLContextHolder.cpp"
+#include "Open_GL_Component/bdsp_OpenGLComponent.cpp"
+#include "Open_GL_Component/Line/bdsp_LineRenderer.cpp"
+#include "Open_GL_Component/Circle/bdsp_CircleRenderer.cpp"
+#include "Open_GL_Component/Circle/Ring/bdsp_OpenGLRing.cpp"
+
+#include "Open_GL_Component/Data_Vis/Function_Visulaizer/bdsp_FunctionVisualizer.cpp"
+
+
+#include "Open_GL_Component/Grids/bdsp_GridBase.cpp"
 
 
 
@@ -227,8 +235,7 @@ namespace bdsp
 #include "DSP_Visualizers/Demo_Alert/bdsp_DemoAlert.cpp"
 #include "DSP_Visualizers/LFO/bdsp_LFOVisualizer.cpp"
 #include "DSP_Visualizers/Envelope_Follower/bdsp_EnvelopeFollowerVisualizer.cpp"
-#include "DSP_Visualizers/Distortion/bdsp_BitCrushVisualizer.cpp"
-#include "DSP_Visualizers/Diffusor/bdsp_DiffusorVisualizer.cpp"
+#include "DSP_Visualizers/Bit_Crush/bdsp_BitCrushVisualizer.cpp"
 #include "DSP_Visualizers/Pitch_Shifter/bdsp_PitchShifterVisualizer.cpp"
 
 #include "DSP_Visualizers/Modulation/Phaser/bdsp_PhaserVisualizer.cpp"

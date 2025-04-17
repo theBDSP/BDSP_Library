@@ -1,27 +1,22 @@
 #pragma once
-
-
-
 namespace bdsp
 {
-
-	class ChorusVisualizerInternal : public OpenGLComponent
+	/**
+	 * Displays a general visual representation of a chours's state
+	 */
+	class ChorusVisualizer : public OpenGLCompositeComponent
 	{
 	public:
 
-		ChorusVisualizerInternal(GUI_Universals* universalsToUse, dsp::Chorus<float>* chorusToUse, dsp::DSP_Universals<float>* lookupsToUse);
-		~ChorusVisualizerInternal();
+		ChorusVisualizer(GUI_Universals* universalsToUse, dsp::Chorus<float>* chorusToUse, dsp::DSP_Universals<float>* lookupsToUse);
+		~ChorusVisualizer();
 
 
 		void setColor(const NamedColorsIdentifier& newColor);
 		void generateVertexBuffer() override;
-
-		void setScaling(float xScaling, float yScaling);
+		void renderOpenGL() override;
+		void resized() override;
 	private:
-
-		float getModPosition(int voice, bool left = true);
-
-
 
 		dsp::Chorus<float>* chorus;
 
@@ -40,21 +35,18 @@ namespace bdsp
 		float stereoWidth;
 		float mix;
 
-		float xScale = 1, yScale = 1;
+		float xScaling = 1.0f, yScaling = 0.9f;
 
 		dsp::DSP_Universals<float>* lookup;
-	};
 
-	class ChorusVisualizer : public OpenGlComponentWrapper<ChorusVisualizerInternal>
-	{
-	public:
-		ChorusVisualizer(GUI_Universals* universalsToUse, dsp::Chorus<float>* chorusToUse, dsp::DSP_Universals<float>* lookupsToUse)
-			: OpenGlComponentWrapper<ChorusVisualizerInternal>(universalsToUse,chorusToUse,lookupsToUse)
-		{
+		juce::Array<OpenGLFunctionVisualizer*> curves; // the representation of each voice
+		OpenGLLineRenderer* dry; // the representation dry signal
+		juce::Array<juce::Point<float>> dryPoints;
 
-		}
 
 	};
+
+
 
 
 } // namespace bdsp

@@ -1,77 +1,45 @@
 #pragma once
-
-
-
-
 namespace bdsp
 {
-	class PitchShifterVisualizer : public Component
+	/**
+	 * Represents the state of a pitch shifter
+	 */
+	class PitchShifterVisualizer : public OpenGLCompositeComponent
 	{
 	public:
-		PitchShifterVisualizer(GUI_Universals* universalsToUse, BaseSlider* leftAmt, BaseSlider* rightAmt, BaseSlider* mixAmt);
-		void resized() override;
-		void paint(juce::Graphics& g) override;
+		PitchShifterVisualizer(GUI_Universals* universalsToUse, Parameter* leftAmt, Parameter* rightAmt, Parameter* mixAmt);
+		~PitchShifterVisualizer();
 
-		void setColor(const NamedColorsIdentifier& newColor, const NamedColorsIdentifier& newDryColor);
+		void renderOpenGL() override;
+		void paintOverChildren(juce::Graphics& g) override;
 
+		void setColor(const NamedColorsIdentifier& newColor, const NamedColorsIdentifier& newScaleColor = BDSP_COLOR_MID);
 		void linkAmounts(bool shouldLink);
-		void setBarWidth(float barRatio, float scaleRatio);
-		void setDotSize(float dotRatio);
+		void resized() override;
+	private:
+
+		Parameter* left, * right, * mix;
 
 
-		void setBackgroundColor(const NamedColorsIdentifier& bkgd, const NamedColorsIdentifier& bkgdBehind);
+		float leftVal, rightVal, mixVal;
+
+		float scaleX = 0.9, scaleY = 0.8;
+
+		void generateVertexBuffer() override;
+
+		bool amountsLinked = false;
 
 
+		OpenGLColor color, scaleColor;
+		const int numPoints = 50; // number of points to render in each tail
+		OpenGLLineRenderer* scale, * trigTails;
+		OpenGLCircleRenderer* thumbs, * dryThumbs;
+		float time = 0;
+		float gap = 0.1f; // proportion of the width of the visualizer to cutout for the semiton numbers
 
 
-
-		class PitchShifterVisualizerInternal : public OpenGLCompositeComponent
-		{
-		public:
-			PitchShifterVisualizerInternal(GUI_Universals* universalsToUse, BaseSlider* leftAmt, BaseSlider* rightAmt, BaseSlider* mixAmt);
-			~PitchShifterVisualizerInternal();
-
-			void resized() override;
-			void setColor(const NamedColorsIdentifier& newColor, const NamedColorsIdentifier& newScaleColor, const NamedColorsIdentifier& newTextColor = NamedColorsIdentifier(BDSP_COLOR_WHITE));
-
-			void linkAmounts(bool shouldLink);
-			void setBarWidth(float barRatio, float scaleRatio);
-			void setDotSize(float dotRatio);
-
-
-			void paintOverChildren(juce::Graphics& g) override;
-
-	
-		private:
-			//TODO switch to parameter references
-
-			BaseSlider* left, * right, * mix;
-
-
-			float leftVal, rightVal, mixVal;
-
-
-			float scaleX = 0.9, scaleY = 0.9;
-			float gap = 0.2;
-			float barSize = -1.0f, scaleSize = -1.0f, dotSize = -1.0f;
-			void generateVertexBuffer() override;
-			void onShaderCreation() override;
-
-
-
-
-
-			bool amountsLinked = false;
-
-
-
-			OpenGLColor color, scaleColor, textColor;
-
-			OpenGLCirclePlotter* dots = nullptr;
-			OpenGLLineRenderer* scale = nullptr;
-			OpenGLLineRenderer* bars = nullptr;
-		}vis;
 	};
+
 
 
 

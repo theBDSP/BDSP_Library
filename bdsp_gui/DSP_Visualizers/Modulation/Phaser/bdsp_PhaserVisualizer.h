@@ -1,29 +1,25 @@
 #pragma once
-
-
-
 namespace bdsp
 {
-	class PhaserVisualizer : public OpenGLSpectrumVisualizer
+	class PhaserVisualizer : public OpenGLCompositeComponent
 	{
 	public:
 
 		PhaserVisualizer(GUI_Universals* universalsToUse, dsp::Phaser<float>* phaserToUse, dsp::DSP_Universals<float>* lookupsToUse);
 		~PhaserVisualizer();
 
-
+		void generateVertexBuffer() override;
+		void setColor(const NamedColorsIdentifier& newLineColor);
+		void resized() override;
 
 	private:
-		inline float calculateFrequencyResponse(int channel, float freq) override;
 
-		inline void newFrameInit() override;
 
 		dsp::Phaser<float>* phaser;
 
 
 	public:
 		juce::RangedAudioParameter* numStagesParam = nullptr;
-		Parameter* allpassQParam = nullptr;
 		Parameter* minPhaseParam = nullptr, * maxPhaseParam = nullptr;
 		Parameter* centerParam = nullptr, * depthParam = nullptr;
 		Parameter* stereoWidthParam = nullptr, * feedbackParam = nullptr;
@@ -31,13 +27,19 @@ namespace bdsp
 
 	private:
 		int numStages = 2;
-		float allpassQ;
-		float minPhase, maxPhase;
-		float center, depth;
-		float stereoWidth, feedback;
+		float feedback;
 		float mix;
 
+		float xScaling = 1.0f;
+		float yScaling = 0.9f;
+
 		dsp::DSP_Universals<float>* lookup;
+
+		juce::Array<OpenGLFunctionVisualizer*> curves;
+		OpenGLLineRenderer* dry;
+		juce::Array<juce::Point<float>> dryPoints;
+		juce::Array<float> stageFactors;
+		OpenGLColor color;
 	};
 
 

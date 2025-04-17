@@ -12,6 +12,9 @@ namespace bdsp
 
 		lookups = lookupsToUse;
 
+		setJointType(0, OpenGLLineRenderer::JointType::Rounded);
+		setCapType(0, OpenGLLineRenderer::CapType::Butt);
+
 
 		newFrameInit();
 	}
@@ -22,51 +25,30 @@ namespace bdsp
 	}
 
 
-	void LFOWaveVisualizerInternal::paint(juce::Graphics& g)
-	{
 
-	}
-
-	void LFOWaveVisualizerInternal::resized()
-	{
-		OpenGLFunctionVisualizer::resized();
-		lineThicknessX.set(0, lineThicknessX.getFirst() * 2);
-		lineThicknessY.set(0, lineThicknessY.getFirst() * 2);
-	}
-	inline float LFOWaveVisualizerInternal::calculateAlpha(float x, float y)
-	{
-		float p = scalingX * ((2 * progress) - 1);
-		float scale = 4;
-
-		if (x >= (p - progressW) && x <= p)
-		{
-			return (-(scale - 1) * powf(abs(x - p) / progressW, 1.0 / 3.0) + scale) * OpenGLFunctionVisualizer::calculateAlpha(x, y);
-		}
-		else if (x >= (p - progressW + 2))
-		{
-			return (-(scale - 1) * powf(abs(x - p - 2) / progressW, 1.0 / 3.0) + scale) * OpenGLFunctionVisualizer::calculateAlpha(x, y);
-		}
-		else
-		{
-			return OpenGLFunctionVisualizer::calculateAlpha(x, y);
-		}
-
-	}
 	void LFOWaveVisualizerInternal::generateVertexBuffer()
 	{
 		OpenGLFunctionVisualizer::generateVertexBuffer();
-		
+
 	}
 	void LFOWaveVisualizerInternal::newFrameInit()
 	{
-		progress = controllerObject->getProgress();
-		progressIncrement = controllerObject->getProgressIncrement();
-		progressW = 5 * powf(progressIncrement, 1.0 / 3.0);
+		if (fillShaderProgram.operator bool())
+		{
 
-		shape = controllerObject->getShape();
-		skew = controllerObject->getSkew();
-		amplitude = controllerObject->getAmplitude();
-		setBipolar(controllerObject->getIsBipolar());
+			progress = controllerObject->getProgress();
+			pos->set(progress);
+
+			progressIncrement = controllerObject->getProgressIncrement();
+			progressW = 0.4f * powf(progressIncrement / 0.4f, 0.25f);
+			width->set(progressW);
+
+			shape = controllerObject->getShape();
+			skew = controllerObject->getSkew();
+			amplitude = controllerObject->getAmplitude();
+			setBipolar(controllerObject->getIsBipolar());
+		}
+
 	}
 
 	inline float LFOWaveVisualizerInternal::calculateFunctionSample(int sampleNumber, float openGL_X, float normX)
@@ -108,6 +90,9 @@ namespace bdsp
 		:OpenGLControlValuesOverTime(control, universalsToUse, false, false)
 	{
 		forceFullRange = true;
+		setThicknessRamp(0, 0);
+		setJointType(0, OpenGLLineRenderer::JointType::Rounded);
+		setCapType(0, OpenGLLineRenderer::CapType::Round);
 	}
 
 	LFOResultVisualizerInternal::~LFOResultVisualizerInternal()
@@ -123,10 +108,6 @@ namespace bdsp
 		OpenGLControlValuesOverTime::resized();
 	}
 
-	inline float LFOResultVisualizerInternal::calculateAlpha(float x, float y)
-	{
-		return 0.0f;
-	}
 
 
 	inline float LFOResultVisualizerInternal::calculateFunctionSample(int sampleNumber, float openGL_X, float normX)
@@ -160,8 +141,8 @@ namespace bdsp
 
 	void LFOVisualizer::resized()
 	{
-		wave.setBoundsRelative(0, 0, 0.5, 1);
-		result.setBoundsRelative(0.5, 0, 0.5, 1);
+		result.setBoundsRelative(0, 0, 0.5, 1);
+		wave.setBoundsRelative(0.5, 0, 0.5, 1);
 
 	}
 
@@ -183,10 +164,10 @@ namespace bdsp
 	{
 		return &result;
 	}
-	void LFOVisualizer::setColor(const NamedColorsIdentifier& c, const NamedColorsIdentifier& line, float topCurveOpacity, float botCurveOpacity)
+	void LFOVisualizer::setColor(const NamedColorsIdentifier& newLineColor, const NamedColorsIdentifier& newZeroLineColor, const NamedColorsIdentifier& newTopCurveColor, const NamedColorsIdentifier& newBotCurveColor, const NamedColorsIdentifier& newPosColor)
 	{
-		wave.setColor(c, line, topCurveOpacity, botCurveOpacity);
-		result.setColor(c, line);
+		wave.getVis()->setColor(newLineColor, newZeroLineColor, newTopCurveColor, newBotCurveColor, newPosColor);
+		result.getVis()->setColor(newLineColor, newZeroLineColor);
 	}
 
 } // namespace bdsp

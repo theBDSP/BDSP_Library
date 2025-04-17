@@ -15,7 +15,7 @@ namespace bdsp
 
 		void setScaling(float x, float y);
 
-		void setColor(const NamedColorsIdentifier& color, const NamedColorsIdentifier& line = NamedColorsIdentifier(), float top = BDSP_OPEN_GL_FUNCTION_DEFAULT_TOP_ALPHA, float bot = BDSP_OPEN_GL_FUNCTION_DEFAULT_BOTTOM_ALPHA);
+		void setColor(const NamedColorsIdentifier& newLineColor, const NamedColorsIdentifier& newZeroLineColor = NamedColorsIdentifier(), const NamedColorsIdentifier& newTopCurveColor = NamedColorsIdentifier(), const NamedColorsIdentifier& newBotCurveColor = NamedColorsIdentifier());
 
 		void resized() override;
 
@@ -63,7 +63,7 @@ namespace bdsp
 
 		};
 
-		class EQVisualizerHandle : public OpenGLCirclePlotter, public juce::Slider::Listener
+		class EQVisualizerHandle : public OpenGLCircleRenderer, public juce::Slider::Listener
 		{
 		public:
 
@@ -79,10 +79,11 @@ namespace bdsp
 
 
 
-			void setColor(const NamedColorsIdentifier& norm, const NamedColorsIdentifier& down, const OpenGLColor& bkgd);
+			void setColor(const NamedColorsIdentifier& norm, const NamedColorsIdentifier& down);
 
 
 			juce::Point<float> getGLCenter();
+			float radius;
 
 		private:
 			juce::Point<float> compPointToGLPoint(juce::Point<float> compPoint);
@@ -99,7 +100,6 @@ namespace bdsp
 			BaseSlider* freq = nullptr, * q = nullptr, * gain = nullptr;
 
 			OpenGLColor normColor, downColor;
-
 
 			juce::Point<float> glCenter;
 
@@ -140,6 +140,8 @@ namespace bdsp
 
 		juce::Array<EQVisualizerHandle*> handlePointers;
 		OpenGLRing* ringPointer;
+		OpenGLColor ringColor;
+		float ringRadius;
 
 		juce::ComponentBoundsConstrainer constrainer;
 

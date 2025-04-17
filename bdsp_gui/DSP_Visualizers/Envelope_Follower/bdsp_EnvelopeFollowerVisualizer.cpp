@@ -10,9 +10,10 @@ namespace bdsp
 	}
 
 	template<typename SampleType>
-	void EnvelopeFollowerVisualizer<SampleType>::setColor(const NamedColorsIdentifier& c, const NamedColorsIdentifier& line, float topCurveOpacity, float botCurveOpacity)
+	void EnvelopeFollowerVisualizer<SampleType>::setColor(const NamedColorsIdentifier& newLineColor, const NamedColorsIdentifier& newZeroLineColor , const NamedColorsIdentifier& newTopCurveColor, const NamedColorsIdentifier& newBotCurveColor)
+
 	{
-		OpenGlComponentWrapper<EnvelopeFollowerVisualizerInternal<SampleType>>::vis->setColor(c, line, topCurveOpacity, botCurveOpacity);
+		OpenGlComponentWrapper<EnvelopeFollowerVisualizerInternal<SampleType>>::vis->setColor(newLineColor, newZeroLineColor, newTopCurveColor, newBotCurveColor);
 	}
 
 	template class EnvelopeFollowerVisualizer<float>;
@@ -25,8 +26,12 @@ namespace bdsp
 		:OpenGLControlValuesOverTime(parentComp->control, universalsToUse, false)
 	{
 		setBipolar(false);
+		setJointType(0,JointType::Bevel);
+		setCapType(0,CapType::Butt);
 		alphaFalloff = false;
 		forceFullRange = true;
+
+
 	}
 
 	template<typename SampleType>
@@ -45,12 +50,6 @@ namespace bdsp
 
 
 
-
-	template<typename SampleType>
-	float EnvelopeFollowerVisualizerInternal<SampleType>::calculateAlpha(float x, float y)
-	{
-		return 0.5f;
-	}
 
 
 	template class EnvelopeFollowerVisualizerInternal<float>;

@@ -12,13 +12,8 @@ namespace bdsp
 
 		isBipolar = false;
 
-		//int verts = vertexBuffer.getNumVerticies();
-		//indexBuffer.addArray({
-		//	verts, verts + 1, verts + 2,
-		//	verts + 1, verts + 2, verts + 3
-		//	});
 
-		//vertexBuffer.init(verts + 4);
+		fillWidth = 1.0;
 	}
 
 	template<typename SampleType>
@@ -37,7 +32,7 @@ namespace bdsp
 	void CompressorVisualizerInternal<SampleType>::newFrameInit()
 	{
 		envVal = compressor->getEnvValue();
-		//gainReduction = compressor->getGainReduction();
+		pos->set((float)envVal);
 	}
 
 	template<typename SampleType>
@@ -84,11 +79,7 @@ namespace bdsp
 		return 2 * compressor->calculateTransferCurve(normX) - 1;
 	}
 
-	template<typename SampleType>
-	float CompressorVisualizerInternal<SampleType>::calculateAlpha(float x, float y)
-	{
-		return OpenGLFunctionVisualizer::calculateAlpha(x, y) * (x < envVal ? 1.5 : 1);
-	}
+
 
 	template<typename SampleType>
 	CompressorVisualizer<SampleType>::CompressorVisualizer(GUI_Universals* universalsToUse, dsp::Compressor<SampleType>* compToVis)

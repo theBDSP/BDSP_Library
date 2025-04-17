@@ -18,12 +18,17 @@ namespace bdsp
 	{
 		lookups = lookupsToUse;
 		sampleRate = sampleRate;
+		setBipolar(true);
+		setJointType(-1, OpenGLLineRenderer::JointType::Rounded);
+		setCapType(-1, OpenGLLineRenderer::CapType::Round);
+
 	}
 
 
 	void RingModVisualizerInternal::setSource(dsp::RingModulation<float>::RingModSource src)
 	{
-		setEnabled(src == dsp::RingModulation<float>::RingModSource::Tone);
+		//setEnabled(src == dsp::RingModulation<float>::RingModSource::Tone);
+		source = src;
 		getParentComponent()->repaint(); // updates background color
 	}
 
@@ -32,7 +37,14 @@ namespace bdsp
 
 	inline float RingModVisualizerInternal::calculateFunctionSample(int sampleNumber, float openGL_X, float normX)
 	{
-		return lookups->waveLookups->getLFOValue(shape, skew, fmodf(normX * freq, 1), true, mix * isEnabled());
+		if (source == dsp::RingModulation<float>::RingModSource::Tone)
+		{
+			return juce::jmap(mix, 1.0f, lookups->waveLookups->getLFOValue(shape, skew, fmodf(normX * freq, 1), true));
+		}
+		else
+		{
+			return juce::jmap(mix, 1.0f, signum(openGL_X) * sin(2 * PI * openGL_X * openGL_X) * cos(2 * PI * openGL_X * openGL_X));
+		}
 	}
 
 	inline void RingModVisualizerInternal::newFrameInit()

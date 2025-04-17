@@ -5,9 +5,9 @@
 #define BDSP_CHORUS_DELAY_MAX_MS 20
 
 
-#define BDSP_CHORUS_DEPTH_MAX_MS (BDSP_CHORUS_DELAY_MAX_MS- BDSP_CHORUS_DELAY_MIN_MS) * 0.5
+#define BDSP_CHORUS_DEPTH_MAX_MS ((BDSP_CHORUS_DELAY_MAX_MS- BDSP_CHORUS_DELAY_MIN_MS) * 0.5)
 
-#define BDSP_CHORUS_BASE_DELAY_MS (BDSP_CHORUS_DELAY_MAX_MS + BDSP_CHORUS_DELAY_MIN_MS) * 0.5
+#define BDSP_CHORUS_BASE_DELAY_MS ((BDSP_CHORUS_DELAY_MAX_MS + BDSP_CHORUS_DELAY_MIN_MS) * 0.5)
 
 
 
@@ -31,6 +31,7 @@ namespace bdsp
 
 				lookup->waveLookups.operator->(); // creates the lookup object if necessary
 
+				modPositions.resize(BDSP_CHORUS_MAX_VOICES);
 
 
 				for (int i = 0; i < BDSP_CHORUS_MAX_VOICES; ++i) // add all possible delay lines to the arrays
@@ -191,11 +192,12 @@ namespace bdsp
 					delayL.getUnchecked(i)->snapDelay(BaseProcessingUnit<SampleType>::sampleRate / 1000 * (BDSP_CHORUS_BASE_DELAY_MS + modValL));
 					//================================================================================================================================================================================================
 					// calculate the delay time for the right channel of this voice based on the mod phase and the stereo width
-					phase = modf(phase + stereoWidth.getCurrentValue() / 4, &tmp);
+					phase = modf(phase + stereoWidth.getCurrentValue() / 2, &tmp);
 					auto modValR = lookup->waveLookups->getLFOValue(0, 0.5, phase, true, depth.getCurrentValue());
 					delayR.getUnchecked(i)->snapDelay(BaseProcessingUnit<SampleType>::sampleRate / 1000 * (BDSP_CHORUS_BASE_DELAY_MS + modValR));
 					//================================================================================================================================================================================================
 
+					modPositions.set(i, { modValL, modValR });
 
 					delayL.getUnchecked(i)->updateSmoothedVariables();
 					delayR.getUnchecked(i)->updateSmoothedVariables();
@@ -263,10 +265,13 @@ namespace bdsp
 			}
 
 
-
-			SampleType getModPhase(int voice)
+			SampleType getModPhase()
 			{
-				return modPhase.getUnchecked(voice);
+				return modPhase.getFirst();
+			}
+			SampleType getModPosition(int channel, int voice)
+			{
+				return channel == 0 ? modPositions[voice].first : modPositions[voice].second;
 			}
 
 			SampleType getCurrentModPhaseProportionally(int voice, bool left)
@@ -296,6 +301,7 @@ namespace bdsp
 
 
 			juce::Array<SampleType>& modMults, & modPhases;
+			juce::Array<std::pair<SampleType, SampleType>> modPositions;
 
 
 		private:

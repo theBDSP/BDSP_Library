@@ -2,359 +2,192 @@
 
 namespace bdsp
 {
-
-
-	PitchShifterVisualizer::PitchShifterVisualizer::PitchShifterVisualizerInternal::PitchShifterVisualizerInternal(GUI_Universals* universalsToUse, BaseSlider* leftAmt, BaseSlider* rightAmt, BaseSlider* mixAmt)
+	PitchShifterVisualizer::PitchShifterVisualizer(GUI_Universals* universalsToUse, Parameter* leftAmt, Parameter* rightAmt, Parameter* mixAmt)
 		:OpenGLCompositeComponent(universalsToUse),
 		color(universalsToUse, this),
-		scaleColor(universalsToUse, this),
-		textColor(universalsToUse, this)
+		scaleColor(universalsToUse, this)
 	{
 		left = leftAmt;
 		right = rightAmt;
 		mix = mixAmt;
 
-		subClasses.add(new OpenGLLineRenderer(universals, { 2,2,2,2,2,2,2,2,2,2 }));
-		subClasses.add(new OpenGLLineRenderer(universals, { 2,2 }));
-		subClasses.add(new OpenGLCirclePlotter(universals, 4));
+		subClasses.add(new OpenGLLineRenderer(universals, { 2,2,2,2,2,2,2,2,2,2 })); //scale
+		subClasses.add(new OpenGLLineRenderer(universals, { numPoints,numPoints,numPoints,numPoints })); // trigTails
+		subClasses.add(new OpenGLCircleRenderer(universals, 2)); // thumbs
+		subClasses.add(new OpenGLCircleRenderer(universals, 2)); // dryThumbs
+
+		scale = dynamic_cast<OpenGLLineRenderer*>(subClasses[0]);
+		trigTails = dynamic_cast<OpenGLLineRenderer*>(subClasses[1]);
+		thumbs = dynamic_cast<OpenGLCircleRenderer*>(subClasses[2]);
+		dryThumbs = dynamic_cast<OpenGLCircleRenderer*>(subClasses[3]);
 
 		initSubClasses();
 
-		scale = dynamic_cast<OpenGLLineRenderer*>(subClasses[0]);
-		bars = dynamic_cast<OpenGLLineRenderer*>(subClasses[1]);
-		dots = dynamic_cast<OpenGLCirclePlotter*>(subClasses[2]);
-
-		bars->setHasAlpha(false);
-
-
-	}
-
-	PitchShifterVisualizer::PitchShifterVisualizerInternal::~PitchShifterVisualizerInternal()
-	{
-	}
-
-	void PitchShifterVisualizer::PitchShifterVisualizerInternal::resized()
-	{
-		auto barW = barSize > 0 ? barSize * getWidth() : universals->visualizerLineThickness;
-		auto scaleW = scaleSize > 0 ? scaleSize * getWidth() : universals->visualizerLineThickness;
-		auto dotW = dotSize > 0 ? dotSize * getWidth() : 2 * universals->visualizerLineThickness;
-
-		dots->setRadius(dotW);
-
-		for (int i = 0; i < scale->linePoints.size(); i++)
-		{
-			scale->setThickness(i, scaleW);
-		}
-		for (int i = 0; i < bars->linePoints.size(); i++)
-		{
-			bars->setThickness(i, barW);
-		}
-
-		OpenGLCompositeComponent::resized();
-
-		scaleY = (getHeight() - 2 * dotW) / getHeight();
-	}
-
-	void PitchShifterVisualizer::PitchShifterVisualizerInternal::setColor(const NamedColorsIdentifier& newColor, const NamedColorsIdentifier& newScaleColor, const NamedColorsIdentifier& newTextColor)
-	{
-
-		color.setColors(newColor, newColor.mixedWith(background.getColorID(false), 1 - universals->disabledAlpha));
-		scaleColor.setColors(newScaleColor, newScaleColor.mixedWith(background.getColorID(false), 1 - universals->disabledAlpha));
-		textColor.setColors(newTextColor, newTextColor.mixedWith(background.getColorID(false), 1 - universals->disabledAlpha));
-	}
-
-	void PitchShifterVisualizer::PitchShifterVisualizerInternal::linkAmounts(bool shouldLink)
-	{
-		amountsLinked = shouldLink;
-	}
-
-	void PitchShifterVisualizer::PitchShifterVisualizerInternal::setBarWidth(float barRatio, float scaleRatio)
-	{
-		barSize = barRatio;
-		scaleSize = scaleRatio;
-		resized();
-	}
-
-	void PitchShifterVisualizer::PitchShifterVisualizerInternal::setDotSize(float dotRatio)
-	{
-		dotSize = dotRatio;
-		resized();
-	}
-
-	void PitchShifterVisualizer::PitchShifterVisualizerInternal::paintOverChildren(juce::Graphics& g)
-	{
-		g.setColour(textColor.getColor(isEnabled()));
-		juce::Rectangle<float> bounds = getLocalBounds().toFloat().getProportion(juce::Rectangle<float>(0, 0, 1, 1.75 * dotSize));
-
-
-		drawText(g, universals->Fonts[getFontIndex()].getFont(), "+12", bounds.withCentre({ bounds.getCentreX(),getHeight() * (-scaleY + 1) / 2.0f }), true);
-		drawText(g, universals->Fonts[getFontIndex()].getFont(), "+7", bounds.withCentre({ bounds.getCentreX(),getHeight() * (-scaleY * 7.0f / 12.0f + 1) / 2.0f }), true);
-
-		drawText(g, universals->Fonts[getFontIndex()].getFont(), "0", bounds.withCentre({ bounds.getCentreX(), getHeight() / 2.0f }), true);
-
-		drawText(g, universals->Fonts[getFontIndex()].getFont(), "-7", bounds.withCentre({ bounds.getCentreX(),getHeight() * (scaleY * 7.0f / 12.0f + 1) / 2.0f }), true);
-		drawText(g, universals->Fonts[getFontIndex()].getFont(), "-12", bounds.withCentre({ bounds.getCentreX(),getHeight() * (scaleY + 1) / 2.0f }), true);
-
+		trigTails->setThicknessRamp(-1, 0);
+		trigTails->setCapType(-1, OpenGLLineRenderer::CapType::Round);
+		trigTails->setInterLineOverdraw(false);
 	}
 
 
-	void PitchShifterVisualizer::PitchShifterVisualizerInternal::generateVertexBuffer()
+	PitchShifterVisualizer::~PitchShifterVisualizer()
 	{
-		mixVal = mix->getNormalisableRange().convertTo0to1(mix->getActualValue());
-		leftVal = juce::jmap((float)left->getNormalisableRange().convertTo0to1(left->getActualValue()), -scaleY, scaleY);
-
-		if (amountsLinked)
-		{
-			rightVal = leftVal;
-		}
-		else
-		{
-			rightVal = juce::jmap((float)right->getNormalisableRange().convertTo0to1(right->getActualValue()), -scaleY, scaleY);
-		}
-
-
-		float red, green, blue, a;
-
-		scaleColor.getComponents(red, green, blue, a);
-
-
-		float y;
-		float in = gap / 2;
-
-		for (int i = 0; i < 2; i++)
-		{
-			y = scaleY;
-			float l = i % 2 == 0 ? -scaleX : in;
-			float r = i % 2 == 0 ? -in : scaleX;
-			auto p = scale->linePoints[5 * i];
-			p->set(0, {
-				l,0,
-				red, green, blue,1.0
-				});
-			p->set(1, {
-				r,0,
-				red, green, blue,1.0
-				});
-
-			//================================================================================================================================================================================================
-			p = scale->linePoints[5 * i + 1];
-			p->set(0, {
-				l,y,
-				red, green, blue,1.0
-				});
-			p->set(1, {
-				r,y,
-				red, green, blue,1.0
-				});
-
-			//================================================================================================================================================================================================
-			p = scale->linePoints[5 * i + 2];
-			p->set(0, {
-				l,-y,
-				red, green, blue,1.0
-				});
-			p->set(1, {
-				r,-y,
-				red, green, blue,1.0
-				});
-
-			//================================================================================================================================================================================================
-			y *= 7.0 / 12.0;
-			p = scale->linePoints[5 * i + 3];
-			p->set(0, {
-				l,y,
-				red, green, blue,1.0
-				});
-			p->set(1, {
-				r,y,
-				red, green, blue,1.0
-				});
-
-			//================================================================================================================================================================================================
-			p = scale->linePoints[5 * i + 4];
-			p->set(0, {
-				l,-y,
-				red, green, blue,1.0
-				});
-			p->set(1, {
-				r,-y,
-				red, green, blue,1.0
-				});
-
-		}
-
-		//================================================================================================================================================================================================
-		float out = scaleX;
-
-		//float rectAlphaL = mixVal * (abs(leftVal) > 2 * dots->pointH ? 1.0f : 0.0f);
-		//float rectAlphaR = mixVal * (abs(rightVal) > 2 * dots->pointH ? 1.0f : 0.0f);
-
-		float x = (in + out) / 2;
-
-
-		color.getComponents(red, green, blue, a);
-
-		float backR, backG, backB;
-		background.getComponents(backR, backG, backB, a);
-
-		float dryRed = juce::jmap(1 - mixVal, backR, red);
-		float dryGreen = juce::jmap(1 - mixVal, backG, green);
-		float dryBlue = juce::jmap(1 - mixVal, backB, blue);
-
-
-		red = juce::jmap(mixVal, backR, red);
-		green = juce::jmap(mixVal, backG, green);
-		blue = juce::jmap(mixVal, backB, blue);
-
-		//================================================================================================================================================================================================
-
-		auto& cd = dots->circleData;
-		if (mixVal >= 0.5f)
-		{
-
-			cd.set(0, {
-				-x,0,
-				dryRed,dryGreen,dryBlue,1,
-				});
-
-			cd.set(1, {
-				x,0,
-				dryRed,dryGreen,dryBlue,1,
-				});
-
-
-			cd.set(2, {
-				-x,leftVal,
-				red, green, blue, 1
-				});
-
-			cd.set(3, {
-				x,rightVal,
-				red, green, blue, 1
-				});
-		}
-		else
-		{
-			cd.set(0, {
-				-x,leftVal,
-				red, green, blue, 1
-				});
-
-			cd.set(1, {
-				x,rightVal,
-				red, green, blue, 1
-				});
-
-			cd.set(2, {
-				-x,0,
-				dryRed,dryGreen,dryBlue,1,
-				});
-
-			cd.set(3, {
-				x,0,
-				dryRed,dryGreen,dryBlue,1,
-				});
-
-
-		}
-
-
-
-		//================================================================================================================================================================================================
-
-
-		auto p = bars->linePoints[0];
-		p->set(0, {
-			-x, 0,
-			0, 0, 0, 0
-			});
-
-		p->set(1, {
-			-x, leftVal  ,
-			red, green, blue, 1
-			});
-
-
-
-		//================================================================================================================================================================================================
-
-		p = bars->linePoints[1];
-
-		p->set(0, {
-			x, 0,
-			0, 0, 0, 0
-			});
-
-		p->set(1, {
-			x, rightVal  ,
-			red, green, blue, 1
-			});
-
-
-
-
-
-		//================================================================================================================================================================================================
-		scale->generateLineTriangles();
-		bars->generateLineTriangles();
-		dots->generateCircleVerticies();
-
 	}
 
-	void PitchShifterVisualizer::PitchShifterVisualizerInternal::onShaderCreation()
+	void PitchShifterVisualizer::renderOpenGL()
 	{
-		bars->setFeatherRatio(1.5f);
-		dots->setFeatherRatio(1.5f);
+		juce::gl::glEnable(juce::gl::GL_BLEND);
+		juce::gl::glBlendFunc(juce::gl::GL_SRC_ALPHA, juce::gl::GL_ONE_MINUS_SRC_ALPHA);
+
+		juce::OpenGLHelpers::clear(background);
+
+		generateVertexBuffer();
+
+		scale->renderWithoutGenerating();
+		trigTails->renderWithoutGenerating();
+
+        juce::gl::glClear(juce::gl::GL_STENCIL_BUFFER_BIT); // clear the stencil buffer of the scale's data
+        
+		// stencil test the thumbs to prevent overdraw with the tails
+		juce::gl::glEnable(juce::gl::GL_STENCIL_TEST);
+		juce::gl::glStencilFunc(juce::gl::GL_NOTEQUAL, 1, 0xFF); // only render fragments not rendered by the previous shader pass
+		thumbs->renderWithoutGenerating();
+
+		juce::gl::glDisable(juce::gl::GL_STENCIL_TEST);
+		dryThumbs->renderWithoutGenerating();
+	}
+
+	void PitchShifterVisualizer::paintOverChildren(juce::Graphics& g)
+	{
+		g.setColour(scaleColor.getColor(isEnabled()));
+		float sideLength = 0.8*getWidth() * gap;
+		juce::Rectangle<float> bounds = juce::Rectangle<float>(sideLength, sideLength);
+		float centerX = getWidth() / 2.0f;
+
+		auto font = universals->Fonts[getFontIndex()].getFont().withHeight(sideLength);
+		drawText(g, font, "+12", bounds.withCentre({ centerX,getHeight() * (-scaleY + 1) / 2.0f }));
+		drawText(g, font, "+7", bounds.withCentre({ centerX,getHeight() * (-scaleY * 7.0f / 12.0f + 1) / 2.0f }));
+
+		drawText(g, font, "0", bounds.withCentre({ centerX, getHeight() / 2.0f }));
+
+		drawText(g, font, "-7", bounds.withCentre({ centerX,getHeight() * (scaleY * 7.0f / 12.0f + 1) / 2.0f }));
+		drawText(g, font, "-12", bounds.withCentre({ centerX,getHeight() * (scaleY + 1) / 2.0f }));
 	}
 
 
 
-
-
-	//================================================================================================================================================================================================
-
-
-	PitchShifterVisualizer::PitchShifterVisualizer(GUI_Universals* universalsToUse, BaseSlider* leftAmt, BaseSlider* rightAmt, BaseSlider* mixAmt)
-		:Component(universalsToUse),
-		vis(universalsToUse, leftAmt, rightAmt, mixAmt)
+	void PitchShifterVisualizer::setColor(const NamedColorsIdentifier& newColor, const NamedColorsIdentifier& newScaleColor)
 	{
-		addAndMakeVisible(vis);
-	}
-
-	void PitchShifterVisualizer::resized()
-	{
-		vis.setBounds(getLocalBounds().reduced(universals->roundedRectangleCurve));
-	}
-
-	void PitchShifterVisualizer::paint(juce::Graphics& g)
-	{
-		g.setColour(vis.getBackgroundColor());
-		g.fillRoundedRectangle(getLocalBounds().toFloat(), universals->roundedRectangleCurve);
-	}
-
-	void PitchShifterVisualizer::setColor(const NamedColorsIdentifier& newColor, const NamedColorsIdentifier& newDryColor)
-	{
-		vis.setColor(newColor, newDryColor);
+		color.setColors(newColor, newColor.withMultipliedAlpha(universals->disabledAlpha));
+		scaleColor.setColors(newScaleColor, newScaleColor.withMultipliedAlpha(universals->disabledAlpha));
 	}
 
 	void PitchShifterVisualizer::linkAmounts(bool shouldLink)
 	{
-		vis.linkAmounts(shouldLink);
+		amountsLinked = shouldLink;
 	}
 
-	void PitchShifterVisualizer::setBarWidth(float barRatio, float scaleRatio)
+	void PitchShifterVisualizer::resized()
 	{
-		vis.setBarWidth(barRatio, scaleRatio);
+		scale->setThickness(-1, universals->visualizerLineThickness / 4.0);
+		trigTails->setThickness(-1, universals->visualizerLineThickness);
+		OpenGLCompositeComponent::resized();
 	}
 
-	void PitchShifterVisualizer::setDotSize(float dotRatio)
-	{
-		vis.setDotSize(dotRatio);
-	}
 
-	void PitchShifterVisualizer::setBackgroundColor(const NamedColorsIdentifier& bkgd, const NamedColorsIdentifier& bkgdBehind)
+	void PitchShifterVisualizer::generateVertexBuffer()
 	{
-		vis.setBackgroundColor(bkgd, bkgdBehind.mixedWith(&bkgd, universals->disabledAlpha));
+		time = fmodf(time + 0.025, 2 * PI);
+		shaderProgram->use();
+
+		//frequencies multipliers for each stereo channel
+		float fL = juce::mapToLog10((double)left->convertTo0to1(left->getActualValue()), 0.5, 2.0);
+		float fR = juce::mapToLog10((double)right->convertTo0to1(right->getActualValue()), 0.5, 2.0);
+
+		leftVal = juce::jmap((double)left->convertTo0to1(left->getActualValue()), -1.0, 1.0);
+		if (amountsLinked)
+		{
+			rightVal = leftVal;
+			fR = fL;
+		}
+		else
+		{
+			rightVal = juce::jmap((double)right->convertTo0to1(right->getActualValue()), -1.0, 1.0);
+		}
+
+		mixVal = mix->getActualValue();
+
+
+		float r, g, b, a;
+		color.getComponents(r, g, b, a);
+		float dryA = (1 - mixVal) * a;
+		a *= mixVal;
+
+		float mid = (scaleX + gap) / 2.0; // x-midpoint of the right channel scale
+
+		float w = (1.0f - scaleY) / 3.0f;
+		float wL = w * leftVal;
+		float wR = w * rightVal;
+		float dim = juce::jmin(getWidth(), getHeight());
+		leftVal *= scaleY;
+		rightVal *= scaleY;
+		float radL = abs(wL * dim);
+		float radR = abs(wR * dim);
+		float radDry = w * (1 - mixVal) * dim;
+
+		thumbs->circleVertexBuffer.set(0, { -mid,leftVal,radL,radL,r,g,b,a });
+		thumbs->circleVertexBuffer.set(1, { mid,rightVal,radR,radR,r,g,b,a });
+
+		float gray = (r + g + b) / 3.0;
+		dryThumbs->circleVertexBuffer.set(0, { -mid,0,radDry,radDry,gray,gray,gray,dryA });
+		dryThumbs->circleVertexBuffer.set(1, { mid,0,radDry,radDry,gray,gray,gray,dryA });
+		//================================================================================================================================================================================================
+		for (int i = 0; i < numPoints; ++i)
+		{
+			float prop = i / (numPoints - 1.0f);
+			float alpha = a * prop;
+			float yL = prop * leftVal;
+			float yR = prop * rightVal;
+			float xL = wL * sin(2 * fL * PI * yL + fL * time);
+			float xR = wR * sin(2 * fR * PI * yR + fR * time);
+			trigTails->lineVertexBuffer[0]->set(i, { -mid + xL,yL,r,g,b,alpha });
+			trigTails->lineVertexBuffer[1]->set(i, { -mid - xL,yL,r,g,b,alpha });
+			trigTails->lineVertexBuffer[2]->set(i, { mid + xR,yR,r,g,b,alpha });
+			trigTails->lineVertexBuffer[3]->set(i, { mid - xR,yR,r,g,b,alpha });
+		}
+		//================================================================================================================================================================================================
+		float fifthY = scaleY * 7.0f / 12.0f;
+		scaleColor.getComponents(r, g, b, a);
+		scale->lineVertexBuffer[0]->set(0, { -scaleX,scaleY,r,g,b,a });
+		scale->lineVertexBuffer[0]->set(1, { -gap,scaleY,r,g,b,a });
+
+		scale->lineVertexBuffer[1]->set(0, { gap,scaleY,r,g,b,a });
+		scale->lineVertexBuffer[1]->set(1, { scaleX,scaleY,r,g,b,a });
+
+		scale->lineVertexBuffer[2]->set(0, { -scaleX,fifthY,r,g,b,a });
+		scale->lineVertexBuffer[2]->set(1, { -gap,fifthY,r,g,b,a });
+
+		scale->lineVertexBuffer[3]->set(0, { gap,fifthY,r,g,b,a });
+		scale->lineVertexBuffer[3]->set(1, { scaleX,fifthY,r,g,b,a });
+
+
+		scale->lineVertexBuffer[4]->set(0, { -scaleX,0,r,g,b,a });
+		scale->lineVertexBuffer[4]->set(1, { -gap,0,r,g,b,a });
+
+		scale->lineVertexBuffer[5]->set(0, { gap,0,r,g,b,a });
+		scale->lineVertexBuffer[5]->set(1, { scaleX,0,r,g,b,a });
+
+
+		scale->lineVertexBuffer[6]->set(0, { -scaleX,-fifthY,r,g,b,a });
+		scale->lineVertexBuffer[6]->set(1, { -gap,-fifthY,r,g,b,a });
+
+		scale->lineVertexBuffer[7]->set(0, { gap,-fifthY,r,g,b,a });
+		scale->lineVertexBuffer[7]->set(1, { scaleX,-fifthY,r,g,b,a });
+
+		scale->lineVertexBuffer[8]->set(0, { -scaleX,-scaleY,r,g,b,a });
+		scale->lineVertexBuffer[8]->set(1, { -gap,-scaleY,r,g,b,a });
+
+		scale->lineVertexBuffer[9]->set(0, { gap,-scaleY,r,g,b,a });
+		scale->lineVertexBuffer[9]->set(1, { scaleX,-scaleY,r,g,b,a });
 	}
 
 } // namespace bdsp

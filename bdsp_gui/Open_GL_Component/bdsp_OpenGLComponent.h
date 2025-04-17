@@ -1,15 +1,15 @@
 #pragma once
 
-
-
 #define BDSP_OPEN_GL_FUNCTION_DEFAULT_TOP_ALPHA 0.5f
 #define BDSP_OPEN_GL_FUNCTION_DEFAULT_BOTTOM_ALPHA 0.25f
-#define BDSP_OPEN_GL_LINE_FEATHER_RATIO 3.5f
-#define BDSP_OPEN_GL_LINE_MINIMUM_FEATHER_SIZE 2.0f
 
 #define BDSP_OPEN_GL_ROUNDED_RECTANGLE_TRIANGLE_NUMBER 32
 
 #define BDSP_OSCILLOSCOPE_MAX_WINDOW_MS 1000
+
+#include "Default_Shaders/bdsp_VertexShader.h"
+#include "Default_Shaders/bdsp_FragmentShader.h"
+
 namespace bdsp
 {
 
@@ -179,7 +179,7 @@ namespace bdsp
 			for (int i = 0; i < num; i++)
 			{
 				arr.set(num * idx + i, *it);
-				it++;
+				++it;
 			}
 
 			if (idx * num >= n)
@@ -226,6 +226,12 @@ namespace bdsp
 			return arr.data();
 		}
 
+		void copy(const VertexArray& other)
+		{
+			jassert(num == other.num);
+			arr = other.arr;
+			n = other.n;
+		}
 
 
 		float getAttribute(int vertexIdx, int attributeIdx)
@@ -233,6 +239,12 @@ namespace bdsp
 			return arr[num * vertexIdx + attributeIdx];
 		}
 
+		void clear()
+		{
+			arr.clear();
+		}
+
+	private:
 		int n = 0;
 		const int num;
 		juce::Array<float> arr;
@@ -326,6 +338,7 @@ namespace bdsp
 
 		virtual void createShaders();
 		virtual void createUniforms();
+		virtual void deleteUniforms();
 		virtual void createVertexAttributes();
 		virtual void removeVertexAttributes();
 
@@ -374,122 +387,8 @@ namespace bdsp
 
 	//================================================================================================================================================================================================
 
-	class OpenGLLineRenderer : public OpenGLComponent
-	{
-	public:
-
-		OpenGLLineRenderer(GUI_Universals* universalsToUse, juce::Array<int> lineMaxPoints = juce::Array<int>(100));
-		virtual ~OpenGLLineRenderer();
-		void generateLineTriangles();
-
-		void resized() override;
-
-		void setThickness(int idx, float thickness);
 
 
-		void setFeatherRatio(float newRatio);
-		juce::OwnedArray<VertexArray> linePoints;
-
-		void renderWithoutGenerating() override;
-
-
-		void setHasAlpha(bool canHaveAlpha); // transparency on curves can cause artifacting from overlapping segments
-
-
-
-		juce::Array<float> lineThicknessX, lineThicknessY; // converted to GL space based on component size already halved for faster computation
-		juce::Array<float> lineFeatherX, lineFeatherY;
-		juce::Array<float> lineScreenThickness;
-		juce::Array<float> lineScreenFeather;
-
-	protected:
-		float featherRatio = BDSP_OPEN_GL_LINE_FEATHER_RATIO;
-
-
-
-
-		juce::OwnedArray<VertexArray> lineVertexBuffer;
-		juce::OwnedArray<IndexArray> lineIndexBuffer;
-
-
-
-		const char* lineVertexShader;
-		const char* lineFragmentShader;
-		std::unique_ptr<juce::OpenGLShaderProgram> lineShaderProgram;
-	private:
-
-		juce::Array<GLuint> lineVbo; // Vertex buffer object.
-		juce::Array<GLuint> lineIbo; // Index buffer object.
-
-		void newOpenGLContextCreated() override;
-
-
-		void openGLContextClosing() override;
-
-
-		inline juce::Line<float> translateLine(const juce::Line<float>& l, const juce::Point<float>& p)
-		{
-			return  juce::Line<float>(l.getStart().translated(p.x, p.y), l.getEnd().translated(p.x, p.y));
-
-		}
-
-		bool hasAlpha = false;
-
-	protected:
-		int numLines = 1;
-
-	};
-
-
-	// standardizes things like rendering curves, area under curve
-	// great for visualizers (filter,distortion, lfo, etc.)
-	class OpenGLFunctionVisualizer : public OpenGLLineRenderer
-	{
-	public:
-		OpenGLFunctionVisualizer(GUI_Universals* universalsToUse, bool shouldHaveZeroLine = true, bool shouldRenderAreaUnderCurve = true, int numOfSamplePoints = 100);
-		virtual ~OpenGLFunctionVisualizer();
-
-		void setBipolar(bool newState);
-
-		void resized() override;
-
-		void setColor(const NamedColorsIdentifier& c, const NamedColorsIdentifier& line = NamedColorsIdentifier(), float topCurveOpacity = BDSP_OPEN_GL_FUNCTION_DEFAULT_TOP_ALPHA, float botCurveOpacity = BDSP_OPEN_GL_FUNCTION_DEFAULT_BOTTOM_ALPHA);
-		void setScaling(float newXScalingFactor, float newYScalingFactor = 0);
-		void generateZeroLine();
-
-		void initArrays(int numSamplePoints);
-
-	protected:
-
-
-		// Inherited via OpenGLComponent
-		void generateVertexBuffer() override;
-		virtual inline float calculateAlpha(float x, float y); // calculates alpha of area under curve based on height of function
-		virtual inline float calculateFunctionSample(int sampleNumber, float openGL_X, float normX);
-		virtual inline void newFrameInit(); // called at beginning of new frame calculation to grab any necessary values
-
-
-		virtual void calculateZeroLine();
-
-		bool isBipolar = false;
-		bool hasZeroLine;
-		OpenGLColor lineColor, zeroLine;
-
-		int samplePoints = 2;
-
-		int zeroLineStart;
-		bool renderAreaUnderCurve = true;
-
-		float topCurveAlpha = 0.5f, botCurveAlpha = 0.0f;
-
-
-		float zeroY = 0.0f;
-		float scalingX = 1.0f, scalingY = 1.0f, baseScalingX = 1.0f, baseScalingY = 1.0f;
-
-
-		juce::NormalisableRange<float> xAxisMapping;
-
-	};
 
 
 	class OpenGLSpectrumVisualizer : public OpenGLComponent
@@ -565,23 +464,6 @@ namespace bdsp
 		int bin = 0;
 	};
 
-	class OpenGLFFTLineVisualizer : public OpenGLFunctionVisualizer
-	{
-	public:
-		OpenGLFFTLineVisualizer(GUI_Universals* universalsToUse, SpectrogramController* controller, bool isStereo = false, bool useLogFrequency = true, int numFramesToAvg = 3);
-		virtual ~OpenGLFFTLineVisualizer();
-
-
-	protected:
-		inline float calculateFunctionSample(int sampleNumber, float openGL_X, float normX) override;
-		inline void newFrameInit() override;
-
-
-		CircularBuffer<juce::Array<float>> vals;
-
-	private:
-	};
-
 	class OpenGLSpectrogram : public OpenGLComponent
 	{
 	public:
@@ -610,170 +492,15 @@ namespace bdsp
 
 	//================================================================================================================================================================================================
 
-	//liftime managed by processor so no references to non existant  opengl comps as listners
-	class OpenGLControlValuesListener : public LinkableControl::SampleListener
-	{
-	public:
-		OpenGLControlValuesListener(float windowSizeInMilliseconds, LinkableControl* controlToFollow);
-		void pushNewSample(float smp) override;
-		CircularBuffer<float> functionSamples;
-	};
-
-	// like function viewer except it accounts for changes in frame timing and standardizes pushing new samples
-	// specific to values that get updated at control sample rate
-	class OpenGLControlValuesOverTime : public OpenGLFunctionVisualizer
-	{
-	public:
-		OpenGLControlValuesOverTime(LinkableControl* controlToFollow, GUI_Universals* universalsToUse, bool shouldHaveZeroLine = true, bool shouldRenderAreaUnderCurve = true);
-		virtual ~OpenGLControlValuesOverTime();
-
-
-	protected:
-
-		void generateVertexBuffer() override;
-
-
-		bool forceFullRange = false; // if true will stretch [0,1] from unipolar control to [-1,1]
-		bool alphaFalloff = true;
-
-
-
-	protected:
-		LinkableControl* control = nullptr;
-		OpenGLControlValuesListener* listener = nullptr;
-
-	};
-
-	//================================================================================================================================================================================================
-
-	class OpenGLGrid : public OpenGLComponent, public GUI_Universals::Listener
-	{
-	public:
-
-		OpenGLGrid(GUI_Universals* universalsToUse, int maxRows, int maxCols);
-		~OpenGLGrid();
-
-		void resized() override;
-
-
-		void setXSpacing(float newSpacing);
-		void setYSpacing(float newSpacing);
-		void setThickness(float newThickness);
-
-		void setColor(const NamedColorsIdentifier& newColor);
-
-		void generateVertexBuffer() override;
-
-	private:
-		NamedColorsIdentifier color;
-		float  xThickness, yThickness, xSpacing, ySpacing;
-
-		float thickness;
-
-		float r, g, b;
-
-		void GUI_UniversalsChanged() override;
-
-	};
 
 
 	//================================================================================================================================================================================================
 
-	class OpenGLRing : public OpenGLComponent, public GUI_Universals::Listener
-	{
-	public:
 
-		OpenGLRing(GUI_Universals* universalsToUse, int numSamples = 16);
-		virtual ~OpenGLRing();
-
-		void generateVertexBuffer() override;
-
-		void resized() override;
-
-		void setRadius(float newRadius);
-		void setThickness(float newThickness);
-		void setFeatherRatio(float newFeatherRatio);
-		void setCenter(juce::Point<float> newCenter, bool isGLCoord = true);
-
-
-		void setColor(const NamedColorsIdentifier& newColor);
-
-
-	protected:
-
-
-		float r, g, b, a;
+	//================================================================================================================================================================================================
 
 
 
-		float screenRadius = 1, screenThickness = 1;
-
-		float featherRatio = 4;
-
-		int samplePoints = 32;
-
-		juce::Point<float> center;
-
-		juce::Array<juce::Point<float>> angles;
-		float thicknessX = 0.01, thicknessY = 0.01;
-		float radX = 0.01, radY = 0.01;
-
-		float featherOutX, radOutX, radInX, featherInX;
-		float featherOutY, radOutY, radInY, featherInY;
-
-		NamedColorsIdentifier color;
-
-
-		// Inherited via Listener
-		void GUI_UniversalsChanged() override;
-
-	};
-
-
-	class OpenGLCirclePlotter : public OpenGLComponent
-	{
-	public:
-		OpenGLCirclePlotter(GUI_Universals* universalsToUse, int maxCircles = 250);
-		virtual ~OpenGLCirclePlotter();
-
-
-
-		void resized() override;
-
-		void setRadius(float newRadius);
-		void setFeatherRatio(float newRatio);
-
-		float getScreenRadius();
-
-		void generateCircleVerticies();
-		float pointW = 0.1, pointH = 0.1;
-		float featherW = 0.1, featherH = 0.1;
-		VertexArray circleData;
-	protected:
-
-
-
-
-		void createShaders() override;
-		void createUniforms() override;
-		void createVertexAttributes() override;
-		void removeVertexAttributes() override;
-
-
-
-		std::unique_ptr<juce::OpenGLShaderProgram::Uniform> featherRatioUniform;
-
-
-
-
-
-
-		float screenRadius = 1;
-		float featherRatio = BDSP_OPEN_GL_LINE_FEATHER_RATIO;
-
-
-
-	};
 
 
 	//================================================================================================================================================================================================
@@ -818,15 +545,7 @@ namespace bdsp
 			g.fillRoundedRectangle(getLocalBounds().toFloat(), universals->roundedRectangleCurve);
 		}
 
-		void setColor(const NamedColorsIdentifier& c, const NamedColorsIdentifier& line = NamedColorsIdentifier(), float topCurveOpacity = BDSP_OPEN_GL_FUNCTION_DEFAULT_TOP_ALPHA, float botCurveOpacity = BDSP_OPEN_GL_FUNCTION_DEFAULT_BOTTOM_ALPHA)
-		{
-			vis->setColor(c, line, topCurveOpacity, botCurveOpacity);
-		}
 
-		void setBackgroundColor(const NamedColorsIdentifier& bkgd, const NamedColorsIdentifier& bkgdBehind)
-		{
-			vis->setBackgroundColor(bkgd, bkgdBehind);
-		}
 		InternalClass* getVis()
 		{
 			return vis.get();

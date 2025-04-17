@@ -20,8 +20,8 @@ namespace bdsp
 
 				lookup->waveLookups.operator->();
 
-				allpassL = std::make_unique<CascadedFilter<SampleType,BiQuadFilters::SecondOrderAllpassFilter<SampleType>,BDSP_PHASER_MAX_POLES/2>>(lookup);
-				allpassR = std::make_unique<CascadedFilter<SampleType,BiQuadFilters::SecondOrderAllpassFilter<SampleType>,BDSP_PHASER_MAX_POLES/2>>(lookup);
+				allpassL = std::make_unique<CascadedFilter<SampleType, BiQuadFilters::SecondOrderAllpassFilter<SampleType>, BDSP_PHASER_MAX_POLES / 2>>(lookup);
+				allpassR = std::make_unique<CascadedFilter<SampleType, BiQuadFilters::SecondOrderAllpassFilter<SampleType>, BDSP_PHASER_MAX_POLES / 2>>(lookup);
 			}
 
 			~Phaser() = default;
@@ -98,16 +98,11 @@ namespace bdsp
 
 				modPhase = modf(modPhase + modInc, &tmp);
 
-				auto center = (minPhase + maxPhase) / 2;
-				auto depth = maxPhase - minPhase;
+				SampleType modValL = getModPosition(true);
+				SampleType modValR = getModPosition(false);
 
-				auto posL = modPhase;
-				auto posR = modf(posL + stereoWidth / 2, &tmp);
-				SampleType modValL = lookup->waveLookups->lookupSin(0.5, posL, false, depth);
-				SampleType freqL = frequencyRange->convertFrom0to1((1 - depth) * center + modValL);
-
-				SampleType modValR = lookup->waveLookups->lookupSin(0.5, posR, false, depth);
-				SampleType freqR = frequencyRange->convertFrom0to1((1 - depth) * center + modValR);
+				SampleType freqL = frequencyRange->convertFrom0to1(modValL);
+				SampleType freqR = frequencyRange->convertFrom0to1(modValR);
 
 				//================================================================================================================================================================================================
 
@@ -123,6 +118,19 @@ namespace bdsp
 				//================================================================================================================================================================================================
 
 				BaseProcessingUnit<SampleType>::updateSmoothedVariables();
+			}
+
+			SampleType getModPosition(bool left)
+			{
+				float tmp;
+				auto center = (minPhase + maxPhase) / 2;
+				auto depth = maxPhase - minPhase;
+
+				auto pos = left ? modPhase : modf(modPhase + stereoWidth / 2, &tmp);
+				SampleType modVal = lookup->waveLookups->lookupSin(0.5, pos, false, depth);
+
+
+				return (1 - depth) * center + modVal;
 			}
 
 			void setSmoothingTime(SampleType timeInSeconds) override
@@ -192,7 +200,7 @@ namespace bdsp
 
 		protected:
 
-			std::unique_ptr <CascadedFilter<SampleType,BiQuadFilters::SecondOrderAllpassFilter<SampleType>, BDSP_PHASER_MAX_POLES / 2>>allpassL, allpassR;
+			std::unique_ptr <CascadedFilter<SampleType, BiQuadFilters::SecondOrderAllpassFilter<SampleType>, BDSP_PHASER_MAX_POLES / 2>>allpassL, allpassR;
 
 			SampleType phaseChangeRate;
 			SampleType minPhase, maxPhase;

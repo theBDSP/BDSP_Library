@@ -14,6 +14,8 @@ namespace bdsp
 
 		newFrameInit();
 
+		setJointType(-1, OpenGLLineRenderer::JointType::Rounded);
+
 	}
 
 
@@ -74,7 +76,7 @@ namespace bdsp
 
 
 	EQVisualizerInternal::EQVisualizerHandle::EQVisualizerHandle(EQVisualizerInternal* parent)
-		:OpenGLCirclePlotter(parent->universals, 1),
+		:OpenGLCircleRenderer(parent->universals, 1),
 		normColor(parent->universals, this),
 		downColor(parent->universals, this)
 	{
@@ -85,7 +87,6 @@ namespace bdsp
 		mouseComp = std::make_unique<MouseComp>(this);
 
 
-		featherRatio = 1.25;
 
 	}
 
@@ -117,7 +118,7 @@ namespace bdsp
 		//screenRadius = 15 * universals->visualizerLineThickness;
 
 
-		OpenGLCirclePlotter::resized();
+		OpenGLCircleRenderer::resized();
 		mouseComp->setBounds(bdsp::shrinkRectangleToInt(getHandleBounds()));
 	}
 
@@ -158,20 +159,19 @@ namespace bdsp
 
 
 
-		circleData.set(0, {
-			glCenter.x, glCenter.y,
-			r,g,b,1
+		circleVertexBuffer.set(0, {
+			glCenter.x, glCenter.y,radius,radius,
+			r,g,b,a
 			});
 
 
-		generateCircleVerticies();
 	}
 
 
-	void EQVisualizerInternal::EQVisualizerHandle::setColor(const NamedColorsIdentifier& norm, const NamedColorsIdentifier& down, const OpenGLColor& bkgd)
+	void EQVisualizerInternal::EQVisualizerHandle::setColor(const NamedColorsIdentifier& norm, const NamedColorsIdentifier& down)
 	{
-		normColor.setColors(norm, bkgd.getColorID(false).mixedWith(norm, universals->disabledAlpha));
-		downColor.setColors(down, bkgd.getColorID(false).mixedWith(down, universals->disabledAlpha));
+		normColor.setColors(norm, norm.withMultipliedAlpha(universals->disabledAlpha));
+		downColor.setColors(down, down.withMultipliedAlpha(universals->disabledAlpha));
 	}
 
 	juce::Point<float> EQVisualizerInternal::EQVisualizerHandle::getGLCenter()
@@ -206,8 +206,7 @@ namespace bdsp
 
 	juce::Rectangle<float> EQVisualizerInternal::EQVisualizerHandle::getHandleBounds()
 	{
-		auto glBounds = juce::Rectangle<float>(4 * featherW, 4 * featherH).withCentre(glCenter);
-		return GLBoundsToCompBounds(glBounds);
+		return juce::Rectangle<float>(4 * radius, 4 * radius).withCentre(GLPointToCompPoint(glCenter));
 	}
 
 	void EQVisualizerInternal::EQVisualizerHandle::setParamsFromGLCenter()
@@ -259,7 +258,8 @@ namespace bdsp
 
 
 	EQVisualizerInternal::EQVisualizerInternal(GUI_Universals* universalsToUse, dsp::ParametricEQ<float>* EQToUse, int numSamples)
-		:OpenGLCompositeComponent(universalsToUse)
+		:OpenGLCompositeComponent(universalsToUse),
+		ringColor(universalsToUse, this)
 	{
 		subClasses.add(new EQFuncitonVisualizer(this, EQToUse, numSamples));
 		for (int i = 0; i < EQToUse->getNumProcessors(); ++i)
@@ -301,15 +301,18 @@ namespace bdsp
 
 	void EQVisualizerInternal::generateVertexBuffer()
 	{
-
-
-		ringPointer->setCenter(handlePointers[selectedHandle]->getGLCenter());
-
-
 		for (auto c : subClasses)
 		{
 			c->generateVertexBuffer();
 		}
+		auto center = handlePointers[selectedHandle]->getGLCenter();
+		float r, g, b, a;
+		ringColor.getComponents(r, g, b, a);
+
+
+		ringPointer->circleVertexBuffer.set(0, { center.x,center.y,ringRadius,ringRadius,r,g,b,a });
+
+
 	}
 
 	void EQVisualizerInternal::setScaling(float x, float y)
@@ -317,40 +320,40 @@ namespace bdsp
 		dynamic_cast<OpenGLFunctionVisualizer*>(subClasses.getFirst())->setScaling(x, y);
 	}
 
-	void EQVisualizerInternal::setColor(const NamedColorsIdentifier& c, const NamedColorsIdentifier& line, float top, float bot)
+	void EQVisualizerInternal::setColor(const NamedColorsIdentifier& newLineColor, const NamedColorsIdentifier& newZeroLineColor, const NamedColorsIdentifier& newTopCurveColor, const NamedColorsIdentifier& newBotCurveColor)
 	{
 		auto cast = dynamic_cast<EQFuncitonVisualizer*>(subClasses.getFirst());
-		cast->setColor(c, line, top, bot);
+		cast->setColor(newLineColor, newZeroLineColor, newTopCurveColor, newBotCurveColor);
 
 		for (auto* h : handlePointers)
 		{
-			h->setColor(c.withMultipliedSaturation(1 - universals->buttonDesaturation), c, cast->getBackgroundColor());
+			h->setColor(newLineColor.withMultipliedSaturation(1 - universals->buttonDesaturation), newLineColor);
 		}
 
-		ringPointer->setColor(c);
+		ringColor.setColors(newLineColor, newLineColor.withMultipliedAlpha(universals->disabledAlpha));
 	}
 
 	void EQVisualizerInternal::resized()
 	{
 
 
-		auto handleSize = 15 * universals->visualizerLineThickness;
+		auto handleSize = 1.5 * universals->visualizerLineThickness;
 		constrainer.setMinimumOnscreenAmounts(handleSize, handleSize, handleSize, handleSize);
 
 		borderX = 2 * (handleSize / (float)getWidth());
 		borderY = 2 * (handleSize / (float)getHeight());
 
-		ringPointer->setRadius(2 * handleSize);
-		ringPointer->setThickness(universals->visualizerLineThickness);
+		ringRadius = 2 * handleSize;
+		ringPointer->setThickness(universals->visualizerLineThickness / 4.0);
 
 		auto cast = dynamic_cast<OpenGLFunctionVisualizer*>(subClasses.getFirst());
 
-		for (auto h : handlePointers)
+		for (auto* h : handlePointers)
 		{
-			h->setRadius(handleSize);
+			h->radius = handleSize;
 		}
 		OpenGLCompositeComponent::resized();
-		setScaling(1 - borderX + cast->lineFeatherX[0] + cast->lineThicknessX[0], 1);
+		setScaling(1 - borderX + cast->lineScreenThickness[0]/getWidth(), 1);
 
 
 	}
@@ -455,7 +458,7 @@ namespace bdsp
 		auto q = parent->q;
 
 
-		q->setValue(q->getNormalisableRange().convertFrom0to1(juce::jlimit(0.0,1.0,q->getNormalisableRange().convertTo0to1(q->getValue()) + delta)));
+		q->setValue(q->getNormalisableRange().convertFrom0to1(juce::jlimit(0.0, 1.0, q->getNormalisableRange().convertTo0to1(q->getValue()) + delta)));
 	}
 
 
