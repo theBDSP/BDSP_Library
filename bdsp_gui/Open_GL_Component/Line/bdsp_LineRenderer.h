@@ -1,11 +1,12 @@
 #pragma once
-#include "Shaders\bdsp_LineVertexShader.h"
-#include "Shaders\bdsp_LineGeometryShader.h"
-#include "Shaders\bdsp_LineFragmentShader.h"
 
-#include "Shaders\bdsp_LineJointVertexShader.h"
-#include "Shaders\bdsp_LineJointGeometryShader.h"
-#include "Shaders\bdsp_LineJointFragmentShader.h"
+#include "Shaders/bdsp_LineVertexShader.h"
+#include "Shaders/bdsp_LineGeometryShader.h"
+#include "Shaders/bdsp_LineFragmentShader.h"
+
+#include "Shaders/bdsp_LineJointVertexShader.h"
+#include "Shaders/bdsp_LineJointGeometryShader.h"
+#include "Shaders/bdsp_LineJointFragmentShader.h"
 
 namespace bdsp
 {

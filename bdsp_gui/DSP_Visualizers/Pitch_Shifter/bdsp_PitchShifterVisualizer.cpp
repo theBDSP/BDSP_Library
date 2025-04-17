@@ -45,7 +45,8 @@ namespace bdsp
 		scale->renderWithoutGenerating();
 		trigTails->renderWithoutGenerating();
 
-
+        juce::gl::glClear(juce::gl::GL_STENCIL_BUFFER_BIT); // clear the stencil buffer of the scale's data
+        
 		// stencil test the thumbs to prevent overdraw with the tails
 		juce::gl::glEnable(juce::gl::GL_STENCIL_TEST);
 		juce::gl::glStencilFunc(juce::gl::GL_NOTEQUAL, 1, 0xFF); // only render fragments not rendered by the previous shader pass

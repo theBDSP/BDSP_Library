@@ -1,7 +1,7 @@
 #pragma once
-#include "Shaders\bdsp_CircleVertexShader.h"
-#include "Shaders\bdsp_CircleGeometryShader.h"
-#include "Shaders\bdsp_CircleFragmentShader.h"
+#include "Shaders/bdsp_CircleVertexShader.h"
+#include "Shaders/bdsp_CircleGeometryShader.h"
+#include "Shaders/bdsp_CircleFragmentShader.h"
 
 
 namespace bdsp
