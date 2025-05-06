@@ -14,7 +14,7 @@ namespace bdsp
 
 
 	RingModVisualizerInternal::RingModVisualizerInternal(GUI_Universals* universalsToUse, dsp::DSP_Universals<float>* lookupsToUse, float sampleRate)
-		:OpenGLFunctionVisualizer(universalsToUse, false, true, BDSP_RING_MOD_VISUALIZER_MAX_PERIODS * 16)
+		:OpenGLFunctionVisualizer(universalsToUse, false, true, BDSP_RING_MOD_VISUALIZER_MAX_PERIODS * 41)
 	{
 		lookups = lookupsToUse;
 		sampleRate = sampleRate;
@@ -45,6 +45,7 @@ namespace bdsp
 		{
 			return juce::jmap(mix, 1.0f, signum(openGL_X) * sin(2 * PI * openGL_X * openGL_X) * cos(2 * PI * openGL_X * openGL_X));
 		}
+
 	}
 
 	inline void RingModVisualizerInternal::newFrameInit()
@@ -59,7 +60,7 @@ namespace bdsp
 		else
 		{
 			freq = freqParam->getActualValue();
-			freq = juce::jmap(freqParam->convertTo0to1(freq), 0.5f, (float)BDSP_RING_MOD_VISUALIZER_MAX_PERIODS);
+			freq = juce::jmap(freqParam->convertTo0to1(freq), 1.0f, (float)BDSP_RING_MOD_VISUALIZER_MAX_PERIODS);
 		}
 		mix = mixParam == nullptr ? 1 : mixParam->getActualValue();
 	}

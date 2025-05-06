@@ -1,8 +1,8 @@
 #pragma once
 namespace bdsp
 {
-    inline const char* ring_fragment_shader = //fragment shader
-        R"(
+	inline const char* ring_fragment_shader = //fragment shader
+		R"(
             #version 410 core
             
             in vec4 fragColor;
@@ -19,15 +19,17 @@ namespace bdsp
 
             void main()
             {
-                vec2 t = u_thickness/u_viewport;
-                float d = distance(pos/rad,center/rad); // normalized distance of this fragment to the center of its outer circle
-                float di = distance(pos/(rad-t),center/(rad-t)); // normalized distance of this fragment to the center of its inner circle
- 
+                vec2 th = u_thickness/(rad*u_viewport);
+                float t = (th.x+th.y)/2.0;
+                float d = 1.0-distance(pos/rad,center/rad); // normalized distance of this fragment to the center of its outer circle
+                float fade = 2.0*fwidth(d);
+               
 
-                float r = (d-di)/(1.0-di);
-                float a =  smoothstep(1.0-0.01/max(t.x,t.y),1.0,abs(r));
-         
-                frag_color = vec4(fragColor.rgb,fragColor.a*a);
+                
+                float c1=smoothstep(0.0,fade,d);
+                float c2=smoothstep(t+fade,t,d);
+
+                frag_color = vec4(fragColor.rgb,fragColor.a*c1*c2);
 
             }
         )";

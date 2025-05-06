@@ -213,7 +213,7 @@ namespace bdsp
 	void OpenGLComponent::createUniforms()
 	{
 	}
-	
+
 
 	void OpenGLComponent::deleteUniforms()
 	{
@@ -300,7 +300,7 @@ namespace bdsp
 
 
 	//================================================================================================================================================================================================
-	
+
 
 
 	//================================================================================================================================================================================================
@@ -600,7 +600,7 @@ namespace bdsp
 
 
 
-	
+
 
 
 	OpenGLCompositeComponent::OpenGLCompositeComponent(GUI_Universals* universalsToUse)
@@ -652,7 +652,11 @@ namespace bdsp
 		juce::gl::glEnable(juce::gl::GL_BLEND);
 		juce::gl::glBlendFunc(juce::gl::GL_SRC_ALPHA, juce::gl::GL_ONE_MINUS_SRC_ALPHA);
 
-		juce::OpenGLHelpers::clear(background);
+		if (shouldDrawBackground)
+		{
+			juce::OpenGLHelpers::clear(background);
+		}
+
 
 		generateVertexBuffer();
 		for (int i = 0; i < subClasses.size(); ++i)
@@ -746,4 +750,4 @@ namespace bdsp
 		bin = 0;
 	}
 
-	} // namespace bdsp
+} // namespace bdsp

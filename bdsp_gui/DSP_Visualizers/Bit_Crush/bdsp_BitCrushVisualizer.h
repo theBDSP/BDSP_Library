@@ -2,16 +2,13 @@
 #include "bdsp_BitCrushShaders.h"
 namespace bdsp
 {
-	/**
-	 * Gives an abstract representation of the state a bitcrusher.
-	 * Displays an oval of a certain color, sample rate affets its horizontal resolution, bit depth affects its vertical resolution.
-	 * Decreasing the wet mix will add in a grayscale filter.
-	 */
-	class BitCrushVisualizer : public OpenGLComponent
+
+
+	class BitCrushVisualizerInternal : public OpenGLComponent
 	{
 	public:
-		BitCrushVisualizer(GUI_Universals* universalsToUse, BaseSlider* bitDepthSlider, BaseSlider* sampleRateSlider, BaseSlider* mixSlider);
-		virtual ~BitCrushVisualizer();
+		BitCrushVisualizerInternal(GUI_Universals* universalsToUse, BaseSlider* bitDepthSlider, BaseSlider* sampleRateSlider, BaseSlider* mixSlider);
+		virtual ~BitCrushVisualizerInternal();
 
 
 		void createVertexAttributes() override;
@@ -54,6 +51,21 @@ namespace bdsp
 
 
 
+	/**
+	 * Gives an abstract representation of the state a bitcrusher.
+	 * Displays an oval of a certain color, sample rate affets its horizontal resolution, bit depth affects its vertical resolution.
+	 * Decreasing the wet mix will add in a grayscale filter.
+	 */
+	class BitCrushVisualizer : public OpenGlComponentWrapper<BitCrushVisualizerInternal>
+	{
+	public:
+		BitCrushVisualizer(GUI_Universals* universalsToUse, BaseSlider* bitDepthSlider, BaseSlider* sampleRateSlider, BaseSlider* mixSlider)
+			:OpenGlComponentWrapper<BitCrushVisualizerInternal>(universalsToUse, bitDepthSlider, sampleRateSlider, mixSlider)
+		{
+
+		}
+
+	};
 
 
 } // namespace bdsp

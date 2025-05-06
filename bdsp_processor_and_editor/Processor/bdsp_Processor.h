@@ -39,16 +39,21 @@ namespace bdsp
 			return loadedValue;
 		}
 
+		paramType* getParameter()
+		{
+			return param;
+		}
+
 	protected:
 		paramType* param;
 		T loadedValue;
 	};
 
-	struct ParameterPointerFloat : public ParameterPointer<juce::AudioParameterFloat, float>
+	struct ParameterPointerFloat : public ParameterPointer<Parameter, float>
 	{
 		void load() override
 		{
-			loadedValue = param->get();
+			loadedValue = param->getValue();
 		}
 	};
 
@@ -75,6 +80,7 @@ namespace bdsp
 			loadedValue = param->getIndex();
 		}
 	};
+
 
 
 	struct ParameterPointerControl : public ParameterPointer<ControlParameter, float>

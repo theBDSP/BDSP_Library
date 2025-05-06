@@ -1,7 +1,7 @@
 #include "bdsp_FlangerVisualizer.h"
 namespace bdsp
 {
-	FlangerVisualizer::FlangerVisualizer(GUI_Universals* universalsToUse, dsp::Flanger<float>* FlangerToUse, dsp::DSP_Universals<float>* lookupsToUse, int numSamplePoints)
+	FlangerVisualizerInternal::FlangerVisualizerInternal(GUI_Universals* universalsToUse, dsp::Flanger<float>* FlangerToUse, dsp::DSP_Universals<float>* lookupsToUse, int numSamplePoints)
 		:OpenGLCompositeComponent(universalsToUse),
 		color(universalsToUse, this)
 	{
@@ -29,17 +29,17 @@ namespace bdsp
 		initSubClasses();
 	}
 
-	FlangerVisualizer::~FlangerVisualizer()
+	FlangerVisualizerInternal::~FlangerVisualizerInternal()
 	{
 
 	}
 
-	void FlangerVisualizer::setColor(const NamedColorsIdentifier& newColor)
+	void FlangerVisualizerInternal::setColor(const NamedColorsIdentifier& newColor)
 	{
 		color.setColors(newColor, newColor.withMultipliedAlpha(universals->disabledAlpha));
 	}
 
-	void FlangerVisualizer::generateVertexBuffer()
+	void FlangerVisualizerInternal::generateVertexBuffer()
 	{
 		feedback = feedbackParam != nullptr ? feedbackParam->getActualValue() : 0.5;
 
@@ -70,7 +70,7 @@ namespace bdsp
 
 			curves[2 * i + 1]->botCurve.setColors(fillColor.withMultipliedAlpha(0.0f), fillColorDisabled.withMultipliedAlpha(0.0f));
 			curves[2 * i + 1]->topCurve.setColors(fillColor, fillColorDisabled);
-			
+
 			fb *= sqrt(abs(feedback)); // get the next delay's amplitude
 			offsetL += flanger->getModValue(0);
 			offsetR += flanger->getModValue(1);
@@ -82,7 +82,7 @@ namespace bdsp
 				float prop = (float)j / curves[i]->lineVertexBuffer.getFirst()->getNumVerticies();
 				float xL = xScaling * (startL + prop * 2 / numEchos);
 				float xR = xScaling * (startR + prop * 2 / numEchos);
-				float v = fb * yScaling * sin(2 * PI * prop);
+				float v = signum(feedback) * fb * yScaling * sin(2 * PI * prop);
 				curves[2 * i]->lineVertexBuffer[0]->set(j, { -xL,v, r,g,b,a });
 				curves[2 * i + 1]->lineVertexBuffer[0]->set(j, { xR,v, r,g,b,a });
 			}
@@ -91,7 +91,7 @@ namespace bdsp
 	}
 
 
-	void FlangerVisualizer::resized()
+	void FlangerVisualizerInternal::resized()
 	{
 		OpenGLCompositeComponent::resized();
 		dry->setThickness(-1, universals->visualizerLineThickness / 2);

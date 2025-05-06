@@ -4,7 +4,7 @@ namespace bdsp
 {
 
 
-	PhaserVisualizer::PhaserVisualizer(GUI_Universals* universalsToUse, dsp::Phaser<float>* phaserToUse, dsp::DSP_Universals<float>* lookupsToUse)
+	PhaserVisualizerInternal::PhaserVisualizerInternal(GUI_Universals* universalsToUse, dsp::Phaser<float>* phaserToUse, dsp::DSP_Universals<float>* lookupsToUse)
 		:OpenGLCompositeComponent(universalsToUse),
 		color(universalsToUse, this)
 	{
@@ -43,12 +43,12 @@ namespace bdsp
 
 	}
 
-	PhaserVisualizer::~PhaserVisualizer()
+	PhaserVisualizerInternal::~PhaserVisualizerInternal()
 	{
 
 	}
 
-	void PhaserVisualizer::generateVertexBuffer()
+	void PhaserVisualizerInternal::generateVertexBuffer()
 	{
 		numStages = numStagesParam != nullptr ? juce::jmap(numStagesParam->getValue(), 1.0f, BDSP_PHASER_MAX_POLES / 2.0f) : 4.0f;
 
@@ -93,12 +93,12 @@ namespace bdsp
 
 	}
 
-	void PhaserVisualizer::setColor(const NamedColorsIdentifier& newLineColor)
+	void PhaserVisualizerInternal::setColor(const NamedColorsIdentifier& newLineColor)
 	{
 		color.setColors(newLineColor, newLineColor.withMultipliedAlpha(universals->disabledAlpha));
 	}
 
-	void PhaserVisualizer::resized()
+	void PhaserVisualizerInternal::resized()
 	{
 		OpenGLCompositeComponent::resized();
 		dry->setThickness(-1, universals->visualizerLineThickness);

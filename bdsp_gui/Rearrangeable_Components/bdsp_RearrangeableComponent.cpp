@@ -9,36 +9,38 @@ namespace bdsp
 
 	void RearrangableComponentManagerBase::setDragHandleText(const juce::String& s)
 	{
-		for (int i = 0; i < draggers.size(); ++i)
+		for (int i = 0; i < dragBoxes.size(); ++i)
 		{
-			draggers[i]->dragText = s;
+			dragBoxes[i]->dragger.dragText = s;
 
-			draggers[i]->repaint();
+			dragBoxes[i]->dragger.repaint();
 		}
+
+		longestTitle = s;
 	}
 
 	void RearrangableComponentManagerBase::setDragHandlePath(const juce::Path& p)
 	{
-		for (int i = 0; i < draggers.size(); ++i)
+		for (int i = 0; i < dragBoxes.size(); ++i)
 		{
-			draggers[i]->dragHandlePath.clear();
-			draggers[i]->dragHandlePath.addPath(p);
+			dragBoxes[i]->dragger.dragHandlePath.clear();
+			dragBoxes[i]->dragger.dragHandlePath.addPath(p);
 
-			draggers[i]->repaint();
+			dragBoxes[i]->repaint();
 		}
 	}
 
 	void RearrangableComponentManagerBase::setDragHandleColors(const NamedColorsIdentifier& normalColor, const NamedColorsIdentifier& downColor, const NamedColorsIdentifier& slotColor)
 	{
 
-		for (int i = 0; i < draggers.size(); ++i)
+		for (int i = 0; i < dragBoxes.size(); ++i)
 		{
-			draggers[i]->dragColor = normalColor;
-			draggers[i]->dragColorDown = downColor;
+			dragBoxes[i]->dragger.dragColor = normalColor;
+			dragBoxes[i]->dragger.dragColorDown = downColor;
 
-			draggerSlots[i]->setColors(slotColor);
+			dragBoxes[i]->setColors(slotColor);
 
-			draggers[i]->repaint();
+			dragBoxes[i]->repaint();
 			draggerSlots[i]->repaint();
 
 		}
@@ -46,127 +48,121 @@ namespace bdsp
 
 	void RearrangableComponentManagerBase::setSingleDragHandleText(int idx, const juce::String& s)
 	{
-		draggers[idx]->dragText = s;
+		int i = getPositionOfDragBox(idx);
 
-		draggers[idx]->repaint();
+		dragBoxes[i]->dragger.dragText = s;
+
+		dragBoxes[i]->dragger.repaint();
+
+		calculateLongestTitle();
 	}
 
 	void RearrangableComponentManagerBase::setSingleDragHandlePath(int idx, const juce::Path& p)
 	{
-		draggers[idx]->dragHandlePath.clear();
-		draggers[idx]->dragHandlePath.addPath(p);
+		int i = getPositionOfDragBox(idx);
 
-		draggers[idx]->repaint();
+		dragBoxes[i]->dragger.dragHandlePath.clear();
+		dragBoxes[i]->dragger.dragHandlePath.addPath(p);
+
+		dragBoxes[i]->dragger.repaint();
 	}
 
 	void RearrangableComponentManagerBase::setSingleDragHandleColors(int idx, const NamedColorsIdentifier& normalColor, const NamedColorsIdentifier& downColor, const NamedColorsIdentifier& slotColor)
 	{
+		int i = getPositionOfDragBox(idx);
+		dragBoxes[i]->dragger.dragColor = normalColor;
+		dragBoxes[i]->dragger.dragColorDown = downColor;
 
-		draggers[idx]->dragColor = normalColor;
-		draggers[idx]->dragColorDown = downColor;
+		dragBoxes[i]->setColors(slotColor);
 
-		draggerSlots[idx]->setColors(slotColor);
-
-		draggers[idx]->repaint();
-		draggerSlots[idx]->repaint();
+		dragBoxes[i]->repaint();
+		draggerSlots[i]->repaint();
 	}
 
 	void RearrangableComponentManagerBase::setDragHandleTexts(juce::StringArray strings)
 	{
-		for (int i = 0; i < draggers.size(); ++i)
+		for (int i = 0; i < dragBoxes.size(); ++i)
 		{
-			draggers[i]->dragText = strings[i];
+			dragBoxes[i]->dragger.dragText = strings[i];
 
-			draggers[i]->repaint();
+			dragBoxes[i]->dragger.repaint();
 		}
+		calculateLongestTitle();
 	}
 
 	void RearrangableComponentManagerBase::setDragHandlePaths(juce::Array<juce::Path> paths)
 	{
-		for (int i = 0; i < draggers.size(); ++i)
+		for (int i = 0; i < dragBoxes.size(); ++i)
 		{
-			draggers[i]->dragHandlePath.clear();
-			draggers[i]->dragHandlePath.addPath(paths[i]);
+			dragBoxes[i]->dragger.dragHandlePath.clear();
+			dragBoxes[i]->dragger.dragHandlePath.addPath(paths[i]);
 
-			draggers[i]->repaint();
+			dragBoxes[i]->dragger.repaint();
 		}
 	}
 
 	void RearrangableComponentManagerBase::setDragHandleColors(juce::Array<NamedColorsIdentifier> normalColors, juce::Array<NamedColorsIdentifier> downColors, juce::Array<NamedColorsIdentifier> slotColors)
 	{
 
-		for (int i = 0; i < draggers.size(); ++i)
+		for (int i = 0; i < dragBoxes.size(); ++i)
 		{
-			draggers[i]->dragColor = normalColors[i];
-			draggers[i]->dragColorDown = downColors[i];
+			dragBoxes[i]->dragger.dragColor = normalColors[i];
+			dragBoxes[i]->dragger.dragColorDown = downColors[i];
 
-			draggerSlots[i]->setColors(slotColors[i]);
+			dragBoxes[i]->setColors(slotColors[i]);
 
-			draggers[i]->repaint();
+			dragBoxes[i]->repaint();
 			draggerSlots[i]->repaint();
 		}
 	}
 
+	int RearrangableComponentManagerBase::getPositionOfDragBox(int dragBoxIndex)
+	{
+		return orderedDragBoxes.indexOf(dragBoxes[dragBoxIndex]);
+	}
+
 	void RearrangableComponentManagerBase::addComponent(juce::Component* newComp)
 	{
+
 		comps.add(newComp);
 		addAndMakeVisible(comps.getLast());
 
 
-
-		draggerSlots.add(new BasicContainerComponent(universals, NamedColorsIdentifier()));
+		draggerSlots.add(new Component(universals));
 		addAndMakeVisible(draggerSlots.getLast(), 0);
 
-		draggers.add(new Dragger(this, comps.size() - 1));
-		addAndMakeVisible(draggers.getLast());
+		dragBoxes.add(new DragBox(this, dragBoxes.size()));
+		addAndMakeVisible(dragBoxes.getLast());
+		orderedDragBoxes.add(dragBoxes.getLast());
+
+		dragBoxes.getLast()->setAlwaysOnTop(true);
 
 	}
 
-	void RearrangableComponentManagerBase::reorderComponents(int indexMoved, int indexMovedTo)
+
+
+	void RearrangableComponentManagerBase::reorderComponents(DragBox* boxMoved, int indexMovedTo, bool notifyListeners)
 	{
-		int i1 = findDraggerIndex(indexMoved);
-		int i2 = findDraggerIndex(indexMovedTo);
+		reorderComponents(orderedDragBoxes.indexOf(boxMoved), indexMovedTo, notifyListeners);
+	}
 
-		draggers[i1]->setIndex(indexMovedTo);
-		draggers[i2]->setIndex(indexMoved);
+	void RearrangableComponentManagerBase::reorderComponents(int indexMoved, int indexMovedTo, bool notifyListeners)
+	{
+		orderedDragBoxes.move(indexMoved, indexMovedTo);
 
-		draggers[i1]->toFront(false);
-		draggers[i2]->toFront(false);
+		for (int i = 0; i < orderedDragBoxes.size(); ++i)
+		{
+			if (!orderedDragBoxes[i]->dragger.isDragging)
+			{
+				orderedDragBoxes[i]->setBounds(draggerSlots[i]->getBounds());
+			}
+			//orderedDragBoxes[i]->toFront(false);
+		}
 
-		if (onComponentOrderChanged.operator bool())
+		if (notifyListeners && onComponentOrderChanged.operator bool())
 		{
 			onComponentOrderChanged(indexMoved, indexMovedTo);
 		}
-	}
-
-	void RearrangableComponentManagerBase::previewNewOrder(int indexMoved, int indexMovedTo)
-	{
-		int i1 = findDraggerIndex(indexMoved);
-		int i2 = findDraggerIndex(indexMovedTo);
-
-		draggers[i1]->toFront(false);
-		draggers[i2]->toFront(false);
-
-
-		if (!draggers[i1]->isDragging)
-		{
-			draggers[i1]->setBounds(draggerSlots[indexMovedTo]->getBounds());
-		}
-		if (!draggers[i2]->isDragging)
-		{
-			draggers[i2]->setBounds(draggerSlots[indexMoved]->getBounds());
-		}
-
-		for (int i = 0; i < draggers.size(); ++i)
-		{
-
-
-			if (i != i1 && i != i2)
-			{
-				draggers[i]->setBounds(draggerSlots[baselineDragOrder[i]]->getBounds());
-			}
-		}
-
 	}
 
 
@@ -180,123 +176,116 @@ namespace bdsp
 		return comps.size();
 	}
 
-	int RearrangableComponentManagerBase::findDraggerIndex(int compIndex) const
+	void RearrangableComponentManagerBase::calculateLongestTitle()
 	{
-		int out = -1;
-		for (int i = 0; i < draggers.size(); ++i)
+		juce::StringArray titles;
+
+		for (auto* d : dragBoxes)
 		{
-			if (draggers[i]->getIndex() == compIndex)
-			{
-				out = i;
-				break;
-			}
+			titles.add(d->dragger.dragText);
 		}
-		return out;
+		longestTitle = universals->Fonts[fontIndex].getWidestString(titles);
+		repaint();
 	}
+
+
 
 
 	//================================================================================================================================================================================================
 
-	RearrangableComponentManagerBase::Dragger::Dragger(RearrangableComponentManagerBase* parent, int index)
+	RearrangableComponentManagerBase::DragBox::Dragger::Dragger(DragBox* parent)
 		:Component(parent->universals)
 	{
 		p = parent;
-		idx = index;
-		toFront(false);
+		//p->toFront(false);
 
 	}
 
-	void RearrangableComponentManagerBase::Dragger::mouseEnter(const juce::MouseEvent& e)
+
+	void RearrangableComponentManagerBase::DragBox::Dragger::mouseEnter(const juce::MouseEvent& e)
 	{
 		setMouseCursor(juce::MouseCursor::DraggingHandCursor);
 	}
 
-	void RearrangableComponentManagerBase::Dragger::mouseExit(const juce::MouseEvent& e)
+	void RearrangableComponentManagerBase::DragBox::Dragger::mouseExit(const juce::MouseEvent& e)
 	{
 		setMouseCursor(juce::MouseCursor::NormalCursor);
 	}
 
-	void RearrangableComponentManagerBase::Dragger::mouseDown(const juce::MouseEvent& e)
+	void RearrangableComponentManagerBase::DragBox::Dragger::mouseDown(const juce::MouseEvent& e)
 	{
-		toFront(false);
-		startDraggingComponent(this, e);
+		p->toFront(false);
+		startDraggingComponent(p, e);
 		isDragging = true;
 
-		for (int i = 0; i < p->draggers.size(); ++i)
+		for (int i = 0; i < p->p->dragBoxes.size(); ++i)
 		{
-			p->baselineDragOrder.set(i, p->draggers[i]->getIndex());
+			p->p->baselineDragOrder.set(i, p->p->dragBoxes[i]->getIndex());
 		}
 
 
 		repaint();
 	}
-	void RearrangableComponentManagerBase::Dragger::mouseDrag(const juce::MouseEvent& e)
+	void RearrangableComponentManagerBase::DragBox::Dragger::mouseDrag(const juce::MouseEvent& e)
 	{
 
-		dragComponent(this, e, &p->dragBoundsConstrainer);
+		dragComponent(p, e, &p->p->dragBoundsConstrainer);
 
-		for (int i = 0; i < p->draggerSlots.size(); ++i)
+		for (int i = 0; i < p->p->draggerSlots.size(); ++i)
 		{
-			if ((i != idx || !p->instantSwap) && p->draggerSlots[i]->isShowing())
+			int dragPos = p->p->getPositionOfDragBox(p->idx);
+			if (i != dragPos && p->p->draggerSlots[i]->isShowing())
 			{
 				int l, r, t, b;
-				l = p->draggerSlots[i]->getX();
-				r = p->draggerSlots[i]->getRight();
-				t = p->draggerSlots[i]->getY();
-				b = p->draggerSlots[i]->getBottom();
+				l = p->p->draggerSlots[i]->getX();
+				r = p->p->draggerSlots[i]->getRight();
+				t = p->p->draggerSlots[i]->getY();
+				b = p->p->draggerSlots[i]->getBottom();
 
 
 
-				if ((p->horizontal && isBetweenInclusive(getBounds().getCentreX(), l, r)) || (!p->horizontal && isBetweenInclusive(getBounds().getCentreY(), t, b)))
+				if ((p->p->horizontal && isBetweenInclusive(p->getBounds().getCentreX(), l, r)) || (!p->p->horizontal && isBetweenInclusive(p->getBounds().getCentreY(), t, b)))
 				{
-					if (p->instantSwap)
-					{
-						p->reorderComponents(idx, i);
-					}
-					else
-					{
-						p->previewNewOrder(idx, i);
-					}
-
+					p->p->reorderComponents(p, i, p->p->instantSwap);
 					break;
 				}
 			}
 
 		}
 
-		if (p->onDrag.operator bool())
+		if (p->p->onDrag.operator bool())
 		{
-			p->onDrag(idx, e.getEventRelativeTo(p).getPosition());
+			p->p->onDrag(p->p->getPositionOfDragBox(p->idx), e.getEventRelativeTo(p->p).getPosition());
 		}
 
 
 	}
-	void RearrangableComponentManagerBase::Dragger::mouseUp(const juce::MouseEvent& e)
+	void RearrangableComponentManagerBase::DragBox::Dragger::mouseUp(const juce::MouseEvent& e)
 	{
 		isDragging = false;
 
-		if (!p->instantSwap)
+		if (!p->p->instantSwap)
 		{
-			for (int i = 0; i < p->draggerSlots.size(); ++i)
+			for (int i = 0; i < p->p->draggerSlots.size(); ++i)
 			{
-				if (p->draggerSlots[i]->getBounds().contains(getBounds().getCentre()))
+				if (p->p->draggerSlots[i]->getBounds().contains(getBounds().getCentre()))
 				{
-					p->reorderComponents(idx, i);
-				}		
+					p->p->reorderComponents(p, i);
+				}
 
 			}
 		}
 
 
-		setBounds(p->draggerSlots[idx]->getBounds());
+		p->setBounds(p->p->draggerSlots[p->p->getPositionOfDragBox(p->idx)]->getBounds());
 		repaint();
 	}
-	void RearrangableComponentManagerBase::Dragger::paint(juce::Graphics& g)
+
+	void RearrangableComponentManagerBase::DragBox::Dragger::paint(juce::Graphics& g)
 	{
 		auto color = getHoverColor(getColor(dragColorDown), getColor(dragColor), isDragging, isMouseOver(), universals->hoverMixAmt);
 
 		g.setColour(color);
-
 		if (!dragHandlePath.isEmpty())
 		{
 			scaleToFit(dragHandlePath, getLocalBounds());
@@ -305,20 +294,17 @@ namespace bdsp
 		}
 		if (dragText.isNotEmpty())
 		{
-			drawText(g, universals->Fonts[getFontIndex()].getFont().withHeight(getHeight() * 0.9), dragText, getLocalBounds());
+			auto f = resizeFontToFit(getFont(), getWidth() * 0.9, getHeight() * 0.9, p->p->longestTitle);
+			drawText(g, f, dragText, getLocalBounds(), false, juce::Justification::centredLeft);
 		}
 
 	}
-	void RearrangableComponentManagerBase::Dragger::resized()
+	void RearrangableComponentManagerBase::DragBox::Dragger::resized()
 	{
-	}
-	void RearrangableComponentManagerBase::Dragger::setIndex(int newIndex)
-	{
-		idx = newIndex;
-		//repaint();
 	}
 
-	int RearrangableComponentManagerBase::Dragger::getIndex()
+
+	int RearrangableComponentManagerBase::DragBox::getIndex()
 	{
 		return idx;
 	}
@@ -354,6 +340,7 @@ namespace bdsp
 	void StationaryRearrangableComponentManager::resized()
 	{
 		vp.setBounds(getLocalBounds());
+		vpComp.setBounds(getLocalBounds());
 
 		int num = comps.size();
 
@@ -374,13 +361,14 @@ namespace bdsp
 			comps[i]->setBounds(bounds);
 			draggerSlots[i]->setBounds(shrinkRectangleToInt(dragHandleBoundsRelativeToComp.translated(comps[i]->getX(), comps[i]->getY())));
 		}
-		for (int i = 0; i < draggers.size(); ++i)
+		for (int i = 0; i < dragBoxes.size(); ++i)
 		{
-			int idx = draggers[i]->getIndex();
-			draggers[i]->setBounds(draggerSlots[idx]->getBounds());
+			int idx = dragBoxes[i]->getIndex();
+			dragBoxes[i]->setBounds(draggerSlots[idx]->getBounds());
 		}
 
 	}
+
 
 	void StationaryRearrangableComponentManager::setDragHandleBoundsRelativeToComp(juce::Rectangle<float> newBounds)
 	{
@@ -390,18 +378,17 @@ namespace bdsp
 
 	void StationaryRearrangableComponentManager::addComponent(juce::Component* newComp)
 	{
-		comps.add(newComp);
+		RearrangableComponentManagerBase::addComponent(newComp);
+
 		vpComp.addAndMakeVisible(comps.getLast());
-
-
-		draggers.add(new Dragger(this, comps.size() - 1));
-		vpComp.addAndMakeVisible(draggers.getLast());
+		vpComp.addAndMakeVisible(dragBoxes.getLast());
+		vpComp.addAndMakeVisible(draggerSlots.getLast(), 0);
 
 	}
 
 
 
-	void StationaryRearrangableComponentManager::reorderComponents(int indexMoved, int indexMovedTo)
+	void StationaryRearrangableComponentManager::reorderComponents(int indexMoved, int indexMovedTo, bool notifyListeners)
 	{
 
 
@@ -418,7 +405,7 @@ namespace bdsp
 
 
 
-		RearrangableComponentManagerBase::reorderComponents(indexMoved, indexMovedTo);
+		RearrangableComponentManagerBase::reorderComponents(indexMoved, indexMovedTo, notifyListeners);
 
 
 	}
@@ -426,5 +413,16 @@ namespace bdsp
 
 
 
+
+	RearrangableComponentManagerBase::DragBox::DragBox(RearrangableComponentManagerBase* parent, int index)
+		:BasicContainerComponent(parent->universals, NamedColorsIdentifier()),
+		dragger(this)
+	{
+		p = parent;
+		idx = index;
+
+		setInterceptsMouseClicks(false, true);
+		addAndMakeVisible(dragger);
+	}
 
 } // namespace bdsp

@@ -497,6 +497,12 @@ namespace bdsp
 		return LFOs[idx];
 	}
 
+	void LFOSection::setVertical(bool shouldBeVertical)
+	{
+		isVertical = shouldBeVertical;
+		resized();
+	}
+
 
 
 
@@ -506,9 +512,14 @@ namespace bdsp
 		auto w = 1.0 / LFOs.size();
 		for (int i = 0; i < LFOs.size(); ++i)
 		{
-			//macros[i]->setBounds(expandRectangleToInt(juce::Rectangle<float>(getHeight() * 0.8, getHeight() * 0.8).withCentre(getLocalBounds().toFloat().getRelativePoint((i + 1) * (w + b) + w / 2, 0.5))));
-			//macros[i]->setBoundsRelative((i+1) * (w + b), 0, w, 1);
-			LFOHolders[i]->setBounds(shrinkRectangleToInt(getLocalBounds().getProportion(juce::Rectangle<float>(i * w, 0, w, 1))));
+			if (isVertical)
+			{
+				LFOHolders[i]->setBounds(shrinkRectangleToInt(getLocalBounds().getProportion(juce::Rectangle<float>(0, i * w, 1, w))));
+			}
+			else
+			{
+				LFOHolders[i]->setBounds(shrinkRectangleToInt(getLocalBounds().getProportion(juce::Rectangle<float>(i * w, 0, w, 1))));
+			}
 			LFOs[i]->setBoundsRelative(0.05, 0.05, 0.9, 0.9);
 		}
 	}

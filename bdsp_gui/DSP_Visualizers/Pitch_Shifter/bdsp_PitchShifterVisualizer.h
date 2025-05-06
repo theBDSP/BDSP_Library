@@ -4,11 +4,11 @@ namespace bdsp
 	/**
 	 * Represents the state of a pitch shifter
 	 */
-	class PitchShifterVisualizer : public OpenGLCompositeComponent
+	class PitchShifterVisualizerInternal : public OpenGLCompositeComponent
 	{
 	public:
-		PitchShifterVisualizer(GUI_Universals* universalsToUse, Parameter* leftAmt, Parameter* rightAmt, Parameter* mixAmt);
-		~PitchShifterVisualizer();
+		PitchShifterVisualizerInternal(GUI_Universals* universalsToUse, Parameter* leftAmt, Parameter* rightAmt, Parameter* mixAmt);
+		~PitchShifterVisualizerInternal();
 
 		void renderOpenGL() override;
 		void paintOverChildren(juce::Graphics& g) override;
@@ -16,6 +16,7 @@ namespace bdsp
 		void setColor(const NamedColorsIdentifier& newColor, const NamedColorsIdentifier& newScaleColor = BDSP_COLOR_MID);
 		void linkAmounts(bool shouldLink);
 		void resized() override;
+
 	private:
 
 		Parameter* left, * right, * mix;
@@ -40,7 +41,16 @@ namespace bdsp
 
 	};
 
+	class PitchShifterVisualizer : public OpenGlComponentWrapper<PitchShifterVisualizerInternal>
+	{
+	public:
+		PitchShifterVisualizer(GUI_Universals* universalsToUse, Parameter* leftAmt, Parameter* rightAmt, Parameter* mixAmt)
+			:OpenGlComponentWrapper<PitchShifterVisualizerInternal>(universalsToUse, leftAmt, rightAmt, mixAmt)
+		{
 
+		}
+
+	};
 
 
 

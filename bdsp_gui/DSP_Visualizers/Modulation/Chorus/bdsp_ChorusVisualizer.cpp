@@ -4,7 +4,7 @@ namespace bdsp
 {
 
 
-	ChorusVisualizer::ChorusVisualizer(GUI_Universals* universalsToUse, dsp::Chorus<float>* chorusToUse, dsp::DSP_Universals<float>* lookupsToUse)
+	ChorusVisualizerInternal::ChorusVisualizerInternal(GUI_Universals* universalsToUse, dsp::Chorus<float>* chorusToUse, dsp::DSP_Universals<float>* lookupsToUse)
 		:OpenGLCompositeComponent(universalsToUse),
 		color(universalsToUse, this)
 	{
@@ -41,12 +41,12 @@ namespace bdsp
 
 	}
 
-	ChorusVisualizer::~ChorusVisualizer()
+	ChorusVisualizerInternal::~ChorusVisualizerInternal()
 	{
 
 	}
 
-	void ChorusVisualizer::generateVertexBuffer()
+	void ChorusVisualizerInternal::generateVertexBuffer()
 	{
 		numVoices = numVoicesParam != nullptr ? juce::jmap(numVoicesParam->getValue(), (float)BDSP_CHORUS_MIN_VOICES, (float)BDSP_CHORUS_MAX_VOICES) : BDSP_CHORUS_MIN_VOICES;
 
@@ -95,7 +95,7 @@ namespace bdsp
 
 	}
 
-	void ChorusVisualizer::renderOpenGL()
+	void ChorusVisualizerInternal::renderOpenGL()
 	{
 		juce::gl::glEnable(juce::gl::GL_BLEND);
 		juce::gl::glBlendFunc(juce::gl::GL_SRC_ALPHA, juce::gl::GL_ONE_MINUS_SRC_ALPHA);
@@ -113,12 +113,12 @@ namespace bdsp
 		}
 	}
 
-	void ChorusVisualizer::setColor(const NamedColorsIdentifier& newLineColor)
+	void ChorusVisualizerInternal::setColor(const NamedColorsIdentifier& newLineColor)
 	{
 		color.setColors(newLineColor, newLineColor.withMultipliedAlpha(universals->disabledAlpha));
 	}
 
-	void ChorusVisualizer::resized()
+	void ChorusVisualizerInternal::resized()
 	{
 		OpenGLCompositeComponent::resized();
 		dry->setThickness(-1, universals->visualizerLineThickness);

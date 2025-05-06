@@ -1,12 +1,12 @@
 #pragma once
 namespace bdsp
 {
-	class PhaserVisualizer : public OpenGLCompositeComponent
+	class PhaserVisualizerInternal : public OpenGLCompositeComponent
 	{
 	public:
 
-		PhaserVisualizer(GUI_Universals* universalsToUse, dsp::Phaser<float>* phaserToUse, dsp::DSP_Universals<float>* lookupsToUse);
-		~PhaserVisualizer();
+		PhaserVisualizerInternal(GUI_Universals* universalsToUse, dsp::Phaser<float>* phaserToUse, dsp::DSP_Universals<float>* lookupsToUse);
+		~PhaserVisualizerInternal();
 
 		void generateVertexBuffer() override;
 		void setColor(const NamedColorsIdentifier& newLineColor);
@@ -42,5 +42,16 @@ namespace bdsp
 		OpenGLColor color;
 	};
 
+
+	class PhaserVisualizer : public OpenGlComponentWrapper<PhaserVisualizerInternal>
+	{
+	public:
+		PhaserVisualizer(GUI_Universals* universalsToUse, dsp::Phaser<float>* phaserToUse, dsp::DSP_Universals<float>* lookupsToUse)
+			:OpenGlComponentWrapper<PhaserVisualizerInternal>(universalsToUse, phaserToUse, lookupsToUse)
+		{
+
+		}
+
+	};
 
 } // namespace bdsp

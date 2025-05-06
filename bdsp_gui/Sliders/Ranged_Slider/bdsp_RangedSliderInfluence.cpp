@@ -87,16 +87,16 @@ namespace bdsp
 		attach(*universals->APVTS, ID);
 		onValueChange();
 
-		popup->setClosesOthersOnShow(false);
-		popup->setLossOfFocusClosesWindow(true, p->hoverMenu.get());
+		//popup->setClosesOthersOnShow(false);
+		//popup->setLossOfFocusClosesWindow(true, p->hoverMenu.get());
 		//popup->addHoverPartner(p->hoverMenu.get());
-		popup->onHide = [=]()
-		{
-			juce::Desktop::getInstance().getMainMouseSource().setScreenPosition(p->getScreenBounds().toFloat().getCentre());
+		//popup->onHide = [=]()
+		//{
+		//	juce::Desktop::getInstance().getMainMouseSource().setScreenPosition(p->getScreenBounds().toFloat().getCentre());
 
-		};
+		//};
 
-		parent->addHoverPartner(popup.get());
+		//parent->addHoverPartner(popup.get());
 
 		auto prevFunc = getHoverFunc();
 

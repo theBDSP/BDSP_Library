@@ -1,8 +1,10 @@
 #pragma once 
-
-
 namespace bdsp
 {
+
+
+	void swapParameterValues(juce::RangedAudioParameter& param1, juce::RangedAudioParameter& param2);
+	void swapParameterValues(juce::RangedAudioParameter* param1, juce::RangedAudioParameter* param2);
 
 	/**
 	 * A parameter class mostly the same as juce::AudioParameterFloat, but with public access to certain private members
@@ -119,6 +121,8 @@ namespace bdsp
 		{
 			lambdaListeners.remove(listenerToRemove);
 		}
+
+
 
 
 		juce::NormalisableRange<float> range;

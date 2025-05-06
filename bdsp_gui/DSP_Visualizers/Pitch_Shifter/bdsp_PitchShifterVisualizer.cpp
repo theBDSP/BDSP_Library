@@ -2,7 +2,7 @@
 
 namespace bdsp
 {
-	PitchShifterVisualizer::PitchShifterVisualizer(GUI_Universals* universalsToUse, Parameter* leftAmt, Parameter* rightAmt, Parameter* mixAmt)
+	PitchShifterVisualizerInternal::PitchShifterVisualizerInternal(GUI_Universals* universalsToUse, Parameter* leftAmt, Parameter* rightAmt, Parameter* mixAmt)
 		:OpenGLCompositeComponent(universalsToUse),
 		color(universalsToUse, this),
 		scaleColor(universalsToUse, this)
@@ -29,11 +29,11 @@ namespace bdsp
 	}
 
 
-	PitchShifterVisualizer::~PitchShifterVisualizer()
+	PitchShifterVisualizerInternal::~PitchShifterVisualizerInternal()
 	{
 	}
 
-	void PitchShifterVisualizer::renderOpenGL()
+	void PitchShifterVisualizerInternal::renderOpenGL()
 	{
 		juce::gl::glEnable(juce::gl::GL_BLEND);
 		juce::gl::glBlendFunc(juce::gl::GL_SRC_ALPHA, juce::gl::GL_ONE_MINUS_SRC_ALPHA);
@@ -56,7 +56,7 @@ namespace bdsp
 		dryThumbs->renderWithoutGenerating();
 	}
 
-	void PitchShifterVisualizer::paintOverChildren(juce::Graphics& g)
+	void PitchShifterVisualizerInternal::paintOverChildren(juce::Graphics& g)
 	{
 		g.setColour(scaleColor.getColor(isEnabled()));
 		float sideLength = 0.8*getWidth() * gap;
@@ -75,18 +75,18 @@ namespace bdsp
 
 
 
-	void PitchShifterVisualizer::setColor(const NamedColorsIdentifier& newColor, const NamedColorsIdentifier& newScaleColor)
+	void PitchShifterVisualizerInternal::setColor(const NamedColorsIdentifier& newColor, const NamedColorsIdentifier& newScaleColor)
 	{
 		color.setColors(newColor, newColor.withMultipliedAlpha(universals->disabledAlpha));
 		scaleColor.setColors(newScaleColor, newScaleColor.withMultipliedAlpha(universals->disabledAlpha));
 	}
 
-	void PitchShifterVisualizer::linkAmounts(bool shouldLink)
+	void PitchShifterVisualizerInternal::linkAmounts(bool shouldLink)
 	{
 		amountsLinked = shouldLink;
 	}
 
-	void PitchShifterVisualizer::resized()
+	void PitchShifterVisualizerInternal::resized()
 	{
 		scale->setThickness(-1, universals->visualizerLineThickness / 4.0);
 		trigTails->setThickness(-1, universals->visualizerLineThickness);
@@ -94,7 +94,7 @@ namespace bdsp
 	}
 
 
-	void PitchShifterVisualizer::generateVertexBuffer()
+	void PitchShifterVisualizerInternal::generateVertexBuffer()
 	{
 		time = fmodf(time + 0.025, 2 * PI);
 		shaderProgram->use();
@@ -125,14 +125,14 @@ namespace bdsp
 		float mid = (scaleX + gap) / 2.0; // x-midpoint of the right channel scale
 
 		float w = (1.0f - scaleY) / 3.0f;
+		leftVal *= scaleY;
+		rightVal *= scaleY;
 		float wL = w * leftVal;
 		float wR = w * rightVal;
 		float dim = juce::jmin(getWidth(), getHeight());
-		leftVal *= scaleY;
-		rightVal *= scaleY;
 		float radL = abs(wL * dim);
 		float radR = abs(wR * dim);
-		float radDry = w * (1 - mixVal) * dim;
+		float radDry = w * (1 - mixVal) * dim*scaleY;
 
 		thumbs->circleVertexBuffer.set(0, { -mid,leftVal,radL,radL,r,g,b,a });
 		thumbs->circleVertexBuffer.set(1, { mid,rightVal,radR,radR,r,g,b,a });
@@ -147,8 +147,8 @@ namespace bdsp
 			float alpha = a * prop;
 			float yL = prop * leftVal;
 			float yR = prop * rightVal;
-			float xL = wL * sin(2 * fL * PI * yL + fL * time);
-			float xR = wR * sin(2 * fR * PI * yR + fR * time);
+			float xL = wL/2 * sin(2 * fL * PI * yL + fL * time);
+			float xR = wR/2 * sin(2 * fR * PI * yR + fR * time);
 			trigTails->lineVertexBuffer[0]->set(i, { -mid + xL,yL,r,g,b,alpha });
 			trigTails->lineVertexBuffer[1]->set(i, { -mid - xL,yL,r,g,b,alpha });
 			trigTails->lineVertexBuffer[2]->set(i, { mid + xR,yR,r,g,b,alpha });

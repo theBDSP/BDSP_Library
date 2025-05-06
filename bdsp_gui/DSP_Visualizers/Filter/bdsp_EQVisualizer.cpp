@@ -305,12 +305,15 @@ namespace bdsp
 		{
 			c->generateVertexBuffer();
 		}
-		auto center = handlePointers[selectedHandle]->getGLCenter();
-		float r, g, b, a;
-		ringColor.getComponents(r, g, b, a);
+		if (handlePointers[selectedHandle] != nullptr)
+		{
+			auto center = handlePointers[selectedHandle]->getGLCenter();
+			float r, g, b, a;
+			ringColor.getComponents(r, g, b, a);
 
 
-		ringPointer->circleVertexBuffer.set(0, { center.x,center.y,ringRadius,ringRadius,r,g,b,a });
+			ringPointer->circleVertexBuffer.set(0, { center.x,center.y,ringRadius,ringRadius,r,g,b,a });
+		}
 
 
 	}
@@ -343,8 +346,8 @@ namespace bdsp
 		borderX = 2 * (handleSize / (float)getWidth());
 		borderY = 2 * (handleSize / (float)getHeight());
 
-		ringRadius = 2 * handleSize;
-		ringPointer->setThickness(universals->visualizerLineThickness / 4.0);
+		ringRadius = 3 * handleSize;
+		ringPointer->setThickness(universals->visualizerLineThickness);
 
 		auto cast = dynamic_cast<OpenGLFunctionVisualizer*>(subClasses.getFirst());
 
@@ -353,7 +356,7 @@ namespace bdsp
 			h->radius = handleSize;
 		}
 		OpenGLCompositeComponent::resized();
-		setScaling(1 - borderX + cast->lineScreenThickness[0]/getWidth(), 1);
+		setScaling(1 - borderX + cast->lineScreenThickness[0] / getWidth(), 1);
 
 
 	}

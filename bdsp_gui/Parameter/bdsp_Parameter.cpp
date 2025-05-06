@@ -2,6 +2,27 @@
 
 namespace bdsp
 {
+
+
+
+	void bdsp::swapParameterValues(juce::RangedAudioParameter& param1, juce::RangedAudioParameter& param2)
+	{
+		auto second = param2.getValue();
+		param2.beginChangeGesture();
+		param2.setValueNotifyingHost(param1.getValue());
+		param2.endChangeGesture();
+
+		param1.beginChangeGesture();
+		param1.setValueNotifyingHost(second);
+		param1.endChangeGesture();
+	}
+
+	void bdsp::swapParameterValues(juce::RangedAudioParameter* param1, juce::RangedAudioParameter* param2)
+	{
+		swapParameterValues(*param1, *param2);
+	}
+
+
 	Parameter::Parameter(const juce::ParameterID& parameterID, const juce::String& parameterName, juce::NormalisableRange<float> normalisableRange, float defaultVal, const juce::AudioParameterFloatAttributes& attributes)
 		:juce::RangedAudioParameter(parameterID, parameterName, attributes.getAudioProcessorParameterWithIDAttributes()),
 		range(normalisableRange),

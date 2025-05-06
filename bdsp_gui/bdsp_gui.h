@@ -106,8 +106,10 @@ namespace bdsp
 	};
 
 
+
 	class LookAndFeel;
 	class HintBar;
+	class SliderPopupMenu;
 }; //namespace bdsp
 
 
@@ -368,6 +370,7 @@ namespace bdsp
 #include "DSP_Visualizers/Filter/bdsp_FilterVisualizer.h"
 #include "DSP_Visualizers/Filter/bdsp_EQVisualizer.h"
 #include "DSP_Visualizers/Level_Meter/bdsp_LevelMeter.h"
+#include "DSP_Visualizers/Stereo_Analysis/bdsp_LissajousMeter.h"
 #include "DSP_Visualizers/Demo_Alert/bdsp_DemoAlert.h"
 #include "DSP_Visualizers/LFO/bdsp_LFOVisualizer.h"
 #include "DSP_Visualizers/Envelope_Follower/bdsp_EnvelopeFollowerVisualizer.h"

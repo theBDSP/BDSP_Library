@@ -2,7 +2,7 @@
 namespace bdsp
 {
 	OpenGLCircleRenderer::OpenGLCircleRenderer(GUI_Universals* universalsToUse, int maxCircles)
-		:OpenGLComponent(universalsToUse, 8),
+		:OpenGLComponent(universalsToUse),
 		circleVertexBuffer(8)
 	{
 		for (int i = 0; i < maxCircles; ++i)
@@ -139,17 +139,17 @@ namespace bdsp
 	{
 		juce::gl::glEnableVertexAttribArray(0);
 		// Enable the position attribute.
-		juce::gl::glVertexAttribPointer(0, 2, juce::gl::GL_FLOAT, juce::gl::GL_FALSE, numAttributes * sizeof(float), nullptr);
+		juce::gl::glVertexAttribPointer(0, 2, juce::gl::GL_FLOAT, juce::gl::GL_FALSE, 8 * sizeof(float), nullptr);
 
 
 		juce::gl::glEnableVertexAttribArray(1);
 		// Enable the radius attribute.
-		juce::gl::glVertexAttribPointer(1, 2, juce::gl::GL_FLOAT, juce::gl::GL_FALSE, numAttributes * sizeof(float), (GLvoid*)(sizeof(float) * 2));
+		juce::gl::glVertexAttribPointer(1, 2, juce::gl::GL_FLOAT, juce::gl::GL_FALSE, 8 * sizeof(float), (GLvoid*)(sizeof(float) * 2));
 
 
 		juce::gl::glEnableVertexAttribArray(2);
 		// Enable the colour attribute.
-		juce::gl::glVertexAttribPointer(2, 4, juce::gl::GL_FLOAT, juce::gl::GL_FALSE, numAttributes * sizeof(float), (GLvoid*)(sizeof(float) * 4));
+		juce::gl::glVertexAttribPointer(2, 4, juce::gl::GL_FLOAT, juce::gl::GL_FALSE, 8 * sizeof(float), (GLvoid*)(sizeof(float) * 4));
 
 	}
 

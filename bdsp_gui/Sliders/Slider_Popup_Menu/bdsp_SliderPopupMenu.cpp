@@ -2,12 +2,43 @@
 namespace bdsp
 {
 
-	SliderPopupMenu::SliderPopupMenu(BaseSlider* p, GUI_Universals* universalsToUse)
-		:PopupMenu(p, universalsToUse)
+	SliderPopupMenu::SliderPopupMenu(GUI_Universals* universalsToUse)
+		:PopupMenu(nullptr, universalsToUse)
 	{
-		List.setColorSchemeClassic(p->knobColor, NamedColorsIdentifier(), NamedColorsIdentifier(BDSP_COLOR_BLACK), p->valueColor.withMultipliedAlpha(universals->lowOpacity));
 
+	}
+	void SliderPopupMenu::setRanged(RangedSlider* rangedP)
+	{
+		if (rangedP != nullptr)
+		{
 
+			isRanged = true;
+			rangedParent = rangedP;
+
+			List.addItem("Copy Mods", 2);
+			List.addItem("Paste Mods", 3);
+			List.addItem("Clear All Mods", 4);
+
+		}
+		else
+		{
+			isRanged = false;
+		}
+
+	}
+	void SliderPopupMenu::resized()
+	{
+		if (List.getNum() != 0)
+		{
+			vp.setBoundsRelative(0, 0, 1, 1);
+			List.setBounds(0, 0, vp.getWidth(), vp.getHeight());
+			List.resized();
+		}
+	}
+	void SliderPopupMenu::linkToSlider(BaseSlider* s)
+	{
+
+		List.clearItems();
 
 		List.addItem("Copy Value", 0);
 		List.addItem("Paste Value", 1);
@@ -63,6 +94,8 @@ namespace bdsp
 
 		onShow = [=]()
 		{
+			List.setColorSchemeClassic(BDSP_COLOR_KNOB, NamedColorsIdentifier(), NamedColorsIdentifier(BDSP_COLOR_BLACK), s->valueColor.withMultipliedAlpha(universals->lowOpacity));
+
 			bool valueState = universals->sliderClipboard.normalizedValue >= 0;
 			List.List[1]->setEnabled(valueState);
 
@@ -80,33 +113,7 @@ namespace bdsp
 		};
 
 
-		parent = p;
-	}
-	void SliderPopupMenu::setRanged(RangedSlider* rangedP)
-	{
-		isRanged = true;
-		rangedParent = rangedP;
-
-		List.clearItems();
-
-		List.addItem("Copy Value", 0);
-		List.addItem("Paste Value", 1);
-
-		if (isRanged)
-		{
-			List.addItem("Copy Mods", 2);
-			List.addItem("Paste Mods", 3);
-			List.addItem("Clear All Mods", 4);
-		}
-
-	}
-	void SliderPopupMenu::resized()
-	{
-		if (List.getNum() != 0)
-		{
-			vp.setBoundsRelative(0, 0, 1, 1);
-			List.setBounds(0, 0, vp.getWidth(), vp.getHeight());
-			List.resized();
-		}
+		parent = s;
+		setRanged(dynamic_cast<RangedSlider*>(s->getParentComponent()));
 	}
 } // namespace bdsp

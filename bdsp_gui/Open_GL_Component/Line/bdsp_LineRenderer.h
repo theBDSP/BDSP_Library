@@ -22,7 +22,9 @@ namespace bdsp
 		enum JointType : int { Miter, Bevel, Rounded };
 
 		OpenGLLineRenderer(GUI_Universals* universalsToUse, juce::Array<int> lineMaxPoints = juce::Array<int>(100));
+		OpenGLLineRenderer(GUI_Universals* universalsToUse, int numberOfLines = 1, int pointsPerLine = 100);
 		virtual ~OpenGLLineRenderer();
+
 
 
 
@@ -94,7 +96,7 @@ namespace bdsp
 
 
 
-
+		void init(juce::Array<int> lineMaxPoints);
 
 		std::unique_ptr<juce::OpenGLShaderProgram::Uniform> thickness, numVerts, thicknessRamp, viewport; // line shader uniforms
 		std::unique_ptr<juce::OpenGLShaderProgram::Uniform> jointThickness, jointType, capType, jointNumVerts, jointThicknessRamp, jointViewport; // joint shader uniforms

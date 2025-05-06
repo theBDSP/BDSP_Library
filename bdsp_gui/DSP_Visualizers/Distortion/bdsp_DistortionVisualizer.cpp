@@ -87,15 +87,5 @@ namespace bdsp
 	}
 
 
-	void DistortionVisualizer::resized()
-	{
-		//forceAspectRatio(1);
-		OpenGlComponentWrapper::resized();
-	}
-
-	void DistortionVisualizer::setType(dsp::DistortionTypeBase<float>* newType, dsp::DistortionTypeBase<float>* newNegType)
-	{
-		vis->setType(newType, newNegType);
-	}
 
 } // namespace bdsp

@@ -35,13 +35,15 @@ namespace bdsp
 	{
 		GUI_Universals()
 		{
+			sliderPopup = std::make_unique<SliderPopupMenu>(this);
+
 			listeners.clear();
 			lnf.universals = this;
 		}
 
 		~GUI_Universals()
 		{
-
+			sliderPopup.reset();
 		}
 
 
@@ -69,27 +71,22 @@ namespace bdsp
 
 		void addListener(Listener* l)
 		{
-			listeners.addIfNotAlreadyThere(l);
+			listeners.add(l);
 		}
 
 		void removeListener(Listener* l)
 		{
-			listeners.removeAllInstancesOf(l);
+			listeners.remove(l);
 		}
 
 		void schemeChanged()
 		{
-			for (auto l : listeners)
-			{
-				l->GUI_UniversalsChanged();
-			}
+			listeners.call([&](Listener& l) {l.GUI_UniversalsChanged(); });
 		}
+
 		void bindingChanged(int idx)
 		{
-			for (auto l : listeners)
-			{
-				l->keyBindingChanged(idx);
-			}
+			listeners.call([&](Listener& l) {l.keyBindingChanged(idx); });
 		}
 
 
@@ -134,6 +131,9 @@ namespace bdsp
 
 		NamedColorsIdentifier sliderHoverMenuBGKD = BDSP_COLOR_BLACK;
 		NamedColorsIdentifier sliderHoverMenuOutline = BDSP_COLOR_LIGHT;
+
+		std::unique_ptr<SliderPopupMenu> sliderPopup;
+
 
 		juce::NormalisableRange<float> freqRange;
 
@@ -182,7 +182,7 @@ namespace bdsp
 		LinkableControlComponents* controlComps;
 
 		//================================================================================================================================================================================================
-		
+
 		std::unique_ptr<HintBar> hintBar;
 
 
@@ -202,8 +202,7 @@ namespace bdsp
 		LookAndFeel lnf;
 
 	private:
-
-		juce::Array<Listener*> listeners;
+		juce::ListenerList<Listener> listeners;
 	};
 
 

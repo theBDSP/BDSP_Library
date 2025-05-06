@@ -517,7 +517,7 @@ namespace bdsp
 			:Component(universalsToUse)
 		{
 			vis = std::make_unique<InternalClass>(universalsToUse, args...);
-			vis->setScaling(1.0f, 1.0f);
+			//vis->setScaling(1.0f, 1.0f);
 
 			addAndMakeVisible(vis.get());
 
@@ -534,6 +534,12 @@ namespace bdsp
 			extendedComponent->removeComponentListener(this);
 		}
 
+		void setOutlineColor(const NamedColorsIdentifier& color)
+		{
+			outlineColor = color;
+			repaint();
+		}
+
 		void resized() override
 		{
 			//vis->setBoundsRelative(0.1, 0.1, 0.8, 0.8);
@@ -541,10 +547,16 @@ namespace bdsp
 		}
 		void paint(juce::Graphics& g) override
 		{
-			g.setColour(vis->getBackgroundColor());
+			g.setColour(getColor(outlineColor));
 			g.fillRoundedRectangle(getLocalBounds().toFloat(), universals->roundedRectangleCurve);
+
+			g.setColour(vis->getBackgroundColor());
+			g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(universals->dividerSize), universals->roundedRectangleCurve);
 		}
 
+		void paintOverChildren(juce::Graphics& g) override
+		{
+		}
 
 		InternalClass* getVis()
 		{
@@ -587,6 +599,7 @@ namespace bdsp
 	protected:
 		std::unique_ptr<InternalClass> vis;
 		juce::Component* prevParent = nullptr;
+		NamedColorsIdentifier outlineColor = BDSP_COLOR_DARK;
 	};
 
 	class OpenGLCompositeComponent : public OpenGLComponent

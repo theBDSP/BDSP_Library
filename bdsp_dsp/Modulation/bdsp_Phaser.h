@@ -98,11 +98,11 @@ namespace bdsp
 
 				modPhase = modf(modPhase + modInc, &tmp);
 
-				SampleType modValL = getModPosition(true);
-				SampleType modValR = getModPosition(false);
+				SampleType modValL = getModPosition(true) + 1;
+				SampleType modValR = getModPosition(false) + 1;
 
-				SampleType freqL = frequencyRange->convertFrom0to1(modValL);
-				SampleType freqR = frequencyRange->convertFrom0to1(modValR);
+				SampleType freqL = frequencyRange->convertFrom0to1(modValL - static_cast<int>(modValL));
+				SampleType freqR = frequencyRange->convertFrom0to1(modValR - static_cast<int>(modValR));
 
 				//================================================================================================================================================================================================
 
@@ -127,10 +127,9 @@ namespace bdsp
 				auto depth = maxPhase - minPhase;
 
 				auto pos = left ? modPhase : modf(modPhase + stereoWidth / 2, &tmp);
-				SampleType modVal = lookup->waveLookups->lookupSin(0.5, pos, false, depth);
+				SampleType modVal = lookup->waveLookups->lookupSin(0.5, pos, true, depth);
+				return center + modVal;
 
-
-				return (1 - depth) * center + modVal;
 			}
 
 			void setSmoothingTime(SampleType timeInSeconds) override

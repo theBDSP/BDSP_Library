@@ -22,16 +22,56 @@ namespace bdsp
 		void setDragHandlePaths(juce::Array<juce::Path> paths);
 		void setDragHandleColors(juce::Array< NamedColorsIdentifier> normalColors, juce::Array< NamedColorsIdentifier> downColors, juce::Array< NamedColorsIdentifier> slotColors);
 
+		int getPositionOfDragBox(int dragBoxIndex);
+
+		class DragBox : public BasicContainerComponent
+		{
+		public:
+			DragBox(RearrangableComponentManagerBase* parent, int index);
 
 
+			int getIndex();
+			class Dragger : public juce::ComponentDragger, public Component
+			{
+
+			public:
+				Dragger(DragBox* parent);
+
+
+				void mouseEnter(const juce::MouseEvent& e) override;
+				void mouseExit(const juce::MouseEvent& e) override;
+				void mouseDown(const juce::MouseEvent& e) override;
+				void mouseDrag(const juce::MouseEvent& e) override;
+				void mouseUp(const juce::MouseEvent& e) override;
+
+
+				void paint(juce::Graphics& g) override;
+				void resized() override;
+
+
+				bool isDragging = false;
+
+
+				juce::Path dragHandlePath;
+				juce::String dragText;
+				NamedColorsIdentifier dragColor, dragColorDown;
+			protected:
+				DragBox* p = nullptr;
+			}dragger;
+
+			RearrangableComponentManagerBase* p = nullptr;
+			int idx;
+		};
 		virtual void addComponent(juce::Component* newComp);
 
-		virtual void reorderComponents(int indexMoved, int indexMovedTo);
-		void previewNewOrder(int indexMoved, int indexMovedTo);
+		void reorderComponents(DragBox* boxMoved, int indexMovedTo, bool notifyListeners = true);
+		virtual void reorderComponents(int indexMoved, int indexMovedTo, bool notifyListeners = true);
 
 		juce::Component* getComp(int idx) const;
 
 		int getNumComps() const;
+
+		void calculateLongestTitle();
 
 		std::function<void(int, int)> onComponentOrderChanged;
 		std::function<void(int, juce::Point<int>)> onDrag;
@@ -54,14 +94,14 @@ namespace bdsp
 					auto y = p->dragHandleBounds.getY();
 
 					bounds.setY(y);
-					bounds.setX(juce::jlimit((int)p->dragHandleBounds.getX(), (int)p->dragHandleBounds.getRight()-bounds.getWidth(), bounds.getX()));
+					bounds.setX(juce::jlimit((int)p->dragHandleBounds.getX(), (int)p->dragHandleBounds.getRight() - bounds.getWidth(), bounds.getX()));
 				}
 				else
 				{
 					auto x = p->dragHandleBounds.getX();
 
 					bounds.setX(x);
-					bounds.setY(juce::jlimit((int)p->dragHandleBounds.getY(), (int)p->dragHandleBounds.getBottom()-bounds.getHeight(), bounds.getY()));
+					bounds.setY(juce::jlimit((int)p->dragHandleBounds.getY(), (int)p->dragHandleBounds.getBottom() - bounds.getHeight(), bounds.getY()));
 				}
 			}
 		private:
@@ -69,44 +109,13 @@ namespace bdsp
 		}dragBoundsConstrainer;
 
 	public:
-		class Dragger : public juce::ComponentDragger, public Component
-		{
-		public:
-			Dragger(RearrangableComponentManagerBase* parent, int index);
-
-
-			void mouseEnter(const juce::MouseEvent& e) override;
-			void mouseExit(const juce::MouseEvent& e) override;
-			void mouseDown(const juce::MouseEvent& e) override;
-			void mouseDrag(const juce::MouseEvent& e) override;
-			void mouseUp(const juce::MouseEvent& e) override;
-
-
-			void paint(juce::Graphics& g) override;
-			void resized() override;
-
-
-			void setIndex(int newIndex);
-			int getIndex();
-
-			bool isDragging = false;
-
-
-			juce::Path dragHandlePath;
-			juce::String dragText;
-			NamedColorsIdentifier dragColor, dragColorDown;
-		protected:
-
-			RearrangableComponentManagerBase* p = nullptr;
-			int idx;
-		};
-
-		juce::OwnedArray<Dragger> draggers;
-		int findDraggerIndex(int compIndex) const; // converts comp index to dragger currently representing that comp
+		juce::String longestTitle;
+		juce::OwnedArray<DragBox> dragBoxes;
+		juce::Array<DragBox*> orderedDragBoxes;
 		bool horizontal = true;
 		juce::Rectangle<float> dragHandleBounds;
 		juce::OwnedArray<juce::Component> comps;
-		juce::OwnedArray<BasicContainerComponent> draggerSlots;
+		juce::OwnedArray<Component> draggerSlots;
 		bool instantSwap = true;
 		juce::Array<int> baselineDragOrder; // which slot each dragger controls before any dragging occurs, only used for non-instant swaps
 	};
@@ -126,7 +135,7 @@ namespace bdsp
 
 		void setDragHandleBoundsRelativeToComp(juce::Rectangle<float> newBounds);
 
-		void reorderComponents(int indexMoved, int indexMovedTo) override;
+		void reorderComponents(int indexMoved, int indexMovedTo, bool notifyListeners) override;
 
 		float borderRatio = 0.0125;
 	protected:

@@ -166,7 +166,6 @@ namespace bdsp
 	public:
 		NamedColorsIdentifier knobColor, valueColor, valueTrackColor, valueTrackInsideColor, textColor, textHighlightColor, textEditColor, caretColor, highlightColor;
 
-		std::unique_ptr<SliderPopupMenu> popup;
 
 
 

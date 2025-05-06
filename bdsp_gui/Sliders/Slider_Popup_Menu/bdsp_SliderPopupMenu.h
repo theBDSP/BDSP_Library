@@ -8,15 +8,17 @@ namespace bdsp
 	class SliderPopupMenu : public PopupMenu
 	{
 	public:
-		SliderPopupMenu(BaseSlider* p, GUI_Universals* universalsToUse);
+		SliderPopupMenu(GUI_Universals* universalsToUse);
 		void setRanged(RangedSlider* rangedP);
 
 		void resized() override;
 
+		void linkToSlider(BaseSlider* s);
+
 	private:
 		BaseSlider* parent;
 		RangedSlider* rangedParent = nullptr;
-		bool isRanged=false;
+		bool isRanged = false;
 	};
 
 } // namespace bdsp
