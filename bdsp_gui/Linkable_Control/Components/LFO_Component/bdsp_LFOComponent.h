@@ -143,6 +143,7 @@ namespace bdsp
 		virtual ~LFOSection() = default;
 		LFOComponent* getLFO(int idx);
 
+		void setVertical(bool shouldBeVertical);
 
 
 		void resized() override;
@@ -157,7 +158,7 @@ namespace bdsp
 		juce::OwnedArray<LFOComponent> LFOs;
 		juce::OwnedArray<Component> LFOHolders;
 
-		;
+		bool isVertical = false;
 
 	};
 

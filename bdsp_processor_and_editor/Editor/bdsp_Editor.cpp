@@ -35,6 +35,7 @@ namespace bdsp
 
 		GUIUniversals.freqRange.end = sampleRate / 2;
 
+
 	}
 
 

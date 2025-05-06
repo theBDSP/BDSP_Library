@@ -4,19 +4,19 @@ namespace bdsp
 	/**
 	 * Displays a general visual representation of a flanger's state
 	 */
-	class FlangerVisualizer : public OpenGLCompositeComponent
+	class FlangerVisualizerInternal : public OpenGLCompositeComponent
 	{
 	public:
 
-		FlangerVisualizer(GUI_Universals* universalsToUse, dsp::Flanger<float>* FlangerToUse, dsp::DSP_Universals<float>* lookupsToUse, int numSamplePoints = 50);
-		~FlangerVisualizer();
+		FlangerVisualizerInternal(GUI_Universals* universalsToUse, dsp::Flanger<float>* FlangerToUse, dsp::DSP_Universals<float>* lookupsToUse, int numSamplePoints = 50);
+		~FlangerVisualizerInternal();
 
 		void setColor(const NamedColorsIdentifier& newColor);
 		void generateVertexBuffer() override;
 		void resized() override;
 
 	private:
-		
+
 		dsp::Flanger<float>* flanger;
 
 		OpenGLColor color;
@@ -41,5 +41,17 @@ namespace bdsp
 		int numEchos = 8; // number of echos to display
 	};
 
+
+	class FlangerVisualizer : public OpenGlComponentWrapper<FlangerVisualizerInternal>
+	{
+	public:
+
+		FlangerVisualizer(GUI_Universals* universalsToUse, dsp::Flanger<float>* FlangerToUse, dsp::DSP_Universals<float>* lookupsToUse, int numSamplePoints = 50)
+			:OpenGlComponentWrapper<FlangerVisualizerInternal>(universalsToUse, FlangerToUse, lookupsToUse, numSamplePoints)
+		{
+
+		}
+
+	};
 
 } // namespace bdsp

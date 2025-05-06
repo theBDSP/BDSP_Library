@@ -115,7 +115,7 @@ namespace bdsp
 	template <typename T>
 	T arrayMax(T* arr, const int& size)
 	{
-		T max = arr[0];
+		std::remove_const<T>::type max = arr[0];
 		for (int i = 1; i < size; ++i)
 		{
 			if (arr[i] > max)
@@ -135,7 +135,7 @@ namespace bdsp
 	template <typename T>
 	T arrayMax(const juce::Array<T>& arr)
 	{
-		T max = arr[0];
+		std::remove_const<T>::type max = arr[0];
 		for (int i = 1; i < arr.size(); ++i)
 		{
 			if (arr[i] > max)
@@ -154,9 +154,9 @@ namespace bdsp
 	 * @param size The size of the array to check
 	 */
 	template <typename T>
-	T arrayMin(T* arr, const int& size)
+	T arrayMin(T* arr, const int& size) 
 	{
-		T min = arr[0];
+		std::remove_const<T>::type min = arr[0];
 		for (int i = 1; i < size; ++i)
 		{
 			if (arr[i] < min)
@@ -176,7 +176,7 @@ namespace bdsp
 	template <typename T>
 	T arrayMin(juce::Array<T> arr)
 	{
-		T min = arr[0];
+		std::remove_const<T>::type min = arr[0];
 		for (int i = 1; i < arr.size(); ++i)
 		{
 			if (arr[i] < min)
@@ -197,7 +197,7 @@ namespace bdsp
 	template <typename T>
 	T arraySum(T* arr, int size)
 	{
-		T sum = arr[0];
+		std::remove_const<T>::type sum = arr[0];
 		for (int i = 1; i < size; ++i)
 		{
 			sum += arr[i];
@@ -214,7 +214,7 @@ namespace bdsp
 	template <typename T>
 	T arraySum(juce::Array<T> arr)
 	{
-		T sum = arr[0];
+		std::remove_const<T>::type sum = arr[0];
 		for (int i = 1; i < arr.size(); ++i)
 		{
 			sum += arr[i];

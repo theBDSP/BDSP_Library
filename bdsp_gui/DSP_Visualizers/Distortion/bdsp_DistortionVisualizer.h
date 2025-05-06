@@ -38,9 +38,6 @@ namespace bdsp
 	{
 	public:
 		DistortionVisualizer(GUI_Universals* universalsToUse, dsp::DSP_Universals<float>* lookups, BaseSlider* driveSlider, BaseSlider* mixSlider, juce::Button* autoGainButton, dsp::DistortionTypeBase<float>* initType = nullptr);
-		void resized() override;
-		void setType(dsp::DistortionTypeBase<float>* newType, dsp::DistortionTypeBase<float>* newNegType = nullptr);
-
 	};
 
 

@@ -4,12 +4,12 @@ namespace bdsp
 	/**
 	 * Displays a general visual representation of a chours's state
 	 */
-	class ChorusVisualizer : public OpenGLCompositeComponent
+	class ChorusVisualizerInternal : public OpenGLCompositeComponent
 	{
 	public:
 
-		ChorusVisualizer(GUI_Universals* universalsToUse, dsp::Chorus<float>* chorusToUse, dsp::DSP_Universals<float>* lookupsToUse);
-		~ChorusVisualizer();
+		ChorusVisualizerInternal(GUI_Universals* universalsToUse, dsp::Chorus<float>* chorusToUse, dsp::DSP_Universals<float>* lookupsToUse);
+		~ChorusVisualizerInternal();
 
 
 		void setColor(const NamedColorsIdentifier& newColor);
@@ -46,7 +46,16 @@ namespace bdsp
 
 	};
 
+	class ChorusVisualizer : public OpenGlComponentWrapper<ChorusVisualizerInternal>
+	{
+	public:
+		ChorusVisualizer(GUI_Universals* universalsToUse, dsp::Chorus<float>* chorusToUse, dsp::DSP_Universals<float>* lookupsToUse)
+			:OpenGlComponentWrapper<ChorusVisualizerInternal>(universalsToUse, chorusToUse, lookupsToUse)
+		{
 
+		}
+
+	};
 
 
 } // namespace bdsp

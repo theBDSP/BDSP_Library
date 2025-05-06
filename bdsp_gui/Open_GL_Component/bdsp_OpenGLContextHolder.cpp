@@ -170,7 +170,7 @@ namespace bdsp
 					juce::OpenGLHelpers::enableScissorTest(juce::Rectangle<int>((GLint)r.getX(),
 						(GLint)parentBounds.getHeight() - (GLint)r.getBottom(),
 						(GLsizei)r.getWidth(), (GLsizei)r.getHeight()));
-					juce::OpenGLHelpers::clear(backgroundColour);
+					//juce::OpenGLHelpers::clear(backgroundColour);
 
 					dynamic_cast<juce::OpenGLRenderer*> (comp)->renderOpenGL();
 					juce::gl::glDisable(juce::gl::GL_SCISSOR_TEST);
@@ -220,7 +220,7 @@ namespace bdsp
 
 		juce::gl::glEnable(juce::gl::GL_BLEND);
 		juce::gl::glBlendFunc(juce::gl::GL_SRC_ALPHA, juce::gl::GL_ONE_MINUS_SRC_ALPHA);
-		juce::OpenGLHelpers::clear(backgroundColour);
+		//juce::OpenGLHelpers::clear(backgroundColour);
 		checkComponents(false, true);
 	}
 

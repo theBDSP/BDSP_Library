@@ -4,32 +4,15 @@ namespace bdsp
 	OpenGLLineRenderer::OpenGLLineRenderer(GUI_Universals* universalsToUse, juce::Array<int> lineMaxPoints)
 		:OpenGLComponent(universalsToUse)
 	{
-		numLines = lineMaxPoints.size();
+		init(lineMaxPoints);
+	}
 
-		for (int i = 0; i < numLines; ++i)
-		{
-			lineVertexBuffer.add(new VertexArray());
-			lineIndexBuffer.add(new IndexArray());
-
-			lineVertexBuffer.getLast()->init(lineMaxPoints[i]);
-
-
-			for (int j = 0; j < lineMaxPoints[i]; ++j)
-			{
-				lineIndexBuffer[i]->add(j);
-			}
-
-			lineScreenThickness.add(1);
-			// set default values
-			joint.set(i, OpenGLLineRenderer::JointType::Bevel);
-			cap.set(i, OpenGLLineRenderer::CapType::Butt);
-			thickRamp.set(i, 1);
-		}
-
-		lineVbo.resize(numLines);
-		lineIbo.resize(numLines);
-
-
+	OpenGLLineRenderer::OpenGLLineRenderer(GUI_Universals* universalsToUse, int numberOfLines, int pointsPerLine)
+		:OpenGLComponent(universalsToUse)
+	{
+		juce::Array<int>arr;
+		arr.insertMultiple(0, pointsPerLine, numberOfLines);
+		init(arr);
 	}
 
 
@@ -146,6 +129,8 @@ namespace bdsp
 
 
 		juce::gl::glEnable(juce::gl::GL_STENCIL_TEST);
+
+
 		for (int i = 0; i < numLines; ++i)
 		{
 			lineShaderProgram->use();
@@ -349,6 +334,34 @@ namespace bdsp
 	void OpenGLLineRenderer::setInterLineOverdraw(bool linesCanOverdrawEachOther)
 	{
 		interLineOverdraw = linesCanOverdrawEachOther;
+	}
+
+	void OpenGLLineRenderer::init(juce::Array<int> lineMaxPoints)
+	{
+		numLines = lineMaxPoints.size();
+
+		for (int i = 0; i < numLines; ++i)
+		{
+			lineVertexBuffer.add(new VertexArray());
+			lineIndexBuffer.add(new IndexArray());
+
+			lineVertexBuffer.getLast()->init(lineMaxPoints[i]);
+
+
+			for (int j = 0; j < lineMaxPoints[i]; ++j)
+			{
+				lineIndexBuffer[i]->add(j);
+			}
+
+			lineScreenThickness.add(1);
+			// set default values
+			joint.set(i, OpenGLLineRenderer::JointType::Bevel);
+			cap.set(i, OpenGLLineRenderer::CapType::Butt);
+			thickRamp.set(i, 1);
+		}
+
+		lineVbo.resize(numLines);
+		lineIbo.resize(numLines);
 	}
 
 

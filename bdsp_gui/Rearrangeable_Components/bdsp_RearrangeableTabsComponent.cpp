@@ -68,7 +68,7 @@ namespace bdsp
 			{
 				rearrangeComp->draggerSlots[i]->setBounds(shrinkRectangleToInt(dragHandleBoundsZeroOrigin.translated(buttons[t]->getX() + j * offset, 0)).reduced(universals->rectThicc));
 			}
-			rearrangeComp->draggers[rearrangeComp->findDraggerIndex(i)]->setBounds(rearrangeComp->draggerSlots[i]->getBounds());
+			rearrangeComp->dragBoxes[i]->setBounds(rearrangeComp->draggerSlots[i]->getBounds());
 		}
 		rearrangeComp->dragHandleBounds = juce::Rectangle<int>(rearrangeComp->draggerSlots.getFirst()->getPosition(), rearrangeComp->draggerSlots.getLast()->getBounds().getBottomRight()).toFloat();
 	}
@@ -117,7 +117,7 @@ namespace bdsp
 		pages[page]->addAndMakeVisible(rearrangeComp->comps.getLast());
 
 		addAndMakeVisible(rearrangeComp->draggerSlots.getLast());
-		addAndMakeVisible(rearrangeComp->draggers.getLast());
+		addAndMakeVisible(rearrangeComp->dragBoxes.getLast());
 
 	}
 	void RearrangeableTabsComponent::setTabTitleHeightRatio(float newRatio)

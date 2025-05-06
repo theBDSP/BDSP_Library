@@ -160,8 +160,6 @@ namespace bdsp
 
 		parentSet = true;
 
-		parent->popup->setRanged(this);
-
 	}
 
 
@@ -907,7 +905,7 @@ namespace bdsp
 		{
 			lambda = canShowLambda();
 		}
-		return lambda && !isEmpty() && !parent->parent->popup->isVisible();
+		return lambda && !isEmpty() && !universals->sliderPopup->isVisible();
 
 
 	}
@@ -936,7 +934,7 @@ namespace bdsp
 					dragging = true;
 					break;
 				}
-				else if (i->popup->isVisible())
+				else if (universals->sliderPopup->isVisible())
 				{
 					popupOpen = true;
 					break;

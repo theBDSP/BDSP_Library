@@ -19,9 +19,10 @@ namespace bdsp
             void main()
             {
                 float d = distance(pos/rad,center/rad); // normalized distance of this fragment to the center of its circle
+                float fade = 2*fwidth(d);
                 if(d<1)
                 {
-                    frag_color = vec4(fragColor.rgb, fragColor.a*(1-smoothstep(0.95,1,d))); // MSAA doesn't work well enough here, need to feather the edge                
+                    frag_color = vec4(fragColor.rgb, fragColor.a*(1-smoothstep(1-fade,1,d))); // MSAA doesn't work well enough here, need to feather the edge                
                 }
                 else
                 {

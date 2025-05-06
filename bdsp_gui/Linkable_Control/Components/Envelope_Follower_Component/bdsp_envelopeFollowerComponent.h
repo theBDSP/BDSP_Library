@@ -467,6 +467,11 @@ namespace bdsp
 			return followers[idx];
 		}
 
+		void setVertical(bool shouldBeVertical)
+		{
+			isVertical = shouldBeVertical;
+			resized();
+		}
 
 		void resized() override
 		{
@@ -474,9 +479,16 @@ namespace bdsp
 			auto w = 1.0 / followers.size();
 			for (int i = 0; i < followers.size(); i++)
 			{
-				//macros[i]->setBounds(expandRectangleToInt(juce::Rectangle<float>(getHeight() * 0.8, getHeight() * 0.8).withCentre(getLocalBounds().toFloat().getRelativePoint((i + 1) * (w + b) + w / 2, 0.5))));
-				//macros[i]->setBoundsRelative((i+1) * (w + b), 0, w, 1);
-				followers[i]->setBounds(shrinkRectangleToInt(getLocalBounds().getProportion(juce::Rectangle<float>(i * w, 0, w, 1)).getProportion(juce::Rectangle<float>(0.05, 0.05, 0.9, 0.9))));
+				juce::Rectangle<float> propRect;
+				if (isVertical)
+				{
+					propRect = juce::Rectangle<float>(0, i * w, 1, w);
+				}
+				else
+				{
+					propRect = juce::Rectangle<float>(i * w, 0, w, 1);
+				}
+				followers[i]->setBounds(shrinkRectangleToInt(getLocalBounds().getProportion(propRect).getProportion(juce::Rectangle<float>(0.05, 0.05, 0.9, 0.9))));
 			}
 		}
 		void paint(juce::Graphics& g) override
@@ -511,6 +523,7 @@ namespace bdsp
 	private:
 		juce::OwnedArray<EnvelopeFollowerComponent<SampleType>> followers;
 
+		bool isVertical = false;
 
 		// Inherited via Timer
 		void timerCallback() override;

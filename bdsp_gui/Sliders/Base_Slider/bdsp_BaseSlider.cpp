@@ -74,10 +74,6 @@ namespace bdsp
 
 		setHoverFunc(Func);
 
-		popup = std::make_unique<SliderPopupMenu>(this, universalsToUse);
-
-
-
 	}
 
 	BaseSlider::BaseSlider(const BaseSlider& other)
@@ -205,10 +201,10 @@ namespace bdsp
 	}
 	void BaseSlider::attachLabel()
 	{
-		if (mainLabel != nullptr)
-		{
-			mainLabel->setMaxText(getTextFromValue(getRange().getEnd()));
-		}
+		//if (mainLabel != nullptr)
+		//{
+		//	mainLabel->setMaxText(getTextFromValue(getRange().getEnd()));
+		//}
 		updateLabel();
 	}
 	void BaseSlider::updateLabel()
@@ -307,8 +303,9 @@ namespace bdsp
 
 			if (e.mods.isPopupMenu())
 			{
+				universals->sliderPopup->linkToSlider(this);
 				auto desktopBounds = getBoundsRelativeToDesktopManager();
-				auto h = popup->List.getIdealHeight(universals->sliderPopupWidth);
+				auto h = universals->sliderPopup->List.getIdealHeight(universals->sliderPopupWidth);
 				auto popupBounds = juce::Rectangle<int>(desktopBounds.getRight(), desktopBounds.getCentreY() - h / 2, universals->sliderPopupWidth, h);
 
 				if (!universals->desktopManager.getBounds().contains(popupBounds)) // popup would go off screen
@@ -318,12 +315,13 @@ namespace bdsp
 						popupBounds = popupBounds.withRightX(desktopBounds.getX());
 					}
 				}
-				popup->setBoundsContained(popupBounds, 0);
+				universals->sliderPopup->setBoundsContained(popupBounds, 0);
+
+				universals->sliderPopup->List.setColorSchemeClassic(BDSP_COLOR_KNOB, NamedColorsIdentifier(), NamedColorsIdentifier(BDSP_COLOR_BLACK), NamedColorsIdentifier(BDSP_COLOR_COLOR).withMultipliedAlpha(universals->lowOpacity));
 
 
 
-
-				popup->show();
+				universals->sliderPopup->show();
 				return;
 			}
 
@@ -375,7 +373,7 @@ namespace bdsp
 		if (isEnabled())
 		{
 
-			if (!popup->isVisible() && e.mods.withoutMouseButtons().getRawFlags() != universals->bindings[SliderKeyBindings::SingleClickReset] && !e.mods.isMiddleButtonDown())
+			if (!universals->sliderPopup->isVisible() && e.mods.withoutMouseButtons().getRawFlags() != universals->bindings[SliderKeyBindings::SingleClickReset] && !e.mods.isMiddleButtonDown())
 			{
 
 
@@ -547,8 +545,6 @@ namespace bdsp
 		GUI_UniversalsChanged();
 		repaint();
 
-		popup->List.setColorSchemeClassic(knobColor, NamedColorsIdentifier(), NamedColorsIdentifier(BDSP_COLOR_PURE_BLACK), valueColor);
-
 	}
 
 	void BaseSlider::setSliderColor(const NamedColorsIdentifier& c, const NamedColorsIdentifier& caret, float altOpactiy)
@@ -566,7 +562,6 @@ namespace bdsp
 		highlightColor = c.withMultipliedAlpha(altOpactiy);
 		GUI_UniversalsChanged();
 		repaint();
-		popup->List.setColorSchemeClassic(knobColor, NamedColorsIdentifier(), NamedColorsIdentifier(BDSP_COLOR_PURE_BLACK), valueColor);
 	}
 
 

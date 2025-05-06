@@ -77,7 +77,8 @@ namespace bdsp
 		for (int i = 0; i < influenceParameters.size(); ++i)
 		{
 			auto* p = influenceParameters.getUnchecked(i);
-			influenceParameterValues.set(i, p->getNormalisableRange().convertFrom0to1(p->getValue()));
+			//influenceParameterValues.set(i, p->getNormalisableRange().convertFrom0to1(p->getValue()));
+			influenceParameterValues.set(i, 2 * p->getValue() - 1); // bypass normalization lambdas for speed
 		}
 	}
 

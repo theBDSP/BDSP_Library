@@ -3,16 +3,29 @@
 
 namespace bdsp
 {
-	class Viewport : public juce::Viewport, public ComponentCore
+	class Viewport : public juce::Viewport, public ComponentCore, public GUI_Universals::Listener
 	{
 
 	public:
 		Viewport(GUI_Universals* universalsToUse)
-			:ComponentCore(this, universalsToUse)
+			:ComponentCore(this, universalsToUse),
+			GUI_Universals::Listener(universalsToUse)
 		{
 
 		}
 		virtual ~Viewport() = default;
+
+		void setScrollColor(const NamedColorsIdentifier& newColor)
+		{
+			scrollColor = newColor;
+			GUI_UniversalsChanged();
+		}
+
+		void Viewport::GUI_UniversalsChanged()
+		{
+			getHorizontalScrollBar().setColour(juce::ScrollBar::thumbColourId, getColor(scrollColor));
+			getVerticalScrollBar().setColour(juce::ScrollBar::thumbColourId, getColor(scrollColor));
+		}
 
 		void setScrollDistance(float d)
 		{
@@ -50,6 +63,7 @@ namespace bdsp
 		}
 	private:
 		float scrollDistance = 1;
+		NamedColorsIdentifier scrollColor;
 	};
 
 } // namespace bdsp

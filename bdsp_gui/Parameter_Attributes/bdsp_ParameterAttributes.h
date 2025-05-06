@@ -126,8 +126,6 @@ namespace bdsp
 		juce::OwnedArray<SampleRateDependentFloatParameterAttribute> sampleRateDependentAttributes;
 		juce::OwnedArray<BoolParameterAttribute> boolAttributes;
 
-		juce::Array<juce::Point<float>> rateSnapValues;
-
 	};
 
 } // namespace bdsp

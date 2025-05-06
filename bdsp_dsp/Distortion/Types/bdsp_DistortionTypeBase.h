@@ -15,24 +15,25 @@ namespace bdsp
 			 * Creates and initializes a distortion type.
 			 * @param RMSValues The RMS (amplitude, not dB) values of white noise processed by this distortion type. Each element represents the RMS value for a particular distortion amount.
 			 * In the future I'm looking to add a tool that can automatically measure and return these values for a given tranfer function.
+			 * @param RMSSize The size of the RMSValues array.
 			 * @param iconData The path data created from the Projucer svg path converter tool.
 			 * @param iconDataSize The size of the iconData array.
 			 */
 			template<typename floatType>
-			DistortionTypeBase(const juce::Array<floatType>& RMSValues, const unsigned char* iconData, size_t iconDataSize)
+			DistortionTypeBase(const floatType* RMSValues, size_t RMSSize, const unsigned char* iconData, size_t iconDataSize)
 			{
-				T minVal = arrayMin(RMSValues);
-                
+				T minVal = arrayMin(RMSValues, RMSSize);
+
 				/**
 				 * Returns the reciprocal (normalized to the minimum of all RMS Values) of the RMS gain for a given distortion amount.
 				*/
 				const std::function<T(T)> CompensationGainFunc = [=](T k)
 				{
-					int idx = juce::jmap(k, T(0), T(RMSValues.size() - 1)); // Index of RMSValues for a the distortion amount k
+					int idx = juce::jmap(k, T(0), T(RMSSize - 1)); // Index of RMSValues for a the distortion amount k
 
 					return minVal / RMSValues[idx];
 				};
-				CompensationGain.initialise(CompensationGainFunc, 0, 1, RMSValues.size()); // intialize lookup table with 1 point per element in the RMSValues array. Interpolation between array elemnts is handled by the lookup table.
+				CompensationGain.initialise(CompensationGainFunc, 0, 1, RMSSize); // intialize lookup table with 1 point per element in the RMSValues array. Interpolation between array elemnts is handled by the lookup table.
 				//================================================================================================================================================================================================
 				setIcon(iconData, iconDataSize);
 			}

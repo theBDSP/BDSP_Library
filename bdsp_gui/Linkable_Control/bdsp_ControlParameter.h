@@ -116,13 +116,30 @@ namespace bdsp
 
 		void calculateValue();
 
+		void swapValues(Parameter& other)
+		{
+			auto cast = dynamic_cast<ControlParameter*>(&other);
+
+			swapParameterValues(*this, other);
+			if (cast != nullptr)
+			{
+				for (int i = 0; i < influenceParameters.size(); ++i)
+				{
+					swapParameterValues(influenceParameters[i], cast->influenceParameters[i]);
+				}
+
+			}
+
+		}
+
+
 		bool modulationSnap = true;
 
 		juce::AudioParameterBool* modulationSnapParameter = nullptr;
 
 
 
-		void init(GenericParameterAttributes* genericAttributes, juce::AudioProcessorValueTreeState::ParameterLayout& layout, const juce::StringArray& controlIDArray, const juce::StringArray& controlNameArray,  const juce::String& parameterID, const juce::String& parameterName, int versionHint);
+		void init(GenericParameterAttributes* genericAttributes, juce::AudioProcessorValueTreeState::ParameterLayout& layout, const juce::StringArray& controlIDArray, const juce::StringArray& controlNameArray, const juce::String& parameterID, const juce::String& parameterName, int versionHint);
 	};
 
 

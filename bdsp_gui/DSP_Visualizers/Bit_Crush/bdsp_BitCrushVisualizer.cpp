@@ -2,7 +2,7 @@
 
 namespace bdsp
 {
-	BitCrushVisualizer::BitCrushVisualizer(GUI_Universals* universalsToUse, BaseSlider* bitDepthSlider, BaseSlider* sampleRateSlider, BaseSlider* mixSlider)
+	BitCrushVisualizerInternal::BitCrushVisualizerInternal(GUI_Universals* universalsToUse, BaseSlider* bitDepthSlider, BaseSlider* sampleRateSlider, BaseSlider* mixSlider)
 		: OpenGLComponent(universalsToUse, 2),
 		color(universalsToUse, this)
 	{
@@ -16,18 +16,18 @@ namespace bdsp
 
 
 
-	BitCrushVisualizer::~BitCrushVisualizer()
+	BitCrushVisualizerInternal::~BitCrushVisualizerInternal()
 	{
 		universals->contextHolder->unregisterOpenGlRenderer(this);
 	}
 
 
-	void BitCrushVisualizer::setColor(const NamedColorsIdentifier& newColor)
+	void BitCrushVisualizerInternal::setColor(const NamedColorsIdentifier& newColor)
 	{
 		color.setColors(newColor,newColor.withMultipliedAlpha(universals->disabledAlpha));
 	}
 
-	void BitCrushVisualizer::setScaling(float x, float y)
+	void BitCrushVisualizerInternal::setScaling(float x, float y)
 	{
 		xScaling = x;
 		yScaling = y;
@@ -35,7 +35,7 @@ namespace bdsp
 	}
 
 
-	void BitCrushVisualizer::generateVertexBuffer()
+	void BitCrushVisualizerInternal::generateVertexBuffer()
 	{
 		shaderProgram->use();
 
@@ -64,7 +64,7 @@ namespace bdsp
 	//================================================================================================================================================================================================
 
 
-	void BitCrushVisualizer::createVertexAttributes()
+	void BitCrushVisualizerInternal::createVertexAttributes()
 	{
 		juce::gl::glEnableVertexAttribArray(0);
 		// Enable the position attribute.
@@ -80,17 +80,17 @@ namespace bdsp
 							// pass nullptr here).
 		);
 	}
-	void BitCrushVisualizer::removeVertexAttributes()
+	void BitCrushVisualizerInternal::removeVertexAttributes()
 	{
 		juce::gl::glDisableVertexAttribArray(0);
 	}
-	void BitCrushVisualizer::createShaders()
+	void BitCrushVisualizerInternal::createShaders()
 	{
 		vertexShader = bit_crush_vertex_shader;
 		fragmentShader = bit_crush_fragment_shader;
 	}
 
-	void BitCrushVisualizer::createUniforms()
+	void BitCrushVisualizerInternal::createUniforms()
 	{
 		colorUniform = std::make_unique<juce::OpenGLShaderProgram::Uniform>(*shaderProgram.get(), "u_color");
 		float r, g, b, a;
@@ -102,7 +102,7 @@ namespace bdsp
 		mixUniform = std::make_unique<juce::OpenGLShaderProgram::Uniform>(*shaderProgram.get(), "u_mix");
 
 	}
-	void BitCrushVisualizer::deleteUniforms()
+	void BitCrushVisualizerInternal::deleteUniforms()
 	{
 		colorUniform.reset();
 		bitDepthUniform.reset();
