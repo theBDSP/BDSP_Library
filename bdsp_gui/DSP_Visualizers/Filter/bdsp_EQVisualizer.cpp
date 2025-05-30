@@ -119,7 +119,8 @@ namespace bdsp
 
 
 		OpenGLCircleRenderer::resized();
-		mouseComp->setBounds(bdsp::shrinkRectangleToInt(getHandleBounds()));
+		sliderValueChanged(nullptr);
+		mouseComp->setBounds(bdsp::expandRectangleToInt(getHandleBounds()));
 	}
 
 	void EQVisualizerInternal::EQVisualizerHandle::generateVertexBuffer()
@@ -272,8 +273,8 @@ namespace bdsp
 		subClasses.add(new OpenGLRing(universals));
 		ringPointer = dynamic_cast<OpenGLRing*>(subClasses.getLast());
 
-		resized();
 		initSubClasses();
+		resized();
 	}
 
 	void EQVisualizerInternal::setSliders(int band, BaseSlider* freqSlider, BaseSlider* qSlider, BaseSlider* gainSlider)
@@ -312,7 +313,7 @@ namespace bdsp
 			ringColor.getComponents(r, g, b, a);
 
 
-			ringPointer->circleVertexBuffer.set(0, { center.x,center.y,ringRadius,ringRadius,r,g,b,a });
+			ringPointer->circleVertexBuffer.set(0, { center.x,center.y,selectedRadius,selectedRadius,r,g,b,a });
 		}
 
 
@@ -336,24 +337,29 @@ namespace bdsp
 		ringColor.setColors(newLineColor, newLineColor.withMultipliedAlpha(universals->disabledAlpha));
 	}
 
+	void EQVisualizerInternal::setHandleSize(float handleRadius, float selecetedHandleRadius, float selectedHandleThickness)
+	{
+			radius = handleRadius;
+			selectedRadius = selecetedHandleRadius;
+			selectedThickness = selectedHandleThickness;
+	}
+
 	void EQVisualizerInternal::resized()
 	{
 
 
-		auto handleSize = 1.5 * universals->visualizerLineThickness;
-		constrainer.setMinimumOnscreenAmounts(handleSize, handleSize, handleSize, handleSize);
+		constrainer.setMinimumOnscreenAmounts(radius, radius, radius, radius);
 
-		borderX = 2 * (handleSize / (float)getWidth());
-		borderY = 2 * (handleSize / (float)getHeight());
+		borderX = 2 * (radius / (float)getWidth());
+		borderY = 2 * (radius / (float)getHeight());
 
-		ringRadius = 3 * handleSize;
-		ringPointer->setThickness(universals->visualizerLineThickness);
+		ringPointer->setThickness(selectedThickness);
 
 		auto cast = dynamic_cast<OpenGLFunctionVisualizer*>(subClasses.getFirst());
 
 		for (auto* h : handlePointers)
 		{
-			h->radius = handleSize;
+			h->radius = radius;
 		}
 		OpenGLCompositeComponent::resized();
 		setScaling(1 - borderX + cast->lineScreenThickness[0] / getWidth(), 1);

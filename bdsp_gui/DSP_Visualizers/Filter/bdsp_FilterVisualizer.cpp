@@ -94,10 +94,6 @@ namespace bdsp
 	{
 	}
 
-	void FilterVisualizer::resized()
-	{
-		vis->setBounds(getLocalBounds().reduced(universals->roundedRectangleCurve, 0));
-	}
 
 
 

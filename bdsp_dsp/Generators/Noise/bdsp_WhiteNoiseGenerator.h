@@ -15,7 +15,7 @@ namespace bdsp
 
 				SampleType getSample(int channel) override
 				{
-					return rand.getNext();
+					return 2 * rand.getNext() - 1;
 				}
 
 

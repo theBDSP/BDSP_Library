@@ -12,7 +12,8 @@ namespace bdsp
 #ifndef JucePlugin_PreferredChannelConfigurations
 		AudioProcessor(generateBusesLayout(hasSidechain)),
 #endif
-		subBlock(subBlockBuffer)
+		subBlock(subBlockBuffer),
+		hiddenDummyProcessor(this)
 	{
 
 		envelopeSourceList.add(new dsp::SampleSource<float>("Input"));
@@ -90,18 +91,21 @@ namespace bdsp
 
 		std::function<float(float, float, float)> fromFunc = [=](float rangeStart, float rangeEnd, float value)
 		{
-			return pow(2, BDSP_RATE_MAX - (BDSP_RATE_MAX - BDSP_RATE_MIN) * value);
+			float start = log2f(rangeStart);
+			float end = log2f(rangeEnd);
+			return pow(2, end - (end - start) * value);
 		};
 
 		std::function<float(float, float, float)> toFunc = [=](float rangeStart, float rangeEnd, float value)
 		{
-			if (value == quickPow2(BDSP_RATE_MAX))
+			float start = log2f(rangeStart);
+			float end = log2f(rangeEnd);
+			float logVal = log2f(value);
+			if (logVal == end)
 			{
-				return 0.0;
+				return 0.0f;
 			}
-
-			auto logVal = std::log(value) / std::log(2);
-			return (BDSP_RATE_MAX - logVal) / (BDSP_RATE_MAX - BDSP_RATE_MIN);
+			return (end - logVal) / (end - start);
 		};
 
 
@@ -113,25 +117,28 @@ namespace bdsp
 			rateSnapValues.add(juce::Point<float>(prop, power));
 			if (i > BDSP_RATE_MIN + 1)
 			{
-				rateSnapValues.add(juce::Point<float>(toFunc(0, 0, power * 0.75), power * 0.75));
+				rateSnapValues.add(juce::Point<float>(toFunc(powf(2, BDSP_RATE_MIN), powf(2, BDSP_RATE_MAX), power * 0.75), power * 0.75));
 			}
 		}
 
 
 		std::function<float(float, float, float)> snapFunc = [=](float start, float end, float v)
 		{
-			auto logV = toFunc(start, end, v);
 			int idx = 0;
-			float minDiff = abs(logV - rateSnapValues.getFirst().x);
+			float minDiff = abs(v - rateSnapValues.getFirst().y);
 
 			for (int i = 1; i < rateSnapValues.size(); ++i)
 			{
-				auto diff = abs(logV - rateSnapValues[i].x);
+				auto diff = abs(v - rateSnapValues[i].y);
 
 				if (diff < minDiff)
 				{
 					minDiff = diff;
 					idx = i;
+					if (juce::approximatelyEqual(diff, 0.0f))
+					{
+						break;
+					}
 				}
 			}
 
@@ -144,7 +151,7 @@ namespace bdsp
 		std::function<juce::String(float, int)> rateLambda = [=](float value, int)
 		{
 			auto v = snapFunc(0, 0, value);
-			return settings.get("Reduce Fractions", 1) ? reduceFraction(int(v * denominator), denominator, " / ", true) : juce::String(int(v)) + juce::String(" / ") + juce::String(denominator);
+			return settings.get("Reduce Fractions", 1) ? reduceFraction(int(v * denominator), denominator, " / ", true) : juce::String(int(v * denominator)) + juce::String(" / ") + juce::String(denominator);
 		};
 
 
@@ -262,6 +269,7 @@ namespace bdsp
 		else
 		{
 			currentAPHPosition = APH->getPosition();
+			jassert(currentAPHPosition.hasValue());
 			currentPlayPosition = currentAPHPosition->getTimeInSamples().orFallback(0);
 
 			if (currentAPHPosition->getIsPlaying())
@@ -270,6 +278,11 @@ namespace bdsp
 				{
 
 					for (auto l : LFOParamListeners)
+					{
+						float start = truncf(currentAPHPosition->getTimeInSeconds().orFallback(0.0f) * BDSP_CONTROL_SAMPLE_RATE * l->getProgressIncrement());
+						l->setProgress(start);
+					}
+					for (auto l : SequencerParamListeners)
 					{
 						float start = truncf(currentAPHPosition->getTimeInSeconds().orFallback(0.0f) * BDSP_CONTROL_SAMPLE_RATE * l->getProgressIncrement());
 						l->setProgress(start);
@@ -365,7 +378,7 @@ namespace bdsp
 
 		sidechainEnabled = !(sidechainBuffer.getNumSamples() < mainBuffer.getNumSamples() || sidechainBuffer.getNumChannels() < 1 || sidechainBuffer == mainBuffer);
 
-		
+
 
 		if (!sidechainEnabled)
 		{
@@ -445,8 +458,11 @@ namespace bdsp
 	//==============================================================================
 	void Processor::getStateInformation(juce::MemoryBlock& destData)
 	{
+
+
 		auto xml = Handler->createSaveXML(true, Handler->presetName.toString());
 		xml->setAttribute("WindowWidth", settingsTree.getProperty("WindowWidth").operator double());
+
 		copyXmlToBinary(*xml.get(), destData);
 
 
@@ -500,6 +516,8 @@ namespace bdsp
 
 		parameters = std::make_unique<juce::AudioProcessorValueTreeState>(*this, &undoManager, juce::Identifier("APVTS"), createParameterLayout());
 
+		hiddenDummyProcessor.initAPVTS();
+
 		if (onParameterCreationCompletion.operator bool())
 		{
 			onParameterCreationCompletion();
@@ -532,6 +550,8 @@ namespace bdsp
 			controlObjects.add(new MacroControllerObject(parameters->getParameter(linkableControlIDs[i])));
 
 		}
+		onSettingsTreeCreation();
+
 		for (int i = 0; i < BDSP_NUMBER_OF_LFOS; ++i)
 		{
 			controlObjects.add(new LFOControllerObject(&lookups));
@@ -546,9 +566,14 @@ namespace bdsp
 			sampleRateLinkableControls.add(controlObjects.getLast());
 			controlVisListeners.add(new OpenGLControlValuesListener(2000, controlObjects.getLast()));
 		}
+		for (int i = 0; i < BDSP_NUMBER_OF_SEQUENCERS; ++i)
+		{
+			controlObjects.add(new SequencerControllerObject(&lookups));
+			sampleRateLinkableControls.add(controlObjects.getLast());
+			SequencerParamListeners.add(dynamic_cast<SequencerParameterListener*>(controlObjects.getLast()));
+		}
 
 		//================================================================================================================================================================================================
-
 
 		for (auto p : getParameters())
 		{
@@ -575,7 +600,7 @@ namespace bdsp
 
 		setFactoryPresets();
 
-		Handler = std::make_unique<bdsp::StateHandler>(this, parameters.get(), &settingsTree, &propertiesFolder, controlParameters, factoryPresets);
+		Handler = std::make_unique<bdsp::StateHandler>(this, parameters.get(), hiddenDummyProcessor.apvts.get(), &settingsTree, &propertiesFolder, controlParameters, hiddenDummyProcessor.orderedParams, factoryPresets);
 
 		if (!settingsTree.getProperty("PresetAltered").operator bool())
 		{
@@ -646,6 +671,10 @@ namespace bdsp
 
 	}
 
+	void Processor::onSettingsTreeCreation()
+	{
+	}
+
 	void Processor::createBPMParameter(juce::AudioProcessorValueTreeState::ParameterLayout& layout, int versionHint)
 	{
 		const auto& BPMAttribute = parameterAttributes.getFloatAttribute("BPM");
@@ -654,23 +683,31 @@ namespace bdsp
 		layout.add(std::make_unique<juce::AudioParameterBool>(juce::ParameterID("BPMLinkID", versionHint), "BPM Link", true));
 	}
 
-	void bdsp::Processor::createSyncParameters(juce::AudioProcessorValueTreeState::ParameterLayout& layout, juce::String baseID, const juce::String& baseName, int denominator, bool ranged, bool createLockParameter, int versionHint, int snapVersionHint)
+	void bdsp::Processor::createSyncParameters(juce::AudioProcessorValueTreeState::ParameterLayout& layout, juce::String baseID, const juce::String& baseName, int denominator, int minBeats, int maxBeats, bool ranged, bool createLockParameter, juce::Array<int> includedDivisions, int versionHint, int snapVersionHint)
 	{
-		createSyncParameters(layout, baseID, baseName, 500.0f, 1.0 / 16.0, 1, denominator, ranged, createLockParameter, versionHint, snapVersionHint);
+		createSyncParameters(layout, baseID, baseName, 500.0f, 1.0 / 16.0, 1, denominator, minBeats, maxBeats, ranged, createLockParameter, includedDivisions, versionHint, snapVersionHint);
 	}
 
-	void Processor::createSyncParameters(juce::AudioProcessorValueTreeState::ParameterLayout& layout, juce::String baseID, const juce::String& baseName, float defaultMsTime, float defaultFrac, int defaultDivision, int denominator, bool ranged, bool createLockParameter, int versionHint, int snapVersionHint)
+	void Processor::createSyncParameters(juce::AudioProcessorValueTreeState::ParameterLayout& layout, juce::String baseID, const juce::String& baseName, float defaultMsTime, float defaultFrac, int defaultDivision, int denominator, int minBeats, int maxBeats, bool ranged, bool createLockParameter, juce::Array<int> includedDivisions, int versionHint, int snapVersionHint)
 	{
 		baseID = baseID.upToLastOccurrenceOf("ID", false, false);
 
 		snapVersionHint = snapVersionHint == -1 ? versionHint : snapVersionHint;
 
+		bool hasMS = includedDivisions.contains(0) || includedDivisions.isEmpty();
+
+		auto att = parameterAttributes.getFloatAttribute("Time Fraction " + juce::String(denominator));
+		att.range.start = (float)minBeats / denominator;
+		att.range.end = (float)maxBeats / denominator;
 
 		if (ranged)
 		{
-			layout.add(std::make_unique<bdsp::ControlParameter>(&parameterAttributes, layout, linkableControlIDs, linkableControlNames, baseID + "MsTimeID", baseName + " ms Time", defaultMsTime, "ms Time", versionHint));
+			if (hasMS)
+			{
+				layout.add(std::make_unique<bdsp::ControlParameter>(&parameterAttributes, layout, linkableControlIDs, linkableControlNames, baseID + "MsTimeID", baseName + " ms Time", defaultMsTime, "ms Time", versionHint));
+			}
 
-			layout.add(std::make_unique<bdsp::ControlParameter>(&parameterAttributes, layout, linkableControlIDs, linkableControlNames, baseID + "FractionID", baseName + " Tempo Fraction", defaultFrac, "Time Fraction " + juce::String(denominator), versionHint));
+			layout.add(std::make_unique<bdsp::ControlParameter>(&parameterAttributes, layout, linkableControlIDs, linkableControlNames, baseID + "FractionID", baseName + " Tempo Fraction", defaultFrac, att, versionHint));
 			if (createLockParameter)
 			{
 				layout.add(std::make_unique<juce::AudioParameterBool>(juce::ParameterID(baseID + "FractionSnapID", snapVersionHint), baseID + " Fraction Snapping", true));
@@ -691,32 +728,59 @@ namespace bdsp
 		}
 		else
 		{
-			const auto& msAttributes = parameterAttributes.getFloatAttribute("ms Time");
-			const auto& syncAttributes = parameterAttributes.getFloatAttribute("Time Fraction " + juce::String(denominator));
-			layout.add(std::make_unique < juce::AudioParameterFloat>(juce::ParameterID(baseID + "MsTimeID", versionHint), baseID + " ms Time", msAttributes.range, defaultMsTime, juce::AudioParameterFloatAttributes().withStringFromValueFunction(msAttributes.valueToTextLambda).withValueFromStringFunction(msAttributes.textToValueLambda)));
-			layout.add(std::make_unique < juce::AudioParameterFloat>(juce::ParameterID(baseID + "FractionID", versionHint), baseID + " Tempo Fraction", syncAttributes.range, defaultFrac, juce::AudioParameterFloatAttributes().withStringFromValueFunction(syncAttributes.valueToTextLambda).withValueFromStringFunction(syncAttributes.textToValueLambda)));
+			if (hasMS)
+			{
+				const auto& msAttributes = parameterAttributes.getFloatAttribute("ms Time");
+				layout.add(std::make_unique < juce::AudioParameterFloat>(juce::ParameterID(baseID + "MsTimeID", versionHint), baseID + " ms Time", msAttributes.range, defaultMsTime, juce::AudioParameterFloatAttributes().withStringFromValueFunction(msAttributes.valueToTextLambda).withValueFromStringFunction(msAttributes.textToValueLambda)));
+			}
+
+			layout.add(std::make_unique < juce::AudioParameterFloat>(juce::ParameterID(baseID + "FractionID", versionHint), baseID + " Tempo Fraction", att.range, defaultFrac, att.toJuceAttributes()));
 		}
 
 
 		juce::StringArray divisionNames({ "ms", "Straight", "Triplet", "Quintuplet", "Septuplet" });
+
+		if (!includedDivisions.isEmpty())
+		{
+
+			for (int i = divisionNames.size(); i >= 0; --i)
+			{
+				if (!includedDivisions.contains(i))
+				{
+					divisionNames.remove(i);
+				}
+			}
+		}
+
 		layout.add(std::make_unique<juce::AudioParameterChoice>(juce::ParameterID(baseID + "DivisionID", versionHint), baseName + " Division", divisionNames, defaultDivision));
 	}
 
-	void bdsp::Processor::createSyncRateParameters(juce::AudioProcessorValueTreeState::ParameterLayout& layout, juce::String baseID, const juce::String& baseName, bool ranged, bool createLockParameter, int versionHint, int snapVersionHint)
+	void bdsp::Processor::createSyncRateParameters(juce::AudioProcessorValueTreeState::ParameterLayout& layout, juce::String baseID, const juce::String& baseName, int minBeats, int maxBeats, bool ranged, bool createLockParameter, juce::Array<int> includedDivisions, int versionHint, int snapVersionHint)
 	{
-		createSyncRateParameters(layout, baseID, baseName, 1.0f, 1.0f / 4.0f, 1, ranged, createLockParameter, versionHint, snapVersionHint);
+		createSyncRateParameters(layout, baseID, baseName, 1.0f, 1.0f / 4.0f, 1, minBeats, maxBeats, ranged, createLockParameter, includedDivisions, versionHint, snapVersionHint);
 	}
 
-	void Processor::createSyncRateParameters(juce::AudioProcessorValueTreeState::ParameterLayout& layout, juce::String baseID, const juce::String& baseName, float defaultHzRate, float defaultFrac, int defaultDivision, bool ranged, bool createLockParameter, int versionHint, int snapVersionHint)
+	void Processor::createSyncRateParameters(juce::AudioProcessorValueTreeState::ParameterLayout& layout, juce::String baseID, const juce::String& baseName, float defaultHzRate, float defaultFrac, int defaultDivision, int minBeats, int maxBeats, bool ranged, bool createLockParameter, juce::Array<int> includedDivisions, int versionHint, int snapVersionHint)
 	{
 		baseID = baseID.upToLastOccurrenceOf("ID", false, false);
 
 		snapVersionHint = snapVersionHint == -1 ? versionHint : snapVersionHint;
 
+		bool hasHz = includedDivisions.contains(0) || includedDivisions.isEmpty();
+
+		auto denominator = BDSP_RATE_MIN < 0 ? quickPow2(-BDSP_RATE_MIN) : 1;
+
+		auto att = parameterAttributes.getFloatAttribute("Rate Fraction");
+		att.range.start = (float)minBeats / denominator;
+		att.range.end = (float)maxBeats / denominator;
+
 		if (ranged)
 		{
-			layout.add(std::make_unique<bdsp::ControlParameter>(&parameterAttributes, layout, linkableControlIDs, linkableControlNames, baseID + "HzRateID", baseName + " Hz Rate", defaultHzRate, "Hz Rate", versionHint));
-			layout.add(std::make_unique<bdsp::ControlParameter>(&parameterAttributes, layout, linkableControlIDs, linkableControlNames, baseID + "FractionID", baseName + " Tempo Rate Fraction", defaultFrac, "Rate Fraction", versionHint));
+			if (hasHz)
+			{
+				layout.add(std::make_unique<bdsp::ControlParameter>(&parameterAttributes, layout, linkableControlIDs, linkableControlNames, baseID + "HzRateID", baseName + " Hz Rate", defaultHzRate, "Hz Rate", versionHint));
+			}
+			layout.add(std::make_unique<bdsp::ControlParameter>(&parameterAttributes, layout, linkableControlIDs, linkableControlNames, baseID + "FractionID", baseName + " Tempo Rate Fraction", defaultFrac, att, versionHint));
 			if (createLockParameter)
 			{
 				layout.add(std::make_unique<juce::AudioParameterBool>(juce::ParameterID(baseID + "FractionSnapID", snapVersionHint), baseID + " Fraction Snapping", true));
@@ -735,14 +799,31 @@ namespace bdsp
 		}
 		else
 		{
-			const auto& hzAttributes = parameterAttributes.getFloatAttribute("Hz Rate");
-			const auto& syncAttributes = parameterAttributes.getFloatAttribute("Rate Fraction");
-			layout.add(std::make_unique < juce::AudioParameterFloat>(juce::ParameterID(baseID + "HzRateID", versionHint), baseID + " Hz Rate", hzAttributes.range, defaultHzRate, juce::AudioParameterFloatAttributes().withStringFromValueFunction(hzAttributes.valueToTextLambda).withValueFromStringFunction(hzAttributes.textToValueLambda)));
-			layout.add(std::make_unique < juce::AudioParameterFloat>(juce::ParameterID(baseID + "FractionID", versionHint), baseID + " Tempo Rate Fraction", syncAttributes.range, defaultFrac, juce::AudioParameterFloatAttributes().withStringFromValueFunction(syncAttributes.valueToTextLambda).withValueFromStringFunction(syncAttributes.textToValueLambda)));
+			if (hasHz)
+			{
+				const auto& hzAttributes = parameterAttributes.getFloatAttribute("Hz Rate");
+				layout.add(std::make_unique < juce::AudioParameterFloat>(juce::ParameterID(baseID + "HzRateID", versionHint), baseID + " Hz Rate", hzAttributes.range, defaultHzRate, juce::AudioParameterFloatAttributes().withStringFromValueFunction(hzAttributes.valueToTextLambda).withValueFromStringFunction(hzAttributes.textToValueLambda)));
+			}
+
+
+			layout.add(std::make_unique < juce::AudioParameterFloat>(juce::ParameterID(baseID + "FractionID", versionHint), baseID + " Tempo Rate Fraction", att.range, defaultFrac, att.toJuceAttributes()));
 		}
 
 
 		juce::StringArray divisionNames({ "Hz", "Straight", "Triplet", "Quintuplet", "Septuplet" });
+
+		if (!includedDivisions.isEmpty())
+		{
+
+			for (int i = divisionNames.size(); i >= 0; --i)
+			{
+				if (!includedDivisions.contains(i))
+				{
+					divisionNames.remove(i);
+				}
+			}
+		}
+
 		layout.add(std::make_unique<juce::AudioParameterChoice>(juce::ParameterID(baseID + "DivisionID", versionHint), baseName + " Division", divisionNames, defaultDivision));
 	}
 
@@ -764,6 +845,42 @@ namespace bdsp
 		{
 			envelopeSourceNames.add(src->getName());
 		}
+
+		juce::StringArray seqShapeNames;
+
+		for (int i = 0; i < SequencerShapes::NUM; ++i)
+		{
+			switch (SequencerShapes(i))
+			{
+			case SequencerShapes::Empty:
+				seqShapeNames.add("Empty");
+				break;
+			case SequencerShapes::SawDown:
+				seqShapeNames.add("Saw Down");
+				break;
+			case SequencerShapes::SawUp:
+				seqShapeNames.add("Saw Up");
+				break;
+			case SequencerShapes::SinDown:
+				seqShapeNames.add("Sin Down");
+				break;
+			case SequencerShapes::SinUp:
+				seqShapeNames.add("Sin Up");
+				break;
+			case SequencerShapes::SquareFull:
+				seqShapeNames.add("Square Full");
+				break;
+			case SequencerShapes::SquareHalf:
+				seqShapeNames.add("Square Half");
+				break;
+			case SequencerShapes::Triangle:
+				seqShapeNames.add("Triangle");
+				break;
+			}
+		}
+
+		auto denominator = BDSP_RATE_MIN < 0 ? quickPow2(-BDSP_RATE_MIN) : 1;
+
 		for (int i = 0; i < linkableControlIDs.size(); ++i)
 		{
 			auto baseID = linkableControlIDs[i].upToLastOccurrenceOf("ID", false, true);
@@ -773,7 +890,7 @@ namespace bdsp
 			}
 			else if (linkableControlIDs[i].startsWith("LFO"))
 			{
-				createSyncRateParameters(layout, baseID + "Rate", linkableControlNames[i] + " Rate", 32, true, true, versionHints[i]);
+				createSyncRateParameters(layout, baseID + "Rate", linkableControlNames[i] + " Rate", 1, 16 * denominator, true, true, juce::Array<int>(), versionHints[i]);
 				layout.add(std::make_unique <ControlParameter>(&parameterAttributes, layout, linkableControlIDs, linkableControlNames, baseID + "ShapeID", linkableControlNames[i] + " Shape", 0, shapeAttribute, versionHints[i]));
 				layout.add(std::make_unique <ControlParameter>(&parameterAttributes, layout, linkableControlIDs, linkableControlNames, baseID + "SkewID", linkableControlNames[i] + " Skew", 0, "Center Zero Percent", versionHints[i]));
 				layout.add(std::make_unique <ControlParameter>(&parameterAttributes, layout, linkableControlIDs, linkableControlNames, baseID + "AmplitudeID", linkableControlNames[i] + " Amplitude", 1, percentAttribute, versionHints[i]));
@@ -787,6 +904,17 @@ namespace bdsp
 				layout.add(std::make_unique <ControlParameter>(&parameterAttributes, layout, linkableControlIDs, linkableControlNames, baseID + "BoostID", linkableControlNames[i] + " Boost", 1, "Envelope Follower Boost", versionHints[i]));
 
 				layout.add(std::make_unique<juce::AudioParameterChoice>(juce::ParameterID(baseID + "SourceID", versionHints[i]), baseID + " Source", envelopeSourceNames, 0));
+			}
+			else if (linkableControlIDs[i].startsWith("Sequencer"))
+			{
+				createSyncRateParameters(layout, baseID + "Rate", linkableControlNames[i] + " Rate", 1, 1 / 16.0f, 0, 1, denominator, true, false, juce::Array<int>(1, 2), versionHints[i]);
+
+				for (int j = 0; j < BDSP_SEQUENCER_STEPS; ++j)
+				{
+					layout.add(std::make_unique<juce::AudioParameterChoice>(juce::ParameterID(baseID + "Shape" + juce::String(j + 1) + "ID", versionHints[i]), baseID + " Shape " + juce::String(j + 1), seqShapeNames, 0));
+					layout.add(std::make_unique<Parameter>(juce::ParameterID(baseID + "Amt" + juce::String(j + 1) + "ID", versionHints[i]), baseID + " Amt " + juce::String(j + 1), juce::NormalisableRange<float>(), 1, FloatParameterAttribute()));
+				}
+				layout.add(std::make_unique<juce::AudioParameterInt>(juce::ParameterID(baseID + "NumStepsID", versionHints[i]), baseID + " Num Steps", 1, BDSP_SEQUENCER_STEPS, BDSP_SEQUENCER_STEPS));
 			}
 		}
 
@@ -815,6 +943,11 @@ namespace bdsp
 			linkableControlIDs.add("EnvelopeFollower" + juce::String(i + 1) + "ID");
 			linkableControlNames.add("Envelope Follower " + juce::String(i + 1));
 		}
+		for (int i = 0; i < BDSP_NUMBER_OF_SEQUENCERS; ++i)
+		{
+			linkableControlIDs.add("Sequencer" + juce::String(i + 1) + "ID");
+			linkableControlNames.add("Sequencer " + juce::String(i + 1));
+		}
 	}
 
 
@@ -836,7 +969,7 @@ namespace bdsp
 #else
 		return false;
 #endif
-}
+	}
 
 	bool Processor::producesMidi() const
 	{
@@ -888,6 +1021,8 @@ namespace bdsp
 	void Processor::changeProgramName(int index, const juce::String& newName)
 	{
 	}
+
+
 
 
 

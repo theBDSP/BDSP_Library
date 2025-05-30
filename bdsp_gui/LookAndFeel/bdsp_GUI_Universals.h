@@ -147,6 +147,7 @@ namespace bdsp
 		float roundedRectangleCurve = 0;
 		float dividerSize = 0;
 		float listBorderSize = 0;
+		float tabBorderSize = 0;
 		float rectThicc = 0;
 		float dividerBorder = 0;
 		float lowOpacity = 0.2f;

@@ -11,6 +11,7 @@ namespace bdsp
 		Macros = std::make_unique<MacroSection>(universalsToUse, BDSP_COLOR_DARK, macroNameValueLocation);
 		LFOs = std::make_unique<LFOSection>(universalsToUse, BPMComp, BDSP_COLOR_DARK, macroNameValueLocation);
 		envelopeFollowers = std::make_unique<EnvelopeFollowerSection<float>>(universalsToUse, list, BDSP_COLOR_DARK, macroNameValueLocation);
+		Sequencers = std::make_unique<SequencerSection>(universalsToUse,BPMComp,BDSP_COLOR_DARK,macroNameValueLocation);
 
 		for (int i = 0; i < BDSP_NUMBER_OF_MACROS; ++i)
 		{
@@ -25,6 +26,11 @@ namespace bdsp
 		for (int i = 0; i < BDSP_NUMBER_OF_ENVELOPE_FOLLOWERS; ++i)
 		{
 			controls.add(envelopeFollowers->getFollower(i));
+		}
+
+		for (int i = 0; i < BDSP_NUMBER_OF_SEQUENCERS; ++i)
+		{
+			controls.add(Sequencers->getSequencer(i));
 		}
 
 	
@@ -69,6 +75,11 @@ namespace bdsp
 	EnvelopeFollowerSection<float>* LinkableControlComponents::getEnvelopeFolowers()
 	{
 		return envelopeFollowers.get();
+	}
+
+	SequencerSection* LinkableControlComponents::getSequencers()
+	{
+		return Sequencers.get();
 	}
 
 } // namespace bdsp

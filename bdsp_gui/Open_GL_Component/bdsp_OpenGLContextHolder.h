@@ -5,6 +5,8 @@
 namespace bdsp
 {
 
+	class OpenGLComponent;
+
 	class GlContextHolder
 		: private juce::ComponentListener,
 		private juce::OpenGLRenderer
@@ -22,17 +24,18 @@ namespace bdsp
 
 		//==============================================================================
 		// Clients MUST call unregisterOpenGlRenderer manually in their destructors!!
-		void registerOpenGlRenderer(juce::Component* child);
+		void registerOpenGlRenderer(OpenGLComponent* child);
 
-		void unregisterOpenGlRenderer(juce::Component* child);
+		void unregisterOpenGlRenderer(OpenGLComponent* child);
 
 		void setBackgroundColour(const juce::Colour c);
 
-		bool getComponentRegistrationStatus(juce::Component* c);
+		bool getComponentRegistrationStatus(OpenGLComponent* c);
 		juce::OpenGLContext context;
 
 
 	private:
+
 		//==============================================================================
 		void checkComponents(bool isClosing, bool isDrawing);
 
@@ -58,10 +61,10 @@ namespace bdsp
 				running
 			};
 
-			Client(juce::Component* comp, State nextStateToUse = State::suspended);
+			Client(OpenGLComponent* comp, State nextStateToUse = State::suspended);
 
 
-			juce::Component* c = nullptr;
+			OpenGLComponent* c = nullptr;
 			State currentState = State::suspended, nextState = State::suspended;
 		};
 
@@ -69,11 +72,18 @@ namespace bdsp
 		juce::OwnedArray<Client, juce::CriticalSection> clients;
 
 		//==============================================================================
-		int findClientIndexForComponent(juce::Component* comp) const;
+		int findClientIndexForComponent(OpenGLComponent* comp) const;
 
-		Client* findClientForComponent(juce::Component* comp) const;
+		Client* findClientForComponent(OpenGLComponent* comp) const;
 
 		//==============================================================================
 		juce::Colour backgroundColour{ juce::Colours::black };
+
+		struct ClientSorter
+		{
+			int compareElements(Client* first, Client* second);
+		};
+
+		ClientSorter sorter;
 	};
 } // namespace bdsp

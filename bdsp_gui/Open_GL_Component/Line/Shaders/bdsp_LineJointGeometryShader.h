@@ -32,10 +32,10 @@ namespace bdsp
 
 					alphaMult = 1;
 					float thickMult = 1;
-					if(screenThickness<1)
+					if(screenThickness<2)
 					{
-						thickMult = 1/screenThickness;
-						alphaMult = screenThickness;
+						thickMult = 2/screenThickness;
+						alphaMult = screenThickness/2;
 					}
 
 

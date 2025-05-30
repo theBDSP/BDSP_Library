@@ -32,7 +32,7 @@ namespace bdsp
 	void CompressorVisualizerInternal<SampleType>::newFrameInit()
 	{
 		envVal = compressor->getEnvValue();
-		pos->set((float)envVal);
+		setFillPos(envVal);
 	}
 
 	template<typename SampleType>

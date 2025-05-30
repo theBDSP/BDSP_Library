@@ -30,16 +30,14 @@ namespace bdsp
 
 		msTimeSlider->addListener(this); // BPMComp Listener which inherets from slider listener
 
-		auto altDivisionNames = juce::StringArray(divAlt);
-		if (isRate)
-		{
-			altDivisionNames.set(0, "Hz");
-		}
-
 		auto divisionParameterChanged = [=](int i)
 		{
-			msTime->setVisible(i == 0);
-			fraction->setVisible(i != 0);
+			if (unsyncedExists)
+			{
+				msTime->setVisible(i == 0);
+				fraction->setVisible(i != 0);
+			}
+
 
 			division->setIndex(i);
 
@@ -84,15 +82,34 @@ namespace bdsp
 
 		fractionSlider->attach(stateToUse, parameterIDBase + "FractionID");
 
-
 		if (isRate)
 		{
-			msTimeSlider->attach(stateToUse, parameterIDBase + "HzRateID");
+			unsyncedExists = division->getParameter()->choices[0].compareIgnoreCase("Hz") == 0;
+			if (unsyncedExists)
+			{
+				msTimeSlider->attach(stateToUse, parameterIDBase + "HzRateID");
+			}
+			else
+			{
+				msTime->setVisible(false);
+				fraction->setVisible(true);
+			}
 		}
+
 		else
 		{
-			msTimeSlider->attach(stateToUse, parameterIDBase + "MsTimeID");
+			unsyncedExists = division->getParameter()->choices[0].compareIgnoreCase("Ms") == 0;
+			if (unsyncedExists)
+			{
+				msTimeSlider->attach(stateToUse, parameterIDBase + "MsTimeID");
+			}
+			else
+			{
+				msTime->setVisible(false);
+				fraction->setVisible(true);
+			}
 		}
+
 
 
 		attached = true;
@@ -244,7 +261,7 @@ namespace bdsp
 
 		frac.setSliderColors(knob, value, valueTrack, valueTrackInside, text, textHighlight, textEdit, caret, highlight);
 		ms.setSliderColors(knob, value, valueTrack, valueTrackInside, text, textHighlight, textEdit, caret, highlight);
-		
+
 		divisionCombo->setColorSchemeClassic(BDSP_COLOR_KNOB, NamedColorsIdentifier(), caret, highlight);
 
 

@@ -72,7 +72,7 @@ namespace bdsp
 
 		void resized() override
 		{
-			setBounds(confineToAspectRatio(getBounds(), 1));
+            OpenGlComponentWrapper<LissajousMeterInternal<SampleType>>::setBounds(confineToAspectRatio(OpenGlComponentWrapper<LissajousMeterInternal<SampleType>>::getBounds(), 1));
 
 			OpenGlComponentWrapper<LissajousMeterInternal<SampleType>>::resized();
 		}

@@ -70,6 +70,8 @@ namespace bdsp
 
 		bool isRate = false;
 
+		bool unsyncedExists = true;
+
 	private:
 
 		juce::AudioParameterChoice* divisionParam;

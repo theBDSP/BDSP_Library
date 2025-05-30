@@ -1,7 +1,4 @@
 #pragma once
-
-//#include "bdsp_gui/Linkable_Control/Components/Envelope_Follower_Component/bdsp_envelopeFollowerComponent.h"
-
 namespace bdsp
 {
 	class LinkableControlComponents
@@ -15,10 +12,13 @@ namespace bdsp
 		LFOSection* getLFOs();
 		EnvelopeFollowerSection<float>* getEnvelopeFolowers();
 
+		SequencerSection* getSequencers();
+
 		juce::Array<LinkableControlComponent*> controls;
 		std::unique_ptr<MacroSection> Macros;
 		std::unique_ptr<LFOSection> LFOs;
 		std::unique_ptr<EnvelopeFollowerSection<float>> envelopeFollowers;
+		std::unique_ptr<SequencerSection> Sequencers;
 
 
 	private:

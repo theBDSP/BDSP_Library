@@ -48,6 +48,10 @@ namespace bdsp
 			//numbers.setVisible(true);
 		};
 
+		onAttach = [=]()
+		{
+			listen.sliderValueChanged(this);
+		};
 		addHoverPartner(&numbers);
 		setTextBoxIsEditable(true); // gets set to false somewhere else unsure where
 	}

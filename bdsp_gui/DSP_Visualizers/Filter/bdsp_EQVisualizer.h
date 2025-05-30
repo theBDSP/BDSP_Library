@@ -17,6 +17,8 @@ namespace bdsp
 
 		void setColor(const NamedColorsIdentifier& newLineColor, const NamedColorsIdentifier& newZeroLineColor = NamedColorsIdentifier(), const NamedColorsIdentifier& newTopCurveColor = NamedColorsIdentifier(), const NamedColorsIdentifier& newBotCurveColor = NamedColorsIdentifier());
 
+		void setHandleSize(float handleRadius, float selecetedHandleRadius, float selectedHandleThickness);
+
 		void resized() override;
 
 
@@ -77,8 +79,6 @@ namespace bdsp
 
 			void generateVertexBuffer() override;
 
-
-
 			void setColor(const NamedColorsIdentifier& norm, const NamedColorsIdentifier& down);
 
 
@@ -137,11 +137,11 @@ namespace bdsp
 		void handleSelected(EQVisualizerHandle* handleSelected);
 
 		int selectedHandle = 0;
+		float radius, selectedRadius, selectedThickness;
 
 		juce::Array<EQVisualizerHandle*> handlePointers;
 		OpenGLRing* ringPointer;
 		OpenGLColor ringColor;
-		float ringRadius;
 
 		juce::ComponentBoundsConstrainer constrainer;
 

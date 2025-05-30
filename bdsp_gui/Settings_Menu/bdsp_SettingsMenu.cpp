@@ -17,8 +17,8 @@ namespace bdsp
 
 	SettingsMenu::SettingsMenu(GUI_Universals* universalsToUse, Settings* structToLink, const juce::File& userManual)
 		:ComponentCore(this, universalsToUse),
-        vp(universalsToUse),
-        manual(universalsToUse)
+		vp(universalsToUse),
+		manual(universalsToUse)
 	{
 		;
 		settingsStruct = structToLink;
@@ -146,8 +146,8 @@ namespace bdsp
 	void SettingsMenu::SettingsMenu::resized()
 	{
 		auto h = getWidth() / 15.0;
-		border = h / 5;
-		vp.setBounds(border, 0, getWidth() - 2 * border, getHeight() - 1.5 * h);
+		border = universals->rectThicc;
+		vp.setBounds(border, 0, getWidth() - 2 * border, getHeight() - 1.75 * h);
 		vp.setScrollDistance(h);
 		int j = 0;
 		juce::String cat;
@@ -176,8 +176,8 @@ namespace bdsp
 
 		settingsuniversals.setBounds(0, 0, vp.getWidth(), juce::jmax(settingsBot, bindingsBot));
 
-
-		manual.setBounds(juce::Rectangle<int>(0, vp.getBottom(), getWidth() / 2.0, getHeight() - vp.getBottom()).reduced(border));
+		auto dividerAdjust = universals->dividerSize + universals->dividerBorder;
+		manual.setBounds(juce::Rectangle<int>().leftTopRightBottom(0, vp.getBottom()+dividerAdjust, getWidth() / 2.0, getHeight()-dividerAdjust).reduced(border));
 		manual.setSize(manual.getTextWidth() * 1.25, manual.getHeight());
 	}
 
@@ -187,7 +187,7 @@ namespace bdsp
 
 
 		//g.drawHorizontalLine(vp.getBottom(), borderColor, getWidth() - borderColor);
-		auto y = vp.getBottom() - universals->dividerSize;
+		auto y = (vp.getBottom() + manual.getY()) / 2;
 		bdsp::drawDivider(g, juce::Line<float>(border, y, getWidth() - border, y), getColor(BDSP_COLOR_LIGHT), universals->dividerSize);
 
 

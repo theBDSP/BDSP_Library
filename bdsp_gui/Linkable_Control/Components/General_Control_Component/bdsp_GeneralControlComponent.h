@@ -21,7 +21,7 @@ namespace bdsp
 
 		CenteredEditableLabel* getTitleComponent();
 	protected:
-		;
+		
 
 		std::unique_ptr<CenteredEditableLabel> title;
 

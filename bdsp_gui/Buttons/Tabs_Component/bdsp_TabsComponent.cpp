@@ -3,12 +3,13 @@ namespace bdsp
 {
 
 	TabsComponent::TabsComponent(GUI_Universals* universalsToUse, const juce::StringArray& tabNames)
-		:Component(universalsToUse)
+		:Component(universalsToUse),
+		GUI_Universals::Listener(universalsToUse)
 	{
 		;
 		setNames(tabNames);
 
-		setColors(BDSP_COLOR_DARK, BDSP_COLOR_COLOR);
+		setColors(BDSP_COLOR_DARK, BDSP_COLOR_COLOR, NamedColorsIdentifier());
 
 
 	}
@@ -130,11 +131,11 @@ namespace bdsp
 
 		auto buttonFont = universals->Fonts[buttons.getFirst()->getFontIndex()];
 		auto maxText = buttonFont.getWidestString(tabNames);
-		auto stringWRatio = buttonFont.getFont().withHeight(1).getStringWidthFloat(maxText);
 
 		auto w = isVertical ? tabBar.getWidth() : (tabBar.getWidth() - (hasCutout ? cutoutRect.getWidth() : 0)) * frac;
 		auto h = isVertical ? (tabBar.getHeight() - (hasCutout ? cutoutRect.getHeight() : 0)) * frac : tabBar.getHeight();
-		auto ratio = 0.75 * w / (stringWRatio * h);
+		auto f = resizeFontToFit(buttonFont.getFont(), w, 0.75 * h, maxText);
+		auto ratio = f.getHeight() / h;
 
 		for (int i = 0; i < buttons.size(); ++i)
 		{
@@ -147,11 +148,11 @@ namespace bdsp
 
 			if (isVertical)
 			{
-                buttons[i]->setBounds(juce::Rectangle<int>(0, i * h, w, h).translated(tabBar.getX(), tabBar.getY() + (hasCutout ? (2 * i / buttons.size() > 0 ? cutoutRect.getHeight() : 0) : 0)));
+				buttons[i]->setBounds(juce::Rectangle<int>(0, i * h, w, h).translated(tabBar.getX(), tabBar.getY() + (hasCutout ? (2 * i / buttons.size() > 0 ? cutoutRect.getHeight() : 0) : 0)));
 			}
 			else
 			{
-                buttons[i]->setBounds(juce::Rectangle<int>(i * w, 0, w, h).translated(tabBar.getX() + (hasCutout ? (2 * i / buttons.size() > 0 ? cutoutRect.getWidth() : 0) : 0), tabBar.getY()));
+				buttons[i]->setBounds(juce::Rectangle<int>(i * w, 0, w, h).translated(tabBar.getX() + (hasCutout ? (2 * i / buttons.size() > 0 ? cutoutRect.getWidth() : 0) : 0), tabBar.getY()));
 			}
 
 
@@ -162,58 +163,89 @@ namespace bdsp
 
 	void TabsComponent::paint(juce::Graphics& g)
 	{
-		//int idx = getSelectedTab();
 
-		//g.setColour(getColor(bkgd));
-		//for (int i = 0; i < buttons.size() - 1; ++i)
-		//{
-		//	g.drawVerticalLine(tabBar.getRelativePoint(1.0 / buttons.size() * (i + 1), 0.0).x, tabBar.getRelativePoint(0.0, 0.15).y, tabBar.getRelativePoint(0.0, 0.85).y);
-		//}
+		float outlineW = universals->tabBorderSize;
 
-		//g.setColour(buttons[idx]->getColor(buttons[idx]->textDown));
-		//g.drawHorizontalLine(buttons[idx]->getBottom(), buttons[idx]->getBounds().getRelativePoint(0.2, 0.0).x, buttons[idx]->getBounds().getRelativePoint(0.8, 0.0).x);
-
-
-		g.setColour(getColor(bkgd));
+		juce::Path p;
 		if (isVertical)
 		{
-			g.fillPath(getRoundedRectangleFromCurveBools(getLocalBounds().toFloat().withLeft(tabBar.getRight()), CornerCurves(corners & CornerCurves(CornerCurves::topRight | CornerCurves::bottomRight)), universals->roundedRectangleCurve));
+			p.addPath(getRoundedRectangleFromCurveBools(juce::Rectangle<float>().leftTopRightBottom(buttons.getFirst()->getRight(), buttons.getFirst()->getY() + outlineW, getWidth() - outlineW, buttons.getLast()->getBottom() - outlineW), corners, universals->roundedRectangleCurve - outlineW));
 		}
 		else
 		{
-			g.fillPath(getRoundedRectangleFromCurveBools(getLocalBounds().toFloat().withTop(tabBar.getBottom()), CornerCurves(corners & CornerCurves(CornerCurves::bottomLeft | CornerCurves::bottomRight)), universals->roundedRectangleCurve));
+			p.addPath(getRoundedRectangleFromCurveBools(juce::Rectangle<float>().leftTopRightBottom(buttons.getFirst()->getX() + outlineW, buttons.getFirst()->getBottom(), buttons.getLast()->getRight() - outlineW, getHeight() - outlineW), corners, universals->roundedRectangleCurve - outlineW));
 		}
-
 
 		for (int i = 0; i < buttons.size(); ++i)
 		{
 
-			CornerCurves buttonCurves;
-			if (i == 0)
+			CornerCurves buttonCurves = CornerCurves::all;
+			//if (i == 0)
+			//{
+			//	buttonCurves = CornerCurves(CornerCurves::topLeft & corners);
+			//}
+			//else if (i == buttons.size() - 1)
+			//{
+			//	if (isVertical)
+			//	{
+			//		buttonCurves = CornerCurves(CornerCurves::bottomLeft & corners);
+			//	}
+			//	else
+			//	{
+			//		buttonCurves = CornerCurves(CornerCurves::topRight & corners);
+			//	}
+			//}
+			//else
+			//{
+			//	buttonCurves = CornerCurves(0);
+			//}
+
+			if (buttons[i]->getToggleState())
 			{
-				buttonCurves = CornerCurves(CornerCurves::topLeft & corners);
-			}
-			else if (i == buttons.size() - 1)
-			{
+				auto buttonBounds = buttons[i]->getBounds().toFloat();
+
+
+				if (isVertical || i == 0)
+				{
+					buttonBounds = buttonBounds.withTrimmedLeft(outlineW);
+				}
+
+				if (!isVertical || i == 0)
+				{
+					buttonBounds = buttonBounds.withTrimmedTop(outlineW);
+				}
+
+				if (isVertical && i == buttons.size() - 1)
+				{
+					buttonBounds = buttonBounds.withTrimmedBottom(outlineW);
+				}
+
+				if (!isVertical && i == buttons.size() - 1)
+				{
+					buttonBounds = buttonBounds.withTrimmedRight(outlineW);
+				}
+
 				if (isVertical)
 				{
-					buttonCurves = CornerCurves(CornerCurves::bottomLeft & corners);
+					buttonBounds = buttonBounds.withTrimmedRight(-universals->roundedRectangleCurve);
 				}
 				else
 				{
-					buttonCurves = CornerCurves(CornerCurves::topRight & corners);
+					buttonBounds = buttonBounds.withTrimmedBottom(-universals->roundedRectangleCurve);
 				}
-			}
-			else
-			{
-				buttonCurves = CornerCurves(0);
+
+				auto buttonPath = getRoundedRectangleFromCurveBools(buttonBounds, buttonCurves, universals->roundedRectangleCurve - outlineW);
+				p = ClipperLib::performBoolean(p, buttonPath, ClipperLib::ctUnion);
 			}
 
-			g.setColour(getColor(buttons[i]->getToggleState() ? bkgd : bkgd.withMultipliedAlpha(universals->disabledAlpha)));
 
-			g.fillPath(getRoundedRectangleFromCurveBools(buttons[i]->getBounds().toFloat(), buttonCurves, universals->roundedRectangleCurve));
 		}
 
+		g.setColour(getColor(outline));
+		g.fillPath(getRoundedRectangleFromCurveBools(getLocalBounds().toFloat(), corners, universals->roundedRectangleCurve));
+
+		g.setColour(getColor(bkgd));
+		g.fillPath(p);
 	}
 
 
@@ -221,14 +253,15 @@ namespace bdsp
 
 
 
-	void TabsComponent::setColors(const NamedColorsIdentifier& bkgdColor, const NamedColorsIdentifier& buttonColor)
+	void TabsComponent::setColors(const NamedColorsIdentifier& bkgdColor, const NamedColorsIdentifier& buttonColor, const NamedColorsIdentifier& outlineColor)
 	{
-		setColors(bkgdColor, buttonColor.withMultipliedAlpha(universals->disabledAlpha), buttonColor);
+		setColors(bkgdColor, buttonColor.withMultipliedAlpha(universals->disabledAlpha), buttonColor, outlineColor);
 	}
 
-	void TabsComponent::setColors(const NamedColorsIdentifier& bkgdColor, const NamedColorsIdentifier& textUp, const NamedColorsIdentifier& textDown)
+	void TabsComponent::setColors(const NamedColorsIdentifier& bkgdColor, const NamedColorsIdentifier& textUp, const NamedColorsIdentifier& textDown, const NamedColorsIdentifier& outlineColor)
 	{
 		bkgd = bkgdColor;
+		outline = outlineColor;
 
 
 		for (auto b : buttons)
@@ -240,16 +273,18 @@ namespace bdsp
 			b->backgroundDown = NamedColorsIdentifier();
 			b->backgroundUp = NamedColorsIdentifier();
 		}
+		GUI_UniversalsChanged();
 	}
 
 
-	void TabsComponent::setColors(const NamedColorsIdentifier& bkgdColor, const juce::Array<NamedColorsIdentifier>& buttonColors)
+	void TabsComponent::setColors(const NamedColorsIdentifier& bkgdColor, const juce::Array<NamedColorsIdentifier>& buttonColors, const NamedColorsIdentifier& outlineColor)
 	{
 
 		jassert(buttonColors.size() == buttons.size());
 
 
 		bkgd = bkgdColor;
+		outline = outlineColor;
 
 		for (int i = 0; i < buttons.size(); ++i)
 		{
@@ -259,6 +294,8 @@ namespace bdsp
 			buttons[i]->backgroundDown = NamedColorsIdentifier();
 			buttons[i]->backgroundUp = NamedColorsIdentifier();
 		}
+
+		GUI_UniversalsChanged();
 	}
 
 	TextButton* TabsComponent::getButton(int idx)
@@ -356,8 +393,7 @@ namespace bdsp
 		{
 			if (buttons[i]->contains(buttons[i]->getLocalPoint(this, dragSourceDetails.localPosition)))
 			{
-				buttons[i]->setToggleState(true, juce::sendNotification);
-				buttons[i]->onClick();
+				dragTimer.start(buttons[i]);
 				break;
 			}
 		}
@@ -366,6 +402,12 @@ namespace bdsp
 	void TabsComponent::itemDropped(const SourceDetails& dragSourceDetails)
 	{
 	}
+
+	void TabsComponent::GUI_UniversalsChanged()
+	{
+		repaint();
+	}
+
 
 
 

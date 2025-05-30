@@ -2,13 +2,13 @@
 namespace bdsp
 {
 	SaveMenu::SaveMenu(PresetManager* parent)
-        :DesktopComponent(parent->universals, true),
-        GUI_Universals::Listener(parent->universals),
-        fav(parent->universals, true),
-        cancel(parent->universals),
-        save(parent->universals),
-        nameBar(parent->universals),
-        vp(parent->universals)
+		:DesktopComponent(parent->universals, true),
+		GUI_Universals::Listener(parent->universals),
+		fav(parent->universals, true),
+		cancel(parent->universals),
+		save(parent->universals),
+		nameBar(parent->universals),
+		vp(parent->universals)
 	{
 
 		p = parent;
@@ -71,7 +71,7 @@ namespace bdsp
 
 		nameBar.setInputRestrictions(BDSP_MAX_PRESET_NAME_LENGTH, BDSP_PRESET_NAME_ALLOWED_CHARACTERS);
 		nameBar.setJustification(juce::Justification::centredLeft);
-		nameBar.background = p->pc.saveMenuTagBKGD;
+		nameBar.setColors(p->pc.saveMenuTagBKGD, p->pc.saveMenuTagText, p->pc.saveMenuTagText, p->pc.saveMenuTagText.withMultipliedAlpha(universals->lowOpacity));
 		onShow = [=]()
 		{
 			parent->alert->resize();

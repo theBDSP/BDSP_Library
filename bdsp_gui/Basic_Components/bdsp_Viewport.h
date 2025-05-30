@@ -21,7 +21,7 @@ namespace bdsp
 			GUI_UniversalsChanged();
 		}
 
-		void Viewport::GUI_UniversalsChanged()
+		void GUI_UniversalsChanged() override
 		{
 			getHorizontalScrollBar().setColour(juce::ScrollBar::thumbColourId, getColor(scrollColor));
 			getVerticalScrollBar().setColour(juce::ScrollBar::thumbColourId, getColor(scrollColor));

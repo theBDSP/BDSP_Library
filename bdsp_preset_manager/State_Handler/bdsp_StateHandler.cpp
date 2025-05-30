@@ -2,12 +2,14 @@
 
 namespace bdsp
 {
-	StateHandler::StateHandler(juce::AudioProcessor* processorToUse, juce::AudioProcessorValueTreeState* APVTS, juce::ValueTree* settings, PropertiesFolder* folder, juce::Array<ControlParameter*>& controlParams, juce::Array<FactoryPreset>& presets)
-		:controlParameters(controlParams)
+	StateHandler::StateHandler(juce::AudioProcessor* processorToUse, juce::AudioProcessorValueTreeState* APVTS, juce::AudioProcessorValueTreeState* hiddenAPVTS, juce::ValueTree* settings, PropertiesFolder* folder, juce::Array<ControlParameter*>& controlParams, juce::Array<OrderedListParameter*>& orderParams, juce::Array<FactoryPreset>& presets)
+		:controlParameters(controlParams),
+		orderParameters(orderParams)
 	{
 		pluginFolder = folder;
 		processor = processorToUse;
 		parameters = APVTS;
+		hiddenParameters = hiddenAPVTS;
 		settingsTree = settings;
 
 
@@ -22,8 +24,11 @@ namespace bdsp
 
 	}
 
+
+
 	StateHandler::~StateHandler()
 	{
+		hiddenParameters->state.removeListener(this);
 		parameters->state.removeListener(this);
 		settingsTree->removeListener(this);
 
@@ -122,12 +127,20 @@ namespace bdsp
 		{
 			macroNamesNode->setAttribute("Env" + juce::String(i + 1) + "NameID", settingsTree->getProperty("Env" + juce::String(i + 1) + "NameID", "Env " + juce::String(i + 1)).toString());
 		}
+		for (int i = 0; i < BDSP_NUMBER_OF_SEQUENCERS; ++i)
+		{
+			macroNamesNode->setAttribute("Sequencer" + juce::String(i + 1) + "NameID", settingsTree->getProperty("Sequencer" + juce::String(i + 1) + "NameID", "Sequencer " + juce::String(i + 1)).toString());
+		}
 
 
 		juce::ValueTree state = parameters->state;
 		state.removeAllProperties(nullptr);
 
+		juce::ValueTree hiddenState = hiddenParameters->state;
+		hiddenState.removeAllProperties(nullptr);
+
 		xml->addChildElement(state.createXml().release());
+		xml->addChildElement(hiddenState.createXml().release());
 
 		if (tagsUpdated)
 		{
@@ -165,7 +178,14 @@ namespace bdsp
 
 			auto data = PresetData(state);
 			data.mergePresets(*initData.get());
-			parameters->state.copyPropertiesAndChildrenFrom(data.getTree(true), isUndoable ? parameters->undoManager : nullptr);
+			auto tree = data.getTree();
+			parameters->state.copyPropertiesAndChildrenFrom(tree.getChildWithName("APVTS"), isUndoable ? parameters->undoManager : nullptr);
+			hiddenParameters->state.copyPropertiesAndChildrenFrom(tree.getChildWithName("APVTSHidden"), isUndoable ? parameters->undoManager : nullptr);
+
+			for (auto o : orderParameters)
+			{
+				o->presetLoaded();
+			}
 		}
 
 
@@ -196,6 +216,7 @@ namespace bdsp
 			loadPreset(tree, isUndoable);
 
 			parameters->state.addListener(this);
+			hiddenParameters->state.addListener(this);
 
 
 			settingsTree->setProperty("PresetName", XMLDataToString(xmlState->getChildByName(InfoXMLTag)->getStringAttribute("PresetName")), parameters->undoManager);
@@ -232,6 +253,16 @@ namespace bdsp
 				}
 				settingsTree->setProperty("Env" + juce::String(i + 1) + "NameID", name, parameters->undoManager);
 			}
+			for (int i = 0; i < BDSP_NUMBER_OF_SEQUENCERS; ++i)
+			{
+				auto name = macroNamesNode->getAttributeValue(BDSP_NUMBER_OF_MACROS + BDSP_NUMBER_OF_LFOS + BDSP_NUMBER_OF_ENVELOPE_FOLLOWERS + i);
+				if (name.isEmpty())
+				{
+					name = "Sequencer " + juce::String(i + 1);
+				}
+				settingsTree->setProperty("Sequencer" + juce::String(i + 1) + "NameID", name, parameters->undoManager);
+			}
+
 
 		}
 		return out;
@@ -507,6 +538,10 @@ namespace bdsp
 			{
 				p->setValue(p->getDefaultValue());
 			}
+			for (auto p : dynamic_cast<Processor*>(processor)->hiddenDummyProcessor.getParameters())
+			{
+				p->setValue(p->getDefaultValue());
+			}
 
 			for (int i = 0; i < BDSP_NUMBER_OF_MACROS; ++i)
 			{
@@ -519,6 +554,10 @@ namespace bdsp
 			for (int i = 0; i < BDSP_NUMBER_OF_ENVELOPE_FOLLOWERS; ++i)
 			{
 				settingsTree->setProperty("Env" + juce::String(i + 1) + "NameID", "Env " + juce::String(i + 1), nullptr);
+			}
+			for (int i = 0; i < BDSP_NUMBER_OF_SEQUENCERS; ++i)
+			{
+				settingsTree->setProperty("Sequencer" + juce::String(i + 1) + "NameID", "Sequencer " + juce::String(i + 1), nullptr);
 			}
 
 			savePreset(initFile);
@@ -632,12 +671,17 @@ namespace bdsp
 
 	void StateHandler::valueTreePropertyChanged(juce::ValueTree& treeWhosePropertyHasChanged, const juce::Identifier& property)
 	{
-		if (treeWhosePropertyHasChanged.getType().toString() != "UISettings" || (property.toString().startsWith("Macro") && property.toString().endsWith("NameID")) || (property.toString().startsWith("LFO") && property.toString().endsWith("NameID")) || (property.toString().startsWith("Env") && property.toString().endsWith("NameID"))) // either needs to be parameter or macro name
+		if (treeWhosePropertyHasChanged.getType().toString() != "UISettings" || property.toString().endsWith("NameID")) // either needs to be parameter or macro name
 		{
 			alteredState.setValue(true);
-			parameters->state.removeListener(this);
-			settingsTree->removeListener(this);
+			//if (manager != nullptr)
+			//{
+			//	manager->titleBar.nameButton->repaint();
+			//}
 
+			parameters->state.removeListener(this);
+			hiddenParameters->state.removeListener(this);
+			settingsTree->removeListener(this);
 		}
 
 
@@ -645,11 +689,6 @@ namespace bdsp
 
 
 
-
-	juce::ValueTree* StateHandler::getPluginState()
-	{
-		return &parameters->state;
-	}
 
 	void StateHandler::setManager(PresetManager* m)
 	{

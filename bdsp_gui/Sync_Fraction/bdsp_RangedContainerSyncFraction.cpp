@@ -102,8 +102,8 @@ namespace bdsp
 
 			auto lockW = getWidth() * 0.15;
 
-			lockButton->setPathBorder(universals->rectThicc);
-			lockButton->setBounds(juce::Rectangle<int>(lockW, lockW).withCentre(juce::Point<int>((divisionCombo->getRight() + getWidth()) / 2, getHeight() / 2.0)));
+			lockButton->setBounds(juce::Rectangle<int>().leftTopRightBottom(divisionCombo->getRight(),0,getWidth(),getHeight()));
+			lockButton->setPathBorder(lockButton->getWidth()-lockW+universals->rectThicc);
 		}
 
 
@@ -130,12 +130,7 @@ namespace bdsp
 		if (lockButton != nullptr)
 		{
 			g.setColour(getColor(lockBKGD).withAlpha(alpha));
-
-			juce::Path p;
-
-			p.addRoundedRectangle(divisionCombo->getRight(), 0, getWidth() - divisionCombo->getRight(), getHeight(), universals->roundedRectangleCurve, universals->roundedRectangleCurve, false, corners & CornerCurves::topRight, false, corners & CornerCurves::bottomRight);
-
-			g.fillPath(p);
+			g.fillPath(getRoundedRectangleFromCurveBools(juce::Rectangle<float>().leftTopRightBottom(divisionCombo->getRight(), 0, getWidth(), getHeight()), CornerCurves(corners & CornerCurves::right), universals->roundedRectangleCurve));
 
 		}
 
@@ -146,13 +141,15 @@ namespace bdsp
 		auto alpha = isEnabled() ? 1.0f : universals->disabledAlpha;
 
 
-		g.setColour(getColor(outlineColor).withAlpha(alpha));
+		g.setColour(getColor(outlineColor).withMultipliedAlpha(alpha));
+		//juce::Path p;
+
+		//p.addRoundedRectangle(divisionCombo->getRight(), 0, getWidth() - divisionCombo->getRight(), getHeight(), universals->roundedRectangleCurve, universals->roundedRectangleCurve, false, corners & CornerCurves::topRight, false, corners & CornerCurves::bottomRight);
+		//g.strokePath(p, juce::PathStrokeType(universals->dividerSize));
+
 		juce::Path p;
-
-		p.addRoundedRectangle(divisionCombo->getRight(), 0, getWidth() - divisionCombo->getRight(), getHeight(), universals->roundedRectangleCurve, universals->roundedRectangleCurve, false, corners & CornerCurves::topRight, false, corners & CornerCurves::bottomRight);
-		g.strokePath(p, juce::PathStrokeType(universals->dividerSize));
-
-		g.drawRect(divisionCombo->getBounds(), universals->dividerSize);
+		juce::PathStrokeType(universals->dividerSize).createStrokedPath(p, getRoundedRectangleFromCurveBools(divisionCombo->getBounds().toFloat(), corners, universals->roundedRectangleCurve));
+		g.fillPath(p);
 
 	}
 
@@ -179,10 +176,11 @@ namespace bdsp
 
 	void RangedContainerSyncFraction::setCorners(CornerCurves newCurves)
 	{
-        containerFrac->slider.setCornerCurves(CornerCurves((newCurves & CornerCurves::topLeft) | (newCurves & CornerCurves::bottomLeft)));
-        containerTime->slider.setCornerCurves(CornerCurves((newCurves & CornerCurves::topLeft) | (newCurves & CornerCurves::bottomLeft)));
+		containerFrac->slider.setCornerCurves(CornerCurves(newCurves & CornerCurves::left));
+		containerTime->slider.setCornerCurves(CornerCurves(newCurves & CornerCurves::left));
 
-        corners = CornerCurves((newCurves & CornerCurves::topRight) | (newCurves & CornerCurves::bottomRight));
+		divisionCombo->setCornerCurves(CornerCurves(newCurves & CornerCurves::right));
+		corners = newCurves;
 	}
 
 }// namnepace bdsp

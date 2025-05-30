@@ -121,6 +121,22 @@ namespace bdsp
 		return orderedDragBoxes.indexOf(dragBoxes[dragBoxIndex]);
 	}
 
+	void RearrangableComponentManagerBase::attach(OrderedListParameter* param)
+	{
+		attachment = std::make_unique<RearrangableComponentParameterAttachment>(*param, *this, universals->undoManager);
+	}
+
+
+	void RearrangableComponentManagerBase::addListener(Listener* listenerToAdd)
+	{
+		listeners.add(listenerToAdd);
+	}
+
+	void RearrangableComponentManagerBase::removeListener(Listener* listenerToRemove)
+	{
+		listeners.remove(listenerToRemove);
+	}
+
 	void RearrangableComponentManagerBase::addComponent(juce::Component* newComp)
 	{
 
@@ -141,6 +157,15 @@ namespace bdsp
 
 
 
+	void RearrangableComponentManagerBase::reorderComponents(const juce::Array<int>& newOrder, bool notifyListeners)
+	{
+		for (int i = 0; i < newOrder.size(); ++i)
+		{
+			orderedDragBoxes.set(i, dragBoxes[newOrder[i]]);
+		}
+		reorderComponents(0, 0, notifyListeners);
+	}
+
 	void RearrangableComponentManagerBase::reorderComponents(DragBox* boxMoved, int indexMovedTo, bool notifyListeners)
 	{
 		reorderComponents(orderedDragBoxes.indexOf(boxMoved), indexMovedTo, notifyListeners);
@@ -159,10 +184,18 @@ namespace bdsp
 			//orderedDragBoxes[i]->toFront(false);
 		}
 
-		if (notifyListeners && onComponentOrderChanged.operator bool())
+		if (notifyListeners)
 		{
-			onComponentOrderChanged(indexMoved, indexMovedTo);
+			listeners.call([=](Listener& l) {l.componentOrderChanged(this); });
+
+			if (onComponentOrderChanged.operator bool())
+			{
+				onComponentOrderChanged(indexMoved, indexMovedTo);
+			}
+
 		}
+
+		resized();
 	}
 
 
@@ -174,6 +207,17 @@ namespace bdsp
 	int RearrangableComponentManagerBase::getNumComps() const
 	{
 		return comps.size();
+	}
+
+	juce::Array<int> RearrangableComponentManagerBase::getOrder()
+	{
+		juce::Array<int> out;
+
+		for (int i = 0; i < dragBoxes.size(); ++i)
+		{
+			out.add(dragBoxes.indexOf(orderedDragBoxes[i]));
+		}
+		return out;
 	}
 
 	void RearrangableComponentManagerBase::calculateLongestTitle()
@@ -215,6 +259,7 @@ namespace bdsp
 	void RearrangableComponentManagerBase::DragBox::Dragger::mouseDown(const juce::MouseEvent& e)
 	{
 		p->toFront(false);
+		p->universals->undoManager->beginNewTransaction();
 		startDraggingComponent(p, e);
 		isDragging = true;
 
@@ -423,6 +468,89 @@ namespace bdsp
 
 		setInterceptsMouseClicks(false, true);
 		addAndMakeVisible(dragger);
+	}
+
+	void RearrangableComponentManagerBase::DragBox::paint(juce::Graphics& g)
+	{
+		if (p->dragBoxPaintFunc.operator bool())
+		{
+			p->dragBoxPaintFunc(g, this);
+		}
+		else
+		{
+			BasicContainerComponent::paint(g);
+		}
+	}
+
+
+	RearrangableComponentManagerBase::RearrangableComponentParameterAttachment::OrderedListParameterAttachment::OrderedListParameterAttachment(OrderedListParameter& parameter, RearrangableComponentManagerBase& comp, juce::UndoManager* undoManager)
+		:rearrangeComp(comp),
+		storedParameter(parameter),
+		um(undoManager),
+		OrderedListParameter::Listener(&parameter)
+	{
+		storedParameter.addListener(this);
+		sendInitialUpdate();
+
+	}
+
+
+
+	RearrangableComponentManagerBase::RearrangableComponentParameterAttachment::OrderedListParameterAttachment::~OrderedListParameterAttachment()
+	{
+		storedParameter.removeListener(this);
+
+	}
+
+	void RearrangableComponentManagerBase::RearrangableComponentParameterAttachment::OrderedListParameterAttachment::sendInitialUpdate()
+	{
+		orderChanged(storedParameter.getOrder());
+	}
+
+	void RearrangableComponentManagerBase::RearrangableComponentParameterAttachment::OrderedListParameterAttachment::setValue(juce::Array<int> newOrder)
+	{
+		if (storedParameter.getOrder() != newOrder)
+		{
+			if (um != nullptr)
+			{
+				//um->beginNewTransaction();
+			}
+			storedParameter.setNewOrder(newOrder);
+		}
+	}
+
+
+
+	void RearrangableComponentManagerBase::RearrangableComponentParameterAttachment::OrderedListParameterAttachment::orderChanged(const juce::Array<int> newOrder)
+	{
+		if (juce::MessageManager::getInstance()->isThisTheMessageThread())
+		{
+			cancelPendingUpdate();
+			handleAsyncUpdate();
+		}
+		else
+		{
+			triggerAsyncUpdate();
+		}
+	}
+
+	void RearrangableComponentManagerBase::RearrangableComponentParameterAttachment::OrderedListParameterAttachment::handleAsyncUpdate()
+	{
+		rearrangeComp.reorderComponents(storedParameter.getOrder());
+	}
+
+
+	RearrangableComponentManagerBase::RearrangableComponentParameterAttachment::RearrangableComponentParameterAttachment(OrderedListParameter& parameter, RearrangableComponentManagerBase& comp, juce::UndoManager* undoManager)
+		:parameterAttachment(parameter, comp, undoManager),
+		listComp(comp),
+		listParameter(parameter)
+	{
+		listComp.addListener(this);
+	}
+
+	void RearrangableComponentManagerBase::RearrangableComponentParameterAttachment::componentOrderChanged(RearrangableComponentManagerBase* rearrangableCompThatChanged)
+	{
+		parameterAttachment.setValue(listComp.getOrder());
 	}
 
 } // namespace bdsp

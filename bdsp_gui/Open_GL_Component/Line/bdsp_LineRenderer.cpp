@@ -19,6 +19,14 @@ namespace bdsp
 
 	OpenGLLineRenderer::~OpenGLLineRenderer()
 	{
+		if (buffersCreated)
+		{
+			juce::gl::glDeleteBuffers(numLines, lineVbo.begin());
+			juce::gl::glDeleteBuffers(numLines, lineIbo.begin());
+		}
+		lineShaderProgram.reset();
+		jointShaderProgram.reset();
+
 		universals->contextHolder->unregisterOpenGlRenderer(this);
 	}
 
@@ -368,14 +376,6 @@ namespace bdsp
 	void OpenGLLineRenderer::openGLContextClosing()
 	{
 		OpenGLComponent::openGLContextClosing();
-
-		if (buffersCreated)
-		{
-			juce::gl::glDeleteBuffers(numLines, lineVbo.begin());
-			juce::gl::glDeleteBuffers(numLines, lineIbo.begin());
-		}
-		lineShaderProgram.reset();
-		jointShaderProgram.reset();
 	}
 
 

@@ -18,13 +18,18 @@
 #endif // !BDSP_NUMBER_OF_ENVELOPE_FOLLOWERS
 
 
+#ifndef BDSP_NUMBER_OF_SEQUENCERS
+#define BDSP_NUMBER_OF_SEQUENCERS 0
+#endif // !BDSP_NUMBER_OF_SEQUENCERS
+
+
 // Needs to be multiple of 2 otherwise textUp editor centering gets fucked
 #ifndef BDSP_MAX_MACRO_NAME_LENGTH
 #define BDSP_MAX_MACRO_NAME_LENGTH 16
 #endif // !BDSP_MAX_MACRO_NAME_LENGTH
 
 
-#define BDSP_NUMBER_OF_LINKABLE_CONTROLS (BDSP_NUMBER_OF_MACROS+BDSP_NUMBER_OF_LFOS+BDSP_NUMBER_OF_ENVELOPE_FOLLOWERS)
+#define BDSP_NUMBER_OF_LINKABLE_CONTROLS (BDSP_NUMBER_OF_MACROS+BDSP_NUMBER_OF_LFOS+BDSP_NUMBER_OF_ENVELOPE_FOLLOWERS+BDSP_NUMBER_OF_SEQUENCERS)
 
 
 
@@ -184,12 +189,9 @@ namespace bdsp
 //================================================================================================================================================================================================
 // Parameter Attributes
 #include "Parameter_Attributes/bdsp_ParameterAttributes.h"
-
 //================================================================================================================================================================================================
 // Parameter
 #include "Parameter/bdsp_Parameter.h" 
-
-
 
 
 
@@ -234,6 +236,8 @@ namespace bdsp
 
 //================================================================================================================================================================================================
 // Rearrangeable Components
+#include "Ordered_List_Parameter/bdsp_OrderedListParameter.h"
+
 #include "Rearrangeable_Components/Drag_Handle/bdsp_DragHandle.h"
 #include "Rearrangeable_Components/bdsp_RearrangeableComponent.h"
 
@@ -351,6 +355,7 @@ namespace bdsp
 #include "Linkable_Control/Components/Macro_Component/bdsp_MacroComponent.h"
 #include "Linkable_Control/Components/LFO_Component/bdsp_LFOComponent.h"
 #include "Linkable_Control/Components/Envelope_Follower_Component/bdsp_envelopeFollowerComponent.h"
+#include "Linkable_Control/Components/Sequencer_Component/bdsp_SequencerComponent.h"
 
 #include "Linkable_Control/Components/All_Linkable_Control_Components/All_Linkable_Control_Components.h"
 
@@ -374,6 +379,8 @@ namespace bdsp
 #include "DSP_Visualizers/Demo_Alert/bdsp_DemoAlert.h"
 #include "DSP_Visualizers/LFO/bdsp_LFOVisualizer.h"
 #include "DSP_Visualizers/Envelope_Follower/bdsp_EnvelopeFollowerVisualizer.h"
+#include "DSP_Visualizers/Sequencer/bdsp_SequencerVisualizer.h"
+
 #include "DSP_Visualizers/Bit_Crush/bdsp_BitCrushVisualizer.h"
 #include "DSP_Visualizers/Pitch_Shifter/bdsp_PitchShifterVisualizer.h"
 

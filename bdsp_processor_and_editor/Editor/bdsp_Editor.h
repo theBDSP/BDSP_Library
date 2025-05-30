@@ -156,6 +156,7 @@ namespace bdsp
 		MacroSection* Macros;
 		LFOSection* LFOs;
 		EnvelopeFollowerSection<float>* EnvelopeFollowers;
+		SequencerSection* Sequencers;
 
 	protected:
 		void init();
@@ -225,7 +226,7 @@ namespace bdsp
 			std::unique_ptr<Logo> logo;
 
 			juce::Component mainArea; // hold all of the plugin except settings menu and  preset browser
-			std::unique_ptr<TexturedContainerComponent> sideBarContainer;
+			std::unique_ptr<Component> sideBarContainer;
 
 
 			std::function<void(juce::Graphics&)> paintOverChildrenFunction;
@@ -233,12 +234,12 @@ namespace bdsp
 		private:
 			void paintOverChildren(juce::Graphics& g) override;
 
+			GUI_Universals* universals;
 		};
 		std::unique_ptr<TopLevelGUIComponent> topLevelComp;
 
 	public:
 		TopLevelGUIComponent* getTopLevelGUIComponent();
-
 
 
 

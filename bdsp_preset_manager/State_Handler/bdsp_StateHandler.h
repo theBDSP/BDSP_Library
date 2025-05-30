@@ -24,7 +24,7 @@ namespace bdsp
 	class StateHandler : public juce::ValueTree::Listener
 	{
 	public:
-		StateHandler(juce::AudioProcessor* processorToUse, juce::AudioProcessorValueTreeState* APVTS, juce::ValueTree* settings, PropertiesFolder* folder, juce::Array<ControlParameter*>& controlParams, juce::Array<FactoryPreset>& presets);
+		StateHandler(juce::AudioProcessor* processorToUse, juce::AudioProcessorValueTreeState* APVTS, juce::AudioProcessorValueTreeState* hiddenAPVTS, juce::ValueTree* settings, PropertiesFolder* folder, juce::Array<ControlParameter*>& controlParams, juce::Array<OrderedListParameter*>& orderParams, juce::Array<FactoryPreset>& presets);
 		~StateHandler();
 
 		bool renamePreset(const juce::File& oldLocation, const juce::File& newLocation);
@@ -53,14 +53,10 @@ namespace bdsp
 		void valueTreePropertyChanged(juce::ValueTree& treeWhosePropertyHasChanged, const juce::Identifier& property) override;
 
 
-		juce::ValueTree* getPluginState();
-
 		void setManager(PresetManager* m);
 
 		juce::UndoManager* getUndoManager();
 
-
-	
 
 		//================================================================================================================================================================================================
 
@@ -69,7 +65,7 @@ namespace bdsp
 		{
 		public:
 			PresetData(juce::XmlElement* xmlData)
-            :xmlState("Main")
+				:xmlState("Main")
 			{
 				if (xmlData == nullptr || !(xmlData->getTagName() == "Main" || xmlData->getTagName() == "APVTS"))
 				{
@@ -112,6 +108,14 @@ namespace bdsp
 						for (int i = 0; i < APVTS->getNumChildElements(); ++i)
 						{
 							parameters.set(APVTS->getChildElement(i)->getAttributeValue(0), APVTS->getChildElement(i)->getAttributeValue(1));
+						}
+						auto hiddenAPVTS = xmlData->getChildByName("APVTSHidden");
+						if (hiddenAPVTS != nullptr)
+						{
+							for (int i = 0; i < hiddenAPVTS->getNumChildElements(); ++i)
+							{
+								hiddenParameters.set(hiddenAPVTS->getChildElement(i)->getAttributeValue(0), hiddenAPVTS->getChildElement(i)->getAttributeValue(1));
+							}
 						}
 					}
 					else
@@ -169,6 +173,19 @@ namespace bdsp
 						child->setAttribute("id", keys[i]);
 						child->setAttribute("value", values[i]);
 					}
+
+					auto hiddenAPVTS = xmlState.createNewChildElement("APVTSHidden");
+					if (hiddenAPVTS != nullptr)
+					{
+						auto hiddenKeys = hiddenParameters.getAllKeys();
+						auto hiddenValues = hiddenParameters.getAllValues();
+						for (int i = 0; i < hiddenKeys.size(); ++i)
+						{
+							auto child = hiddenAPVTS->createNewChildElement("PARAM");
+							child->setAttribute("id", hiddenKeys[i]);
+							child->setAttribute("value", hiddenValues[i]);
+						}
+					}
 					return &xmlState;
 				}
 				else
@@ -221,6 +238,16 @@ namespace bdsp
 						child.setProperty("value", juce::var(values[i]), nullptr);
 						APVTS.appendChild(child, nullptr);
 					}
+					auto hiddenAPVTS = out.getOrCreateChildWithName("APVTSHidden", nullptr);
+					auto hiddenKeys = hiddenParameters.getAllKeys();
+					auto hiddenValues = hiddenParameters.getAllValues();
+					for (int i = 0; i < hiddenKeys.size(); ++i)
+					{
+						juce::ValueTree child("PARAM");
+						child.setProperty("id", juce::var(hiddenKeys[i]), nullptr);
+						child.setProperty("value", juce::var(hiddenValues[i]), nullptr);
+						hiddenAPVTS.appendChild(child, nullptr);
+					}
 					return out;
 				}
 				else
@@ -259,7 +286,7 @@ namespace bdsp
 				mergeArray(base.superTags, superTags);
 				mergeArray(base.macroNames, macroNames);
 				mergeArray(base.parameters, parameters);
-				mergeArray(base.orderedListParameters, orderedListParameters);
+				mergeArray(base.hiddenParameters, hiddenParameters);
 			}
 			bool isValid()
 			{
@@ -267,10 +294,10 @@ namespace bdsp
 			}
 		private:
 			bool valid = false;
-			juce::StringPairArray info, tags, superTags, macroNames, parameters, orderedListParameters;
+			juce::StringPairArray info, tags, superTags, macroNames, parameters, hiddenParameters;
 			bool favorite = false;
 			bool isAPVTSOnly = true;
-            juce::XmlElement xmlState;
+			juce::XmlElement xmlState;
 		};
 
 
@@ -313,8 +340,9 @@ namespace bdsp
 	private:
 
 		juce::Array<ControlParameter*>& controlParameters;
+		juce::Array<OrderedListParameter*>& orderParameters;
 		juce::AudioProcessor* processor;
-		juce::AudioProcessorValueTreeState* parameters;
+		juce::AudioProcessorValueTreeState* parameters, * hiddenParameters;
 		PresetManager* manager = nullptr;
 
 
@@ -324,6 +352,6 @@ namespace bdsp
 
 		JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(StateHandler)
 
-	
-};
+
+	};
 }// namnepace bdsp

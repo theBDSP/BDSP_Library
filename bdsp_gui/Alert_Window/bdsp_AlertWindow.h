@@ -128,7 +128,8 @@ namespace bdsp
 
 		std::unique_ptr<IndexedButton> leftButton, centerButton, rightButton;
 
-		MousePassthrough<Label> Header, Body;
+		MousePassthrough<Component> Header, Body;
+		juce::String headerText, bodyText;
 
 		melatonin::DropShadow dropShadow;
 

@@ -37,7 +37,7 @@ namespace bdsp
 		{
 
 			progress = controllerObject->getProgress();
-			pos->set(progress);
+			setFillPos(progress);
 
 			progressIncrement = controllerObject->getProgressIncrement();
 			progressW = 0.4f * powf(progressIncrement / 0.4f, 0.25f);
@@ -66,15 +66,6 @@ namespace bdsp
 
 
 	//================================================================================================================================================================================================
-
-
-
-
-	LFOWaveVisualizer::LFOWaveVisualizer(GUI_Universals* universalsToUse, LFOComponent* parentComp, dsp::DSP_Universals<float>* lookupsToUse)
-		:OpenGlComponentWrapper<LFOWaveVisualizerInternal>(universalsToUse, parentComp, lookupsToUse)
-	{
-
-	}
 
 
 
@@ -116,12 +107,6 @@ namespace bdsp
 	}
 
 
-	LFOResultVisualizer::LFOResultVisualizer(GUI_Universals* universalsToUse, LinkableControl* control)
-		:OpenGlComponentWrapper<LFOResultVisualizerInternal>(universalsToUse, control)
-	{
-
-	}
-
 
 
 	//================================================================================================================================================================================================
@@ -132,8 +117,8 @@ namespace bdsp
 		result(universalsToUse, parentComp->control)
 	{
 		setInterceptsMouseClicks(false, false);
-		wave.getVis()->setScaling(1.0f, 0.9f);
-		result.getVis()->setScaling(1.0f, 0.9f);
+		wave.setScaling(1.0f, 0.9f);
+		result.setScaling(1.0f, 0.9f);
 
 		addAndMakeVisible(wave);
 		addAndMakeVisible(result);
@@ -141,33 +126,35 @@ namespace bdsp
 
 	void LFOVisualizer::resized()
 	{
-		result.setBoundsRelative(0, 0, 0.5, 1);
-		wave.setBoundsRelative(0.5, 0, 0.5, 1);
-
+		result.setBounds(shrinkRectangleToInt(getLocalBounds().toFloat().getProportion(juce::Rectangle<float>(0, 0, 0.5, 1)).reduced(universals->roundedRectangleCurve)));
+		wave.setBounds(shrinkRectangleToInt(getLocalBounds().toFloat().getProportion(juce::Rectangle<float>(0.5, 0, 0.5, 1)).reduced(universals->roundedRectangleCurve)));
 	}
 
 	void LFOVisualizer::paint(juce::Graphics& g)
 	{
+		g.setColour(getColor(outlineColor));
+		g.fillRoundedRectangle(getLocalBounds().toFloat(), universals->roundedRectangleCurve);
+
 		g.setColour(getColor(BDSP_COLOR_PURE_BLACK));
-		//g.fillRoundedRectangle(wave.getBounds().toFloat(), universals->roundedRectangleCurve);
-		//g.fillRoundedRectangle(result.getBounds().toFloat(), universals->roundedRectangleCurve);
-		juce::Path p;
-		//p.addRoundedRectangle(0, 0, getWidth(), getHeight(), universals->roundedRectangleCurve, universals->roundedRectangleCurve, true, false, true, false);
-		p.addRoundedRectangle(getLocalBounds().toFloat(), universals->roundedRectangleCurve);
-		g.fillPath(p);
+		g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(universals->dividerSize), universals->roundedRectangleCurve - universals->dividerSize);
 	}
-	LFOWaveVisualizer* LFOVisualizer::getWaveComponent()
+	void LFOVisualizer::paintOverChildren(juce::Graphics& g)
+	{
+		g.setColour(getColor(outlineColor));
+		g.fillRect(juce::Rectangle<float>(universals->dividerSize, getHeight()).withCentre(getLocalBounds().toFloat().getCentre()));
+	}
+	LFOWaveVisualizerInternal* LFOVisualizer::getWaveComponent()
 	{
 		return &wave;
 	}
-	LFOResultVisualizer* LFOVisualizer::getResultComponent()
+	LFOResultVisualizerInternal* LFOVisualizer::getResultComponent()
 	{
 		return &result;
 	}
 	void LFOVisualizer::setColor(const NamedColorsIdentifier& newLineColor, const NamedColorsIdentifier& newZeroLineColor, const NamedColorsIdentifier& newTopCurveColor, const NamedColorsIdentifier& newBotCurveColor, const NamedColorsIdentifier& newPosColor)
 	{
-		wave.getVis()->setColor(newLineColor, newZeroLineColor, newTopCurveColor, newBotCurveColor, newPosColor);
-		result.getVis()->setColor(newLineColor, newZeroLineColor);
+		wave.setColor(newLineColor, newZeroLineColor, newTopCurveColor, newBotCurveColor, newPosColor);
+		result.setColor(newLineColor, newZeroLineColor);
 	}
 
 } // namespace bdsp

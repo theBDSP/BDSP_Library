@@ -39,6 +39,13 @@ namespace bdsp
 
 		void initArrays(int numOfSamplePoints);
 
+		void setFillPos(float newFillPos);
+		void setEndpoint(float newEndpoint);
+
+		void paintOverChildren(juce::Graphics& g) override;
+
+		void visibilityChanged() override;
+
 		OpenGLColor topCurve, botCurve;
 	protected:
 
@@ -47,7 +54,7 @@ namespace bdsp
 		const char* fillFragmentShader;
 
 		std::unique_ptr<juce::OpenGLShaderProgram> fillShaderProgram;
-		std::unique_ptr<juce::OpenGLShaderProgram::Uniform> zeroLineY, topColor, botColor, posColor, pos, width; // fill shader uniforms
+		std::unique_ptr<juce::OpenGLShaderProgram::Uniform> zeroLineY, topColor, botColor, posColor, pos, width, endpoint; // fill shader uniforms
 
 
 		// Inherited via OpenGLComponent
@@ -71,7 +78,7 @@ namespace bdsp
 		float fillWidth = 0.0f;
 		float zeroY = 0.0f;
 		float scalingX = 1.0f, scalingY = 1.0f, baseScalingX = 1.0f, baseScalingY = 1.0f;
-
+		float endPointVal = 1.0f;
 
 		juce::NormalisableRange<float> xAxisMapping;
 
