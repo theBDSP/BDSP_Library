@@ -133,7 +133,7 @@ namespace bdsp
 	} // uses precise method of getting path bounds
 
 
-	enum CornerCurves :int { topLeft = 1, topRight = 2, bottomLeft = 4, bottomRight = 8 };
+	enum CornerCurves :int { topLeft = 1, topRight = 2, bottomLeft = 4, bottomRight = 8, left = topLeft|bottomLeft, top = topLeft|topRight, right = topRight|bottomRight, bottom = bottomLeft|bottomRight, all = top|bottom };
 
 	/**
 	 * Creates a rounded rectangle path
@@ -146,6 +146,21 @@ namespace bdsp
 		juce::Path out;
 		out.addRoundedRectangle(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), cornerRadius, cornerRadius, curveBools & topLeft, curveBools & topRight, curveBools & bottomLeft, curveBools & bottomRight);
 		return out;
+	}
+	/**
+	 * Creates a rounded rectangle path
+	 * @param bounds The bounding box of the resulting path
+	 * @param curveBools A combination of flags indicating which corners should be curved
+	 * @param cornerRadius The radius of the curved corners
+	 * @param outlineSize Thickness of the outline
+	 */
+	inline void drawOutlinedRoundedRectangle(juce::Graphics& g, juce::Rectangle<float> bounds, CornerCurves curveBools, float cornerRadius, float outlineSize, const juce::Colour& backgroundColor, const juce::Colour& outlineColor)
+	{
+		g.setColour(outlineColor);
+		g.fillPath(getRoundedRectangleFromCurveBools(bounds, curveBools, cornerRadius));
+
+		g.setColour(backgroundColor);
+		g.fillPath(getRoundedRectangleFromCurveBools(bounds.reduced(outlineSize), curveBools, cornerRadius-outlineSize));
 	}
 
 	/**
@@ -518,7 +533,7 @@ namespace bdsp
 		//================================================================================================================================================================================================
 		// copy the line and translate the copy
 		auto newL = l;
-		newL.applyTransform(juce::AffineTransform().translated(juce::Point<float>(0, 0).getPointOnCircumference(shift, fmod(l.getAngle(), PI) + PI / 2)));
+		newL.applyTransform(juce::AffineTransform().translated(juce::Point<float>(0, 0).getPointOnCircumference(shift, l.getAngle() + PI / 2)));
 		//================================================================================================================================================================================================
 		// draw the highlight first
 		dividerHighlight.addLineSegment(newL, highlightW);

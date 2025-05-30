@@ -22,6 +22,7 @@ namespace bdsp
 		void setText(const juce::String& newText);
 		void setText(const juce::String& on, const juce::String& off);
 		void setCorners(CornerCurves newCorners);
+		void setCornerRadius(float newRadius);
 		void setGradientBackground(bool newValue);
 		void setJustification(juce::Justification newJustification);
 		void setTextBorder(const juce::BorderSize<int>& newBorder);
@@ -46,6 +47,7 @@ namespace bdsp
 
 
 		CornerCurves corners = CornerCurves(CornerCurves::topLeft | CornerCurves::topRight | CornerCurves::bottomLeft | CornerCurves::bottomRight);
+		float cornerRadius = -1;
 		bool hasOutline = true;
 
 		bool gradientBackground = false;

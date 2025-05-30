@@ -194,6 +194,7 @@ namespace bdsp
 		{
 			bdspParam->addLambdaListener(this);
 		}
+		sliderValueChanged(this);
 	}
 	juce::RangedAudioParameter* BaseSlider::getParameter()
 	{
@@ -492,9 +493,11 @@ namespace bdsp
 				wheelProp = (isRotary() && !getRotaryParameters().stopAtEnd) ? wheelProp - std::floor(wheelProp) : juce::jlimit(0.0, 1.0, wheelProp);
 
 
+				{
+					ScopedDragNotification drag(*this);
 
-
-				setValue(snapValue(proportionOfLengthToValue(wheelProp), notDragging), juce::sendNotificationSync);
+					setValue(snapValue(proportionOfLengthToValue(wheelProp), notDragging), juce::sendNotificationSync);
+				}
 
 
 
@@ -506,6 +509,7 @@ namespace bdsp
 					auto v = proportionOfLengthToValue(catchValues[i]);
 					if (isBetweenExclusive(v, prevValue, getValue()))
 					{
+						ScopedDragNotification drag(*this);
 						setValue(v);
 						break;
 					}
@@ -662,8 +666,8 @@ namespace bdsp
 
 	BaseSlider::Label::Label(BaseSlider* s)
 		:bdsp::Label(s->universals, ""),
-        title(s->universals, ""),
-        parentSlider(*s)
+		title(s->universals, ""),
+		parentSlider(*s)
 	{
 		addListener(this);
 		//title.addListener(this);

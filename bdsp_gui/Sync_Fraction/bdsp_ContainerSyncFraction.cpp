@@ -9,13 +9,13 @@ namespace bdsp
 	{
 		containerFrac = std::make_unique<ContainerSlider>(universalsToUse, baseName + "Fraction");
 		containerFrac->addListener(this); // BPMComp Listener which inherets from slider listener
-		containerFrac->setCornerCurves(CornerCurves(CornerCurves::topLeft | CornerCurves::bottomLeft));
+		containerFrac->setCornerCurves(CornerCurves::left);
 		fractionSlider = containerFrac.get();
 		fraction = containerFrac.get();
 
 		containerTime = std::make_unique<ContainerSlider>(universalsToUse, baseName + "MsTime");
 		containerTime->addListener(this); // BPMComp Listener which inherets from slider listener
-		containerTime->setCornerCurves(CornerCurves(CornerCurves::topLeft | CornerCurves::bottomLeft));
+		containerTime->setCornerCurves(CornerCurves::left);
 		msTimeSlider = containerTime.get();
 		msTime = containerTime.get();
 
@@ -23,7 +23,7 @@ namespace bdsp
 		divisionCombo = std::make_unique<ComboBox>(divParam, universalsToUse);
 		division = divisionCombo.get();
 
-		divisionCombo->setCornerCurves(CornerCurves(CornerCurves::topRight | CornerCurves::bottomRight));
+		divisionCombo->setCornerCurves(CornerCurves::right);
 
 		//=====================================================================================================================//=====================================================================================================================//=====================================================================================================================//=====================================================================================================================
 

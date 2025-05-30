@@ -50,4 +50,31 @@ namespace bdsp
 	{
 
 	}
+	void LookAndFeel::drawScrollbar(juce::Graphics& g, juce::ScrollBar& scrollbar, int x, int y, int width, int height, bool isScrollbarVertical, int thumbStartPosition, int thumbSize, bool isMouseOver, bool isMouseDown)
+	{
+		juce::Rectangle<float> thumbBounds;
+		juce::Path thumb;
+		float thickness;
+
+		if (isScrollbarVertical)
+		{
+			thickness = width;
+			thumbBounds = juce::Rectangle<float>(x, thumbStartPosition, width, thumbSize).reduced(0,thickness);
+			thumb.startNewSubPath(thumbBounds.getRelativePoint(0.5, 0.0));
+			thumb.lineTo(thumbBounds.getRelativePoint(0.5, 1.0));
+		}
+		else
+		{
+			thickness = height;
+			thumbBounds = juce::Rectangle<float>(thumbStartPosition, y, thumbSize, height).reduced(thickness,0);
+			thumb.startNewSubPath(thumbBounds.getRelativePoint(0.0, 0.5));
+			thumb.lineTo(thumbBounds.getRelativePoint(1.0, 0.5));
+		}
+
+
+		auto c = scrollbar.findColour(juce::ScrollBar::ColourIds::thumbColourId);
+		g.setColour(getHoverColor(c, c.withMultipliedBrightness(universals->midOpacity), isMouseDown, isMouseOver, universals->hoverMixAmt));
+		//g.fillRoundedRectangle(thumbBounds.toFloat(), universals->roundedRectangleCurve);
+		g.strokePath(thumb, juce::PathStrokeType(thickness, juce::PathStrokeType::JointStyle::curved, juce::PathStrokeType::EndCapStyle::rounded));
+	}
 } // namespace bdsp

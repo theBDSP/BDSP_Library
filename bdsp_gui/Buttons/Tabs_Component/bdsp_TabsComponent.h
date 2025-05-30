@@ -4,7 +4,7 @@
 
 namespace bdsp
 {
-	class TabsComponent : public Component, public juce::DragAndDropTarget
+	class TabsComponent : public Component, public juce::DragAndDropTarget, public GUI_Universals::Listener
 	{
 	public:
 
@@ -25,9 +25,9 @@ namespace bdsp
 
 
 
-		void setColors(const NamedColorsIdentifier& bkgdColor, const NamedColorsIdentifier& buttonColor);
-		void setColors(const NamedColorsIdentifier& bkgdColor, const NamedColorsIdentifier& textUp,const NamedColorsIdentifier& textDown);
-		void setColors(const NamedColorsIdentifier& bkgdColor, const juce::Array<NamedColorsIdentifier>& buttonColors);
+		void setColors(const NamedColorsIdentifier& bkgdColor, const NamedColorsIdentifier& buttonColor, const NamedColorsIdentifier& outlineColor);
+		void setColors(const NamedColorsIdentifier& bkgdColor, const NamedColorsIdentifier& textUp, const NamedColorsIdentifier& textDown, const NamedColorsIdentifier& outlineColor);
+		void setColors(const NamedColorsIdentifier& bkgdColor, const juce::Array<NamedColorsIdentifier>& buttonColors, const NamedColorsIdentifier& outlineColor);
 
 		TextButton* getButton(int idx);
 
@@ -65,9 +65,9 @@ namespace bdsp
 
 		juce::OwnedArray<juce::Component> pages;
 
-		;
 
-		NamedColorsIdentifier bkgd;
+
+		NamedColorsIdentifier bkgd, outline;
 
 		bool scaleTitles = true;
 		juce::OwnedArray<TextButton> buttons;
@@ -94,10 +94,38 @@ namespace bdsp
 		void itemDragEnter(const SourceDetails& dragSourceDetails) override;
 		void itemDragMove(const SourceDetails& dragSourceDetails) override;
 
+		class DragAndDropTimer : public juce::Timer
+		{
+		public:
+			void start(juce::Button* b)
+			{
+				button = b;
+				startTimer(25);
+			}
+		private:
+
+			// Inherited via Timer
+			void timerCallback() override
+			{
+				if (button->getLocalBounds().contains(button->getMouseXYRelative()))
+				{
+					button->setToggleState(true, juce::sendNotification);
+					button->onClick();
+				}
+
+
+				stopTimer();
+			}
+			juce::Button* button;
+		}dragTimer;
 
 
 		// Inherited via DragAndDropTarget
 		void itemDropped(const SourceDetails& dragSourceDetails) override;
+
+
+		// Inherited via Listener
+		void GUI_UniversalsChanged() override;
 
 	};
 

@@ -58,6 +58,7 @@ namespace bdsp
 //================================================================================================================================================================================================
 // Parameter Attributes
 #include "Parameter_Attributes/bdsp_ParameterAttributes.cpp"
+#include "Ordered_List_Parameter/bdsp_OrderedListParameter.cpp"
 
 //================================================================================================================================================================================================
 // Parameter
@@ -213,6 +214,7 @@ namespace bdsp
 #include "Linkable_Control/Components/Macro_Component/bdsp_MacroComponent.cpp"
 #include "Linkable_Control/Components/LFO_Component/bdsp_LFOComponent.cpp"
 #include "Linkable_Control/Components/Envelope_Follower_Component/bdsp_EnvelopeFollowerComponent.cpp"
+#include "Linkable_Control/Components/Sequencer_Component/bdsp_SequencerComponent.cpp"
 
 #include "Linkable_Control/Components/All_Linkable_Control_Components/All_Linkable_Control_Components.cpp"
 
@@ -235,6 +237,9 @@ namespace bdsp
 #include "DSP_Visualizers/Demo_Alert/bdsp_DemoAlert.cpp"
 #include "DSP_Visualizers/LFO/bdsp_LFOVisualizer.cpp"
 #include "DSP_Visualizers/Envelope_Follower/bdsp_EnvelopeFollowerVisualizer.cpp"
+#include "DSP_Visualizers/Sequencer/bdsp_SequencerVisualizer.cpp"
+
+
 #include "DSP_Visualizers/Bit_Crush/bdsp_BitCrushVisualizer.cpp"
 #include "DSP_Visualizers/Pitch_Shifter/bdsp_PitchShifterVisualizer.cpp"
 

@@ -40,7 +40,6 @@ namespace bdsp
 	{
 	public:
 		FilterVisualizer(GUI_Universals* universalsToUse, dsp::FilterBase<float>* filterToUse, BaseSlider* typeSlider, BaseSlider* freqSlider, BaseSlider* qSlider, BaseSlider* mixSlider = nullptr, int numSamples = 200);
-		void resized() override;
 
 
 

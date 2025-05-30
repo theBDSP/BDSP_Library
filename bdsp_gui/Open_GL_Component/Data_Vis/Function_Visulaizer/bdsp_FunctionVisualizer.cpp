@@ -137,7 +137,7 @@ namespace bdsp
 
 			vertexBuffer.set(3,
 				{
-					scalingX, zeroY -dH,
+					scalingX, zeroY - dH,
 					r,g,b,a
 				});
 		}
@@ -256,6 +256,8 @@ namespace bdsp
 			width = std::make_unique<juce::OpenGLShaderProgram::Uniform>(*fillShaderProgram.get(), "u_width");
 			width->set(fillWidth);
 
+			endpoint = std::make_unique<juce::OpenGLShaderProgram::Uniform>(*fillShaderProgram.get(), "u_endpoint");
+			setEndpoint(endPointVal);
 		}
 		else
 		{
@@ -282,6 +284,43 @@ namespace bdsp
 			ib.add(i);
 		}
 	}
+
+	void OpenGLFunctionVisualizer::setFillPos(float newFillPos)
+	{
+		newFillPos = (scalingX * (2 * newFillPos - 1) + 1) / 2;
+		if (newFillPos != fillPos)
+		{
+			fillPos = newFillPos;
+			pos->set(fillPos);
+		}
+	}
+
+	void OpenGLFunctionVisualizer::setEndpoint(float newEndpoint)
+	{
+		newEndpoint = (scalingX * (2 * newEndpoint - 1) + 1) / 2;
+		if (newEndpoint != endPointVal)
+		{
+			endPointVal = newEndpoint;
+			endpoint->set(endPointVal);
+			repaintThreadChecked();
+		}
+	}
+
+	void OpenGLFunctionVisualizer::paintOverChildren(juce::Graphics& g)
+	{
+		auto rect = getLocalBounds().toFloat().getProportion(juce::Rectangle<float>(endPointVal, 0, 1 - endPointVal, 1));
+
+		auto c = getBackgroundColor().getColor(isEnabled()).withMultipliedAlpha(1 - universals->disabledAlpha);
+
+
+		g.setColour(c);
+		g.fillRect(rect);
+	}
+
+	void OpenGLFunctionVisualizer::visibilityChanged()
+	{
+	}
+
 
 
 	void OpenGLFunctionVisualizer::generateVertexBuffer()

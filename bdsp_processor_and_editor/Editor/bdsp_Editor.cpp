@@ -42,8 +42,7 @@ namespace bdsp
 
 	Editor::~Editor()
 	{
-		contextHolder.detach();
-
+		shutdownOpenGlAnimation();
 
 
 
@@ -82,10 +81,7 @@ namespace bdsp
 
 		//topLevelComp->aspectRatio = (double)getWidth() / getHeight();
 		topLevelComp->setBounds(getLocalBounds());
-		if (topLevelComp->sidebarOpen)
-		{
-			topLevelComp->sideBarContainer->setBounds(topLevelComp->sideBarContainer->getBounds().reduced(0, GUIUniversals.rectThicc).withWidth(topLevelComp->sideBarContainer->getWidth() - GUIUniversals.rectThicc));
-		}
+
 
 		GUIUniversals.desktopManager.setBounds(getLocalBounds());
 		GUIUniversals.desktopManager.mainArea = topLevelComp->mainArea.getBounds();
@@ -252,6 +248,7 @@ namespace bdsp
 		GUIUniversals.systemScaleFactor = newScale;
 		resized();
 	}
+
 
 	void Editor::dimPlugin(bool dim)
 	{
@@ -451,7 +448,7 @@ namespace bdsp
 
 		//================================================================================================================================================================================================
 		auto& audioProcessor = e->audioProcessor;
-		auto* GUIUniversals = &e->GUIUniversals;
+		universals = &e->GUIUniversals;
 
 		//================================================================================================================================================================================================
 
@@ -464,13 +461,13 @@ namespace bdsp
 			}
 		};
 
-		Alert = std::make_unique<AlertWindow>(AlertShowHideFunc, GUIUniversals);
+		Alert = std::make_unique<AlertWindow>(AlertShowHideFunc, universals);
 
 
 		//================================================================================================================================================================================================
 
 
-		BPM = std::make_unique<BPMComponent>(audioProcessor.BPMFollow.get(), GUIUniversals, Alert.get(), BDSP_COLOR_WHITE, BDSP_COLOR_WHITE, BDSP_COLOR_LIGHT);
+		BPM = std::make_unique<BPMComponent>(audioProcessor.BPMFollow.get(), universals, Alert.get(), BDSP_COLOR_WHITE, BDSP_COLOR_WHITE, BDSP_COLOR_LIGHT);
 		BPM->attach(*audioProcessor.parameters.get());
 
 		BPM->getHostSlider()->setHintBarText(juce::String("BPM set by the host"));
@@ -496,19 +493,20 @@ namespace bdsp
 
 
 		//================================================================================================================================================================================================
-		e->linkables = std::make_unique<LinkableControlComponents>(&audioProcessor.envelopeSourceList, GUIUniversals, &audioProcessor.settingsTree, BPM.get());
+		e->linkables = std::make_unique<LinkableControlComponents>(&audioProcessor.envelopeSourceList, universals, &audioProcessor.settingsTree, BPM.get());
 
 		e->Macros = e->linkables->getMacros();
 		e->LFOs = e->linkables->getLFOs();
 		e->EnvelopeFollowers = e->linkables->getEnvelopeFolowers();
+		e->Sequencers = e->linkables->getSequencers();
 
-		GUIUniversals->controlComps = e->linkables.get();
+		universals->controlComps = e->linkables.get();
 
 		for (int i = 0; i < audioProcessor.linkableControlIDs.size(); i++)
 		{
 			auto newID = juce::Identifier(audioProcessor.linkableControlIDs[i]);
 			e->linkables->controls[i]->setID(newID);
-			//GUIUniversals.e->linkables->controls[i]->name = audioProcessor.linkableControlNames[i];
+			//universals.e->linkables->controls[i]->name = audioProcessor.linkableControlNames[i];
 			e->linkables->controls[i]->setControlObject(audioProcessor.controlObjects[i]);
 
 			e->linkables->controls[i]->setColor(BDSP_COLOR_WHITE, BDSP_COLOR_WHITE);
@@ -518,8 +516,8 @@ namespace bdsp
 			auto macroCast = dynamic_cast<MacroComponent*>(controlComp);
 
 
-			GUIUniversals->hintBar->addTextToRecolor({ controlComp->defaultName, BDSP_COLOR_WHITE });
-			GUIUniversals->hintBar->addTextToRecolor({ controlComp->defaultName + "'s", BDSP_COLOR_WHITE });
+			universals->hintBar->addTextToRecolor({ controlComp->defaultName, BDSP_COLOR_WHITE });
+			universals->hintBar->addTextToRecolor({ controlComp->defaultName + "'s", BDSP_COLOR_WHITE });
 
 
 
@@ -536,15 +534,22 @@ namespace bdsp
 			}
 			else if (i < BDSP_NUMBER_OF_MACROS + BDSP_NUMBER_OF_LFOS) // LFO
 			{
-				text = controlComp->defaultName + " - Modifiy multiple parameters over time";
+				text = controlComp->defaultName + " - Modifiy multiple parameters in response to a low frequency oscillator";
 				compCast->getHintBackground()->setHintBarText(text);
 				compsThatCopyText.add(compCast->getVisualizer());
 				compsThatCopyText.add(compCast->getTitleComponent());
 
 			}
-			else
+			else if (i < BDSP_NUMBER_OF_MACROS + BDSP_NUMBER_OF_LFOS + BDSP_NUMBER_OF_ENVELOPE_FOLLOWERS) // ENV
 			{
 				text = controlComp->defaultName + " - Modify multiple parameters in response to an audio signal";
+				compCast->getHintBackground()->setHintBarText(text);
+				compsThatCopyText.add(compCast->getVisualizer());
+				compsThatCopyText.add(compCast->getTitleComponent());
+			}
+			else // SEQ
+			{
+				text = controlComp->defaultName + " - Modify multiple parameters in response to a sequenced pattern";
 				compCast->getHintBackground()->setHintBarText(text);
 				compsThatCopyText.add(compCast->getVisualizer());
 				compsThatCopyText.add(compCast->getTitleComponent());
@@ -556,30 +561,22 @@ namespace bdsp
 			}
 
 		}
-		//for (auto c : GUIUniversals.universals->e->linkables->controls)
-		//{
-		//	LFOComponent* lfo = dynamic_cast<LFOComponent*>(c);
-		//	if (lfo)
-		//	{
-		//		lfo->attach();
-		//	}
-		//}
 
-		GUIUniversals->propertiesFolder = &audioProcessor.propertiesFolder;
+		universals->propertiesFolder = &audioProcessor.propertiesFolder;
 
-		mainArea.addAndMakeVisible(GUIUniversals->hintBar.get());
-//		//juce::Desktop::getInstance().setDefaultLookAndFeel(&GUIUniversals.MasterBaseLNF);
+		mainArea.addAndMakeVisible(universals->hintBar.get());
+		//		//juce::Desktop::getInstance().setDefaultLookAndFeel(&universals.MasterBaseLNF);
 
 
-		sideBarContainer = std::make_unique<TexturedContainerComponent>(GUIUniversals, BDSP_COLOR_DARK);
+		sideBarContainer = std::make_unique<bdsp::Component>(universals);
 		//sideBarContainer->addMouseListener(this, true);
 		addAndMakeVisible(sideBarContainer.get());
 
 
-		sideBarContainerCloser = std::make_unique<MultiShapeButton>(GUIUniversals);
+		sideBarContainerCloser = std::make_unique<MultiShapeButton>(universals);
 
 
-		sideBarContainerCloser->addShapes(Shape(GUIUniversals->commonPaths.closeButton, BDSP_COLOR_WHITE, juce::Rectangle<float>(0, 0, 1, 1)));
+		sideBarContainerCloser->addShapes(Shape(universals->commonPaths.closeButton, BDSP_COLOR_WHITE, juce::Rectangle<float>(0, 0, 1, 1)));
 
 		sideBarContainerCloser->onClick = [=]()
 		{
@@ -590,7 +587,7 @@ namespace bdsp
 
 		//================================================================================================================================================================================================
 
-		undoRedo = std::make_unique<bdsp::UndoRedoButtons>(GUIUniversals, BDSP_COLOR_WHITE);
+		undoRedo = std::make_unique<bdsp::UndoRedoButtons>(universals, BDSP_COLOR_WHITE);
 		mainArea.addAndMakeVisible(undoRedo.get());
 
 		//================================================================================================================================================================================================
@@ -598,7 +595,7 @@ namespace bdsp
 
 
 
-		logo = std::make_unique<Logo>(GUIUniversals);
+		logo = std::make_unique<Logo>(universals);
 
 
 		mainArea.addAndMakeVisible(logo.get());
@@ -606,7 +603,7 @@ namespace bdsp
 
 
 
-		settings = std::make_unique<SettingsMenu>(GUIUniversals, &audioProcessor.settings, audioProcessor.propertiesFolder.getFolder().findChildFiles(juce::File::findFiles, false, "*.pdf").getFirst());
+		settings = std::make_unique<SettingsMenu>(universals, &audioProcessor.settings, audioProcessor.propertiesFolder.getFolder().findChildFiles(juce::File::findFiles, false, "*.pdf").getFirst());
 
 		for (auto i : audioProcessor.settings.exclusionGroups)
 		{
@@ -669,7 +666,7 @@ namespace bdsp
 
 
 
-		preset = std::make_unique<PresetManager>(GUIUniversals, audioProcessor.Handler.get(), Alert.get());
+		preset = std::make_unique<PresetManager>(universals, audioProcessor.Handler.get(), Alert.get());
 		preset->browserOpenClose = [=](bool open)
 		{
 
@@ -714,13 +711,21 @@ namespace bdsp
 	inline void Editor::TopLevelGUIComponent::resized()
 	{
 		mainArea.setSize(getHeight() * aspectRatio, getHeight());
+
 		if (sidebarOpen)
 		{
 			auto sideRect = juce::Rectangle<int>(mainArea.getRight(), 0, getWidth() - mainArea.getWidth(), getHeight());
-			sideBarContainer->setBounds(sideRect);
-			sideBarContainerCloser->setBoundsRelative(0.95, 0.01, 0.025, 0.025);
-			settings->setBoundsRelative(0.025, 0.01, 0.95, 0.98);
-			preset->browser.setBoundsRelative(0.025, 0.01, 0.95, 0.98);
+			sideBarContainer->setBounds(sideRect.reduced(0, universals->rectThicc).withWidth(sideRect.getWidth() - universals->rectThicc));
+			auto closerSize = 1.5 * universals->roundedRectangleCurve;
+			auto closerInset = 1.5 * universals->rectThicc;
+			auto closerBounds = juce::Rectangle<float>(sideBarContainer->getWidth() - closerSize - closerInset, closerInset, closerSize, closerSize);
+			sideBarContainerCloser->setBounds(shrinkRectangleToInt(closerBounds));
+
+			sideRect = sideBarContainer->getLocalBounds().withTrimmedTop(sideBarContainerCloser->getBottom()).reduced(universals->rectThicc, 0);
+			settings->setBounds(sideRect);
+			preset->browser.setBounds(sideRect);
+
+
 		}
 	}
 

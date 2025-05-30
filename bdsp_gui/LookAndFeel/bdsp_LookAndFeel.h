@@ -35,6 +35,8 @@ namespace bdsp
 
 		void drawTextEditorOutline(juce::Graphics&, int width, int height, juce::TextEditor&) override;
 
+		void drawScrollbar(juce::Graphics& g, juce::ScrollBar& scrollbar, int x, int y, int width, int height, bool isScrollbarVertical, int thumbStartPosition, int thumbSize, bool isMouseOver, bool isMouseDown) override;
+
 		GUI_Universals* universals;
 
 

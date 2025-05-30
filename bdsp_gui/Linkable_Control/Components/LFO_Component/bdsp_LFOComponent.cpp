@@ -112,7 +112,7 @@ namespace bdsp
 		rate->getDivision()->setHintBarText(defaultName + "'s rate division");
 
 
-		rate->setCorners(CornerCurves(CornerCurves::topLeft | CornerCurves::bottomLeft));
+		rate->setCorners(CornerCurves::left);
 		addAndMakeVisible(rate.get());
 
 		rateLabel = std::make_unique<Label>(universals);
@@ -261,7 +261,7 @@ namespace bdsp
 	{
 
 		//rate->setFracColors(c, BDSP_COLOR_BLACK);
-		rate->setFracColors(BDSP_COLOR_PURE_BLACK, c, BDSP_COLOR_KNOB, BDSP_COLOR_PURE_BLACK, BDSP_COLOR_MID);
+		rate->setFracColors(BDSP_COLOR_PURE_BLACK, c, BDSP_COLOR_KNOB, BDSP_COLOR_PURE_BLACK, NamedColorsIdentifier());
 		if (c.ID.toString() == BDSP_COLOR_WHITE)
 		{
 			rate->getDivision()->setColorSchemeClassic(BDSP_COLOR_KNOB, NamedColorsIdentifier(), NamedColorsIdentifier(BDSP_COLOR_BLACK), c.withMultipliedAlpha(universals->lowOpacity));
@@ -413,14 +413,12 @@ namespace bdsp
 
 		if (w <= 1)
 		{
-			g.drawVerticalLine(visualizer->getBounds().getCentreX(), visualizer->getY(), visualizer->getBottom());
 			g.drawVerticalLine((shape->getRight() + skew->getX()) / 2, shape->getY(), shape->getBottom());
 			g.drawVerticalLine((skew->getRight() + amplitude->getX()) / 2, skew->getY(), skew->getBottom());
 
 		}
 		else
 		{
-			g.fillRect(juce::Rectangle<float>(visualizer->getBounds().getCentreX() - w / 2, visualizer->getY(), w, visualizer->getHeight()));
 			g.fillRect(juce::Rectangle<float>((shape->getRight() + skew->getX()) / 2 - w / 2, shape->getY(), w, shape->getHeight()));
 			g.fillRect(juce::Rectangle<float>((skew->getRight() + amplitude->getX()) / 2 - w / 2, skew->getY(), w, skew->getHeight()));
 		}

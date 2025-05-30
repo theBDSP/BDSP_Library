@@ -27,12 +27,6 @@ namespace bdsp
 
 	};
 
-	class LFOWaveVisualizer : public OpenGlComponentWrapper<LFOWaveVisualizerInternal>
-	{
-	public:
-		LFOWaveVisualizer(GUI_Universals* universalsToUse, LFOComponent* parentComp, dsp::DSP_Universals<float>* lookupsToUse);
-
-	};
 
 
 	//================================================================================================================================================================================================
@@ -54,12 +48,7 @@ namespace bdsp
 
 	};
 
-	class LFOResultVisualizer : public OpenGlComponentWrapper<LFOResultVisualizerInternal>
-	{
-	public:
-		LFOResultVisualizer(GUI_Universals* universalsToUse, LinkableControl* control);
 
-	};
 
 
 	class LFOVisualizer : public Component
@@ -69,14 +58,24 @@ namespace bdsp
 		virtual ~LFOVisualizer() = default;
 		void resized() override;
 		void paint(juce::Graphics& g) override;
+		void paintOverChildren(juce::Graphics& g) override;
 
-		LFOWaveVisualizer* getWaveComponent();
-		LFOResultVisualizer* getResultComponent();
+		LFOWaveVisualizerInternal* getWaveComponent();
+		LFOResultVisualizerInternal* getResultComponent();
+
+
+		void setOutlineColor(const NamedColorsIdentifier& color)
+		{
+			outlineColor = color;
+			repaint();
+		}
 
 		void setColor(const NamedColorsIdentifier& newLineColor, const NamedColorsIdentifier& newZeroLineColor = NamedColorsIdentifier(), const NamedColorsIdentifier& newTopCurveColor = NamedColorsIdentifier(), const NamedColorsIdentifier& newBotCurveColor = NamedColorsIdentifier(), const NamedColorsIdentifier& newPosColor = NamedColorsIdentifier());
 	private:
-		LFOWaveVisualizer wave;
-		LFOResultVisualizer result;
+		LFOWaveVisualizerInternal wave;
+		LFOResultVisualizerInternal result;
+		NamedColorsIdentifier outlineColor = BDSP_COLOR_DARK;
+
 	};
 
 } // namespace bdsp

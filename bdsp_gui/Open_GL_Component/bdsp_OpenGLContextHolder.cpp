@@ -59,7 +59,7 @@ namespace bdsp
 	//==============================================================================
 	// Clients MUST call unregisterOpenGlRenderer manually in their destructors!!
 
-	void GlContextHolder::registerOpenGlRenderer(juce::Component* child)
+	void GlContextHolder::registerOpenGlRenderer(OpenGLComponent* child)
 	{
 		jassert(juce::MessageManager::getInstance()->isThisTheMessageThread());
 
@@ -75,7 +75,7 @@ namespace bdsp
 			jassertfalse;
 	}
 
-	void GlContextHolder::unregisterOpenGlRenderer(juce::Component* child)
+	void GlContextHolder::unregisterOpenGlRenderer(OpenGLComponent* child)
 	{
 		jassert(juce::MessageManager::getInstance()->isThisTheMessageThread());
 
@@ -109,7 +109,7 @@ namespace bdsp
 		backgroundColour = c;
 	}
 
-	bool GlContextHolder::getComponentRegistrationStatus(juce::Component* c)
+	bool GlContextHolder::getComponentRegistrationStatus(OpenGLComponent* c)
 	{
 		return findClientIndexForComponent(c) > -1;
 	}
@@ -118,7 +118,7 @@ namespace bdsp
 
 	void GlContextHolder::checkComponents(bool isClosing, bool isDrawing)
 	{
-		juce::Array<juce::Component*> initClients, runningClients;
+		juce::Array<Client*> initClients, runningClients;
 
 		{
 			juce::ScopedLock arrayLock(clients.getLock());
@@ -135,8 +135,8 @@ namespace bdsp
 				{
 					Client::State nextState = (isClosing ? Client::State::suspended : client->nextState);
 
-					if (client->currentState == Client::State::running && nextState == Client::State::running)   runningClients.add(client->c);
-					else if (client->currentState == Client::State::suspended && nextState == Client::State::running)   initClients.add(client->c);
+					if (client->currentState == Client::State::running && nextState == Client::State::running)   runningClients.add(client);
+					else if (client->currentState == Client::State::suspended && nextState == Client::State::running)   initClients.add(client);
 					else if (client->currentState == Client::State::running && nextState == Client::State::suspended)
 					{
 						dynamic_cast<juce::OpenGLRenderer*> (client->c)->openGLContextClosing();
@@ -148,16 +148,17 @@ namespace bdsp
 		}
 
 		for (int i = 0; i < initClients.size(); ++i)
-			dynamic_cast<juce::OpenGLRenderer*> (initClients.getReference(i))->newOpenGLContextCreated();
+			initClients.getReference(i)->c->newOpenGLContextCreated();
 
 		if (runningClients.size() > 0 && isDrawing)
 		{
+			runningClients.sort(sorter, true);
 			const float displayScale = juce::jmax(static_cast<float>(context.getRenderingScale()), juce::Desktop::getInstance().getGlobalScaleFactor());
 			const juce::Rectangle<int> parentBounds = expandRectangleToInt(parent.getLocalBounds().toFloat() * displayScale);
 
 			for (int i = 0; i < runningClients.size(); ++i)
 			{
-				juce::Component* comp = runningClients.getReference(i);
+				OpenGLComponent* comp = runningClients.getReference(i)->c;
 
 				juce::Rectangle<int> r = expandRectangleToInt(parent.getLocalArea(comp, comp->getLocalBounds()).toFloat() * displayScale);
 
@@ -172,7 +173,7 @@ namespace bdsp
 						(GLsizei)r.getWidth(), (GLsizei)r.getHeight()));
 					//juce::OpenGLHelpers::clear(backgroundColour);
 
-					dynamic_cast<juce::OpenGLRenderer*> (comp)->renderOpenGL();
+					comp->renderOpenGL();
 					juce::gl::glDisable(juce::gl::GL_SCISSOR_TEST);
 				}
 			}
@@ -184,7 +185,8 @@ namespace bdsp
 
 	void GlContextHolder::componentBeingDeleted(juce::Component& component)
 	{
-		const int index = findClientIndexForComponent(&component);
+		auto cast = dynamic_cast<OpenGLComponent*>(&component);
+		const int index = findClientIndexForComponent(cast);
 
 		if (index >= 0)
 		{
@@ -231,7 +233,7 @@ namespace bdsp
 
 	//==============================================================================
 
-	int GlContextHolder::findClientIndexForComponent(juce::Component* comp) const
+	int GlContextHolder::findClientIndexForComponent(OpenGLComponent* comp) const
 	{
 		const int n = clients.size();
 		for (int i = 0; i < n; ++i)
@@ -242,7 +244,7 @@ namespace bdsp
 		return -1;
 	}
 
-	GlContextHolder::Client* GlContextHolder::findClientForComponent(juce::Component* comp) const
+	GlContextHolder::Client* GlContextHolder::findClientForComponent(OpenGLComponent* comp) const
 	{
 		const int index = findClientIndexForComponent(comp);
 		if (index >= 0)
@@ -254,9 +256,13 @@ namespace bdsp
 		return nullptr;
 	}
 
-	GlContextHolder::Client::Client(juce::Component* comp, State nextStateToUse)
+	GlContextHolder::Client::Client(OpenGLComponent* comp, State nextStateToUse)
 		: c(comp), currentState(State::suspended), nextState(nextStateToUse)
 	{
 
+	}
+	int GlContextHolder::ClientSorter::compareElements(Client* first, Client* second)
+	{
+		return first->c->glDepthOrder - second->c->glDepthOrder;
 	}
 } // namespace bdsp

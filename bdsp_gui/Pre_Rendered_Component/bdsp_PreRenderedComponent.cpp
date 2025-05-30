@@ -123,6 +123,7 @@ namespace bdsp
 	{
 		background = backgroundColor;
 		background2 = backgroundColorGradient;
+		colorsChanged();
 		repaint();
 	}
 

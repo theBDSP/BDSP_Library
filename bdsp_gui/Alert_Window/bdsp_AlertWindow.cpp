@@ -14,9 +14,6 @@ namespace bdsp
 
 
 
-		Header.setJustificationType(juce::Justification::centred);
-		Body.setJustificationType(juce::Justification::centred);
-
 		//Header.addMouseListener(this,true);
 		//Body.addMouseListener(this,true);
 
@@ -42,17 +39,23 @@ namespace bdsp
 	}
 
 
-	
+
 	void AlertWindow::reset()
 	{
 		leftButton.reset();
 		centerButton.reset();
 		rightButton.reset();
 
-		Header.setText("", juce::dontSendNotification);
-		Body.setText("", juce::dontSendNotification);
+		headerText.clear();
+		bodyText.clear();
 		onSelect = std::function<void(int)>();
+
+		if (isShowing())
+		{
+			repaint();
+		}
 	}
+
 
 	void AlertWindow::addItemToQueue(const AlertWindowItem& item)
 	{
@@ -121,7 +124,7 @@ namespace bdsp
 
 	void AlertWindow::resize()
 	{
-		setBounds(manager->mainArea.getProportion(juce::Rectangle<float>((1 - relWidth) / 2.0f, (1 - relHeight) / 2.0f, relWidth, relHeight)).withCentre(manager->getBounds().getCentre()));
+		setBounds(manager->mainArea.getProportion(juce::Rectangle<float>(relWidth, relHeight)).withCentre(manager->getBounds().getCentre()));
 
 		auto reduced = getLocalBounds().reduced(universals->roundedRectangleCurve);
 		Header.setBounds(reduced.getProportion(juce::Rectangle<float>(0, 0, 1, HeaderRatio)));
@@ -175,8 +178,7 @@ namespace bdsp
 		//================================================================================================================================================================================================
 		auto dividerColor = getColor(BDSP_COLOR_KNOB);
 		g.setColour(getColor(HeaderBKGD));
-		juce::Path header;
-		header.addRoundedRectangle(reduced.getX(), reduced.getY(), reduced.getWidth(), Header.getBottom() - reduced.getY(), universals->roundedRectangleCurve, universals->roundedRectangleCurve, true, true, false, false);
+		juce::Path header = getRoundedRectangleFromCurveBools(reduced.withHeight(Header.getHeight()), CornerCurves::top, universals->roundedRectangleCurve);
 		g.fillPath(header);
 		bdsp::drawDivider(g, juce::Line<float>(reduced.getX(), Header.getBottom(), reduced.getRight(), Header.getBottom()), dividerColor, universals->dividerSize);
 
@@ -184,8 +186,7 @@ namespace bdsp
 		//================================================================================================================================================================================================
 		auto y = reduced.getRelativePoint(0.0f, HeaderRatio + BodyRatio).y;
 		g.setColour(getColor(HeaderBKGD));
-		juce::Path footer;
-		footer.addRoundedRectangle(reduced.getX(), y, reduced.getWidth(), reduced.getBottom() - y, universals->roundedRectangleCurve, universals->roundedRectangleCurve, false, false, true, true);
+		juce::Path footer = getRoundedRectangleFromCurveBools(reduced.withTop(y), CornerCurves::bottom, universals->roundedRectangleCurve);
 		g.fillPath(footer);
 		bdsp::drawDivider(g, juce::Line<float>(reduced.getX(), y, reduced.getRight(), y).reversed(), dividerColor, universals->dividerSize);
 
@@ -198,8 +199,8 @@ namespace bdsp
 		auto headerRect = Header.getBounds().withSizeKeepingCentre(Header.getWidth() * contentW, Header.getHeight());
 
 		g.setColour(getColor(HeaderText));
-		g.setFont(resizeFontToFit(universals->Fonts[headerFontIndex].getFont(), headerRect.getWidth() * contentW, headerRect.getHeight() * 0.9f, Header.getText()));
-		drawText(g, g.getCurrentFont(), Header.getText(), headerRect);
+		g.setFont(resizeFontToFit(universals->Fonts[headerFontIndex].getFont(), headerRect.getWidth() * contentW, headerRect.getHeight() * 0.9f, headerText));
+		drawText(g, g.getCurrentFont(), headerText, headerRect);
 
 
 
@@ -207,7 +208,7 @@ namespace bdsp
 		g.setColour(getColor(BodyText));
 		g.setFont(universals->Fonts[bodyFontIndex].getFont().withHeight(g.getCurrentFont().getHeight() * 0.9f));
 		//g.drawMultiLineText(Body.getText(), (1 - contentW*contentW) / 2.0 * reduced->getWidth(), Body.getY() + g.getCurrentFont().getHeight() * 1.5, reduced->getWidth() * contentW*contentW, juce::Justification::centred);
-		g.drawFittedText(Body.getText(), Body.getBounds().getProportion(juce::Rectangle<float>(0.05f, 0.05f, 0.9f, 0.9f)), juce::Justification::centredTop, Body.getHeight() / g.getCurrentFont().getHeight());
+		g.drawFittedText(bodyText, Body.getBounds().getProportion(juce::Rectangle<float>(0.05f, 0.05f, 0.9f, 0.9f)), juce::Justification::centredTop, Body.getHeight() / g.getCurrentFont().getHeight());
 
 
 		g.setColour(getColor(BDSP_COLOR_LIGHT));
@@ -373,11 +374,12 @@ namespace bdsp
 		}
 		setHighlighted(item.LeftName.isEmpty() ? (item.CenterName.isEmpty() ? 2 : 1) : 0); //furtherst left button
 
-		Header.setText(item.HeaderText, juce::dontSendNotification);
-		Body.setText(item.BodyText, juce::dontSendNotification);
+		headerText = item.HeaderText;
+		bodyText = item.BodyText;
 		onSelect = item.SelectFunction;
 
 		show();
+		repaint();
 	}
 
 

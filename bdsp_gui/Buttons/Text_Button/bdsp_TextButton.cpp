@@ -32,9 +32,9 @@ namespace bdsp
 
 		auto alpha = isEnabled() ? 1.0f : universals->disabledAlpha;
 
+		float rad = cornerRadius < 0 ? universals->roundedRectangleCurve : cornerRadius;
 
-
-		juce::Path p = getRoundedRectangleFromCurveBools(getLocalBounds().toFloat().reduced(outlineW), corners, universals->roundedRectangleCurve);
+		juce::Path p = getRoundedRectangleFromCurveBools(getLocalBounds().toFloat().reduced(outlineW), corners, rad);
 
 
 		//================================================================================================================================================================================================
@@ -114,6 +114,12 @@ namespace bdsp
 	void TextButton::setCorners(CornerCurves newCorners)
 	{
 		corners = newCorners;
+		repaint();
+	}
+
+	void TextButton::setCornerRadius(float newRadius)
+	{
+		cornerRadius = newRadius;
 		repaint();
 	}
 

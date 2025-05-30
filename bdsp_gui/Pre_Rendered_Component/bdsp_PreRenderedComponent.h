@@ -61,8 +61,7 @@ namespace bdsp
 		void paint(juce::Graphics& g) override;
 
 		void setColors(const NamedColorsIdentifier& backgroundColor, const NamedColorsIdentifier& backgroundColorGradient = NamedColorsIdentifier());
-
-	protected:
+		virtual void colorsChanged() {};
 		NamedColorsIdentifier background, background2;
 
 

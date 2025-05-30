@@ -68,7 +68,7 @@ namespace bdsp
 
 		std::unique_ptr<PathButton> lockButton;
 
-		CornerCurves corners = CornerCurves(CornerCurves::topRight | CornerCurves::bottomRight);
+		CornerCurves corners = CornerCurves::left;
 
 		JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(RangedContainerSyncFraction)
 

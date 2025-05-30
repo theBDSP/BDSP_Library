@@ -472,6 +472,7 @@ namespace bdsp
 	void ComboBoxBase::setCornerCurves(CornerCurves curveValues)
 	{
 		curvesVal = curveValues;
+		repaint();
 	}
 
 

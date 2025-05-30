@@ -171,6 +171,7 @@ namespace bdsp
 			void mouseExit(const juce::MouseEvent& e) override;
 			void mouseDrag(const juce::MouseEvent& e) override;
 
+			void resized() override;
 
 
 			/** Subclasses can override this to be told when a drag starts. */

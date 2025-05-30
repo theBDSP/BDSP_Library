@@ -20,7 +20,7 @@ namespace bdsp
 
 		}
 
-        virtual ~ParameterPointer() = default;
+		virtual ~ParameterPointer() = default;
 		bool operator > (ParameterPointer<paramType, T>& other)
 		{
 			return loadedValue > other.get();
@@ -162,15 +162,17 @@ namespace bdsp
 
 	protected:
 		void init();
+		virtual void onSettingsTreeCreation();
+
 		void createBPMParameter(juce::AudioProcessorValueTreeState::ParameterLayout& layout, int versionHint = 1);
 
 
 
-		void createSyncParameters(juce::AudioProcessorValueTreeState::ParameterLayout& layout, juce::String baseID, const juce::String& baseName, int denominator = 16, bool ranged = true, bool createLockParameter = false, int versionHint = 1, int snapVersionHint = -1);
-		void createSyncParameters(juce::AudioProcessorValueTreeState::ParameterLayout& layout, juce::String baseID, const juce::String& baseName, float defaultMsTime, float defaultFrac, int defaultDivision, int denominator = 16, bool ranged = true, bool createLockParameter = false, int versionHint = 1, int snapVersionHint = -1);
+		void createSyncParameters(juce::AudioProcessorValueTreeState::ParameterLayout& layout, juce::String baseID, const juce::String& baseName, int denominator = 16,int minBeats = 1, int maxBeats = 256, bool ranged = true, bool createLockParameter = false, juce::Array<int> includedDivisions = juce::Array<int>(), int versionHint = 1, int snapVersionHint = -1);
+		void createSyncParameters(juce::AudioProcessorValueTreeState::ParameterLayout& layout, juce::String baseID, const juce::String& baseName, float defaultMsTime, float defaultFrac, int defaultDivision, int denominator = 16, int minBeats = 1, int maxBeats = 256, bool ranged = true, bool createLockParameter = false, juce::Array<int> includedDivisions = juce::Array<int>(), int versionHint = 1, int snapVersionHint = -1);
 
-		void createSyncRateParameters(juce::AudioProcessorValueTreeState::ParameterLayout& layout, juce::String baseID, const juce::String& baseName, bool ranged = true, bool createLockParameter = false, int versionHint = 1, int snapVersionHint = -1);
-		void createSyncRateParameters(juce::AudioProcessorValueTreeState::ParameterLayout& layout, juce::String baseID, const juce::String& baseName, float defaultHzRate, float defaultFrac, int defaultDivision, bool ranged = true, bool createLockParameter = false, int versionHint = 1, int snapVersionHint = -1);
+		void createSyncRateParameters(juce::AudioProcessorValueTreeState::ParameterLayout& layout, juce::String baseID, const juce::String& baseName, int minBeats = 1, int maxBeats = 256, bool ranged = true, bool createLockParameter = false, juce::Array<int> includedDivisions = juce::Array<int>(), int versionHint = 1, int snapVersionHint = -1);
+		void createSyncRateParameters(juce::AudioProcessorValueTreeState::ParameterLayout& layout, juce::String baseID, const juce::String& baseName, float defaultHzRate, float defaultFrac, int defaultDivision, int minBeats = 1, int maxBeats = 256, bool ranged = true, bool createLockParameter = false, juce::Array<int> includedDivisions = juce::Array<int>(), int versionHint = 1, int snapVersionHint = -1);
 
 		void createControlParameters(juce::AudioProcessorValueTreeState::ParameterLayout& layout, juce::Array<int> versionHints = juce::Array<int>()); //  creates parameters for each control component
 
@@ -205,7 +207,6 @@ namespace bdsp
 
 		dsp::DSP_Universals<float> lookups;
 
-		std::unique_ptr<StateHandler> Handler;
 
 
 
@@ -228,6 +229,7 @@ namespace bdsp
 
 		juce::Array<LinkableControl*> sampleRateLinkableControls;
 		juce::Array<LFOParameterListener*> LFOParamListeners;
+		juce::Array<SequencerParameterListener*> SequencerParamListeners;
 
 
 
@@ -253,7 +255,7 @@ namespace bdsp
 		GenericParameterAttributes parameterAttributes;
 
 		dsp::SampleSourceList<float> envelopeSourceList;
-		bdsp::dsp::SampleSource<float>* inputSource,* sidechainSource;
+		bdsp::dsp::SampleSource<float>* inputSource, * sidechainSource;
 
 		juce::Array<DSPComponent*> dspComps;
 
@@ -280,6 +282,88 @@ namespace bdsp
 		juce::Array<juce::Point<float>> rateSnapValues;
 
 		std::function<void()> onParameterCreationCompletion; // function to be done once all parameters have been created and added to the APVTS
+
+		class HiddenParametersDummyProcessor : public juce::AudioProcessor
+		{
+		public:
+
+			HiddenParametersDummyProcessor(Processor* parentProcessor)
+			{
+				parent = parentProcessor;
+			}
+
+			void initAPVTS()
+			{
+				apvts = std::make_unique<juce::AudioProcessorValueTreeState>(*this, &parent->undoManager, juce::Identifier(parent->parameters->state.getType() + "Hidden"), std::move(layout));
+				for (auto p : orderedParams)
+				{
+					p->setAPVTS(apvts.get());
+				}
+			}
+
+			juce::AudioProcessorValueTreeState::ParameterLayout& getParameterLayout()
+			{
+				jassert(!apvts.operator bool());
+
+				return layout;
+			}
+
+			// Inherited via AudioProcessor
+			const juce::String getName() const override
+			{
+				return juce::String(parent->getName() + " Hidden Parameter Dummy");
+			}
+			void prepareToPlay(double sampleRate, int maximumExpectedSamplesPerBlock) override {}
+			void releaseResources() override {}
+			void processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages) override {}
+			double getTailLengthSeconds() const override
+			{
+				return parent->getTailLengthSeconds();
+			}
+
+			bool acceptsMidi() const override { return false; }
+			bool producesMidi() const override { return false; }
+			juce::AudioProcessorEditor* createEditor() override { return nullptr; }
+			bool hasEditor() const override { return false; }
+			int getNumPrograms() override
+			{
+				return parent->getNumPrograms();
+			}
+			int getCurrentProgram() override
+			{
+				return parent->getCurrentProgram();
+			}
+
+			void setCurrentProgram(int index) override {}
+			const juce::String getProgramName(int index) override
+			{
+				return parent->getProgramName(index) + " Hidden Parameter Dummy";
+			}
+			void changeProgramName(int index, const juce::String& newName) override {}
+			void getStateInformation(juce::MemoryBlock& destData) override
+			{
+			}
+			void setStateInformation(const void* data, int sizeInBytes) override
+			{
+				std::unique_ptr<juce::XmlElement> xmlState(getXmlFromBinary(data, sizeInBytes));
+
+				if (xmlState.get() != nullptr)
+				{
+					apvts->replaceState(juce::ValueTree().fromXml(*xmlState.get()));
+				}
+			}
+
+			std::unique_ptr<juce::AudioProcessorValueTreeState> apvts;
+			juce::Array<OrderedListParameter*> orderedParams;
+		private:
+			Processor* parent = nullptr;
+			juce::AudioProcessorValueTreeState::ParameterLayout layout;
+
+		};
+	public:
+
+		HiddenParametersDummyProcessor hiddenDummyProcessor;
+		std::unique_ptr<StateHandler> Handler;
 
 	};
 

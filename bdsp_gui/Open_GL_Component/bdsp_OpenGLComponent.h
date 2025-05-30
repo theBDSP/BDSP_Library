@@ -344,6 +344,8 @@ namespace bdsp
 
 		virtual void generateVertexBuffer();
 
+		void visibilityChanged() override;
+
 		VertexArray vertexBuffer;
 		IndexArray indexBuffer;
 
@@ -355,6 +357,11 @@ namespace bdsp
 
 		GLuint vbo; // Vertex buffer object.
 		GLuint ibo; // Index buffer object.
+
+		enum RenderPosition { Back, None, Front }; // Front - rendered after(on top) of all other gl comps, Back - rendered before(behind) of all other gl comps, None - rendered in the order it was added to the context holder
+
+		RenderPosition glDepthOrder = None;
+
 	protected:
 
 
@@ -551,7 +558,7 @@ namespace bdsp
 			g.fillRoundedRectangle(getLocalBounds().toFloat(), universals->roundedRectangleCurve);
 
 			g.setColour(vis->getBackgroundColor());
-			g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(universals->dividerSize), universals->roundedRectangleCurve);
+			g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(universals->dividerSize), universals->roundedRectangleCurve - universals->dividerSize);
 		}
 
 		void paintOverChildren(juce::Graphics& g) override

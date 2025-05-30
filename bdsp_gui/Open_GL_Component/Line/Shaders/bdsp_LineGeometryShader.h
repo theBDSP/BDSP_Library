@@ -22,21 +22,21 @@ namespace bdsp
 				const float PI2 = 1.5707963267948966192313216916398; // PI/2
 				
 				
-						
 				vec2 getThickness(in float screenThickness, inout float alphaMult)
 				{
 
 					alphaMult = 1;
 					float thickMult = 1;
-					if(screenThickness<1)
+					if(screenThickness<2)
 					{
-						thickMult = 1/screenThickness;
-						alphaMult = screenThickness;
+						thickMult = 2/screenThickness;
+						alphaMult = screenThickness/2;
 					}
 
 
 					return thickMult * screenThickness / u_viewport;
 				}
+
 
 				// takes a line as input and outputs a quad representing the widened line to the fragment shader
 				void main()

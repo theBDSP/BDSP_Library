@@ -16,6 +16,14 @@ namespace bdsp
 
 	OpenGLCircleRenderer::~OpenGLCircleRenderer()
 	{
+
+		if (buffersCreated)
+		{
+			juce::gl::glDeleteBuffers(1, &circleVbo);
+			juce::gl::glDeleteBuffers(1, &circleIbo);
+		}
+		circleShaderProgram.reset();
+
 		universals->contextHolder->unregisterOpenGlRenderer(this);
 	}
 
@@ -127,12 +135,6 @@ namespace bdsp
 	{
 		OpenGLComponent::openGLContextClosing();
 
-		if (buffersCreated)
-		{
-			juce::gl::glDeleteBuffers(1, &circleVbo);
-			juce::gl::glDeleteBuffers(1, &circleIbo);
-		}
-		circleShaderProgram.reset();
 	}
 
 	void OpenGLCircleRenderer::createVertexAttributes()

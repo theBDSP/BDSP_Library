@@ -24,11 +24,13 @@ namespace bdsp
 
 		int getPositionOfDragBox(int dragBoxIndex);
 
+		void attach(OrderedListParameter* param);
 		class DragBox : public BasicContainerComponent
 		{
 		public:
 			DragBox(RearrangableComponentManagerBase* parent, int index);
 
+			void paint(juce::Graphics& g) override;
 
 			int getIndex();
 			class Dragger : public juce::ComponentDragger, public Component
@@ -62,8 +64,19 @@ namespace bdsp
 			RearrangableComponentManagerBase* p = nullptr;
 			int idx;
 		};
+
+		class Listener
+		{
+		public:
+			virtual void componentOrderChanged(RearrangableComponentManagerBase* rearrangableCompThatChanged) = 0;
+		};
+
+		void addListener(Listener* listenerToAdd);
+		void removeListener(Listener* listenerToRemove);
+
 		virtual void addComponent(juce::Component* newComp);
 
+		void reorderComponents(const juce::Array<int>& newOrder, bool notifyListeners = true);
 		void reorderComponents(DragBox* boxMoved, int indexMovedTo, bool notifyListeners = true);
 		virtual void reorderComponents(int indexMoved, int indexMovedTo, bool notifyListeners = true);
 
@@ -71,11 +84,12 @@ namespace bdsp
 
 		int getNumComps() const;
 
+		juce::Array<int> getOrder();
 		void calculateLongestTitle();
 
 		std::function<void(int, int)> onComponentOrderChanged;
 		std::function<void(int, juce::Point<int>)> onDrag;
-
+		std::function<void(juce::Graphics&, DragBox*)> dragBoxPaintFunc;
 
 	protected:
 		class DragConstrainer : public juce::ComponentBoundsConstrainer
@@ -118,6 +132,45 @@ namespace bdsp
 		juce::OwnedArray<Component> draggerSlots;
 		bool instantSwap = true;
 		juce::Array<int> baselineDragOrder; // which slot each dragger controls before any dragging occurs, only used for non-instant swaps
+
+	private:
+		juce::ListenerList<Listener> listeners;
+
+		class RearrangableComponentParameterAttachment : public Listener
+		{
+		public:
+			RearrangableComponentParameterAttachment(OrderedListParameter& parameter, RearrangableComponentManagerBase& comp, juce::UndoManager* undoManager = nullptr);
+
+			void componentOrderChanged(RearrangableComponentManagerBase* rearrangableCompThatChanged) override;
+
+			class OrderedListParameterAttachment : public OrderedListParameter::Listener, public juce::AsyncUpdater
+			{
+			public:
+
+				OrderedListParameterAttachment(OrderedListParameter& parameter, RearrangableComponentManagerBase& comp, juce::UndoManager* undoManager = nullptr);
+
+				~OrderedListParameterAttachment();
+
+				void sendInitialUpdate();
+
+				void setValue(juce::Array<int> newOrder);
+			private:
+				RearrangableComponentManagerBase& rearrangeComp;
+				OrderedListParameter& storedParameter;
+				juce::UndoManager* um;
+
+				// Inherited via Listener
+				void orderChanged(const juce::Array<int> newOrder) override;
+
+				// Inherited via AsyncUpdater
+				void handleAsyncUpdate() override;
+
+			} parameterAttachment;
+			OrderedListParameter& listParameter;
+			RearrangableComponentManagerBase& listComp;
+		};
+
+		std::unique_ptr<RearrangableComponentParameterAttachment> attachment;
 	};
 
 	// rearrangeable comps that dont move themselves but swap children and contents

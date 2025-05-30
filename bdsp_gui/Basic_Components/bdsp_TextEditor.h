@@ -68,17 +68,29 @@ namespace bdsp
 			drawAttributedText(g, font, text, textBounds.withCentre({ textBounds.getCentreX(),getHeight() / 2.0f }));
 		}
 
+		void setColors(const NamedColorsIdentifier& newBackground, const NamedColorsIdentifier& newText, const NamedColorsIdentifier& newTextHighlight, const NamedColorsIdentifier& newHighlight)
+		{
+			background = newBackground;
+			text = newText;
+			textHighlight = newTextHighlight;
+			highlight = newHighlight;
+			GUI_UniversalsChanged();
+		}
 		std::function<void()> onFocusGained;
-		NamedColorsIdentifier background;
 	private:
 		juce::String maxText;
 
+		NamedColorsIdentifier background, text, textHighlight, highlight;
 
 
 		// Inherited via Listener
 		void GUI_UniversalsChanged() override
 		{
 			setColour(juce::TextEditor::backgroundColourId, getColor(background));
+			setColour(juce::TextEditor::textColourId, getColor(text));
+			setColour(juce::TextEditor::highlightedTextColourId, getColor(textHighlight));
+			setColour(juce::TextEditor::highlightColourId, getColor(highlight));
+			setColour(juce::CaretComponent::caretColourId, getColor(text));
 			repaint();
 		}
 

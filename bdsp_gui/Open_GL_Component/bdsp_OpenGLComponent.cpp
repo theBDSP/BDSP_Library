@@ -28,6 +28,13 @@ namespace bdsp
 		//}
 
 		openGLContextClosing();
+		shaderProgram.reset();
+		if (buffersCreated)
+		{
+			juce::gl::glDeleteBuffers(1, &vbo);
+			juce::gl::glDeleteBuffers(1, &ibo);
+		}
+
 		universals->contextHolder->unregisterOpenGlRenderer(this);
 
 	}
@@ -128,12 +135,6 @@ namespace bdsp
 		//indexBuffer.clear();
 
 		deleteUniforms();
-		shaderProgram.reset();
-		if (buffersCreated)
-		{
-			juce::gl::glDeleteBuffers(1, &vbo);
-			juce::gl::glDeleteBuffers(1, &ibo);
-		}
 
 	}
 
@@ -269,6 +270,18 @@ namespace bdsp
 
 	void OpenGLComponent::generateVertexBuffer()
 	{
+	}
+
+	void OpenGLComponent::visibilityChanged()
+	{
+		if (isVisible())
+		{
+			universals->contextHolder->registerOpenGlRenderer(this);
+		}
+		else
+		{
+			universals->contextHolder->unregisterOpenGlRenderer(this);
+		}
 	}
 
 

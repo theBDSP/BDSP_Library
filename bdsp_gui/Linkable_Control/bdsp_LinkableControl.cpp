@@ -95,6 +95,11 @@ namespace bdsp
 		startDragging(parent->ID.toString(), this, juce::ScaledImage(img), true, &offset);
 	}
 
+	void LinkableControlComponent::DragComp::resized()
+	{
+		setBounds(confineToAspectRatio(getBounds(), 1));
+	}
+
 	void LinkableControlComponent::DragComp::dragOperationStarted(const juce::DragAndDropTarget::SourceDetails&)
 	{
 		repaint();
