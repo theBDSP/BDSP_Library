@@ -115,7 +115,7 @@ namespace bdsp
 	template <typename T>
 	T arrayMax(T* arr, const int& size)
 	{
-		std::remove_const<T>::type max = arr[0];
+        typename std::remove_const<T>::type max = arr[0];
 		for (int i = 1; i < size; ++i)
 		{
 			if (arr[i] > max)
@@ -135,7 +135,7 @@ namespace bdsp
 	template <typename T>
 	T arrayMax(const juce::Array<T>& arr)
 	{
-		std::remove_const<T>::type max = arr[0];
+        typename std::remove_const<T>::type max = arr[0];
 		for (int i = 1; i < arr.size(); ++i)
 		{
 			if (arr[i] > max)
@@ -156,7 +156,7 @@ namespace bdsp
 	template <typename T>
 	T arrayMin(T* arr, const int& size)
 	{
-		std::remove_const<T>::type min = arr[0];
+        typename std::remove_const<T>::type min = arr[0];
 		for (int i = 1; i < size; ++i)
 		{
 			if (arr[i] < min)
@@ -176,7 +176,7 @@ namespace bdsp
 	template <typename T>
 	T arrayMin(juce::Array<T> arr)
 	{
-		std::remove_const<T>::type min = arr[0];
+        typename std::remove_const<T>::type min = arr[0];
 		for (int i = 1; i < arr.size(); ++i)
 		{
 			if (arr[i] < min)
@@ -197,7 +197,7 @@ namespace bdsp
 	template <typename T>
 	T arraySum(T* arr, int size)
 	{
-		std::remove_const<T>::type sum = arr[0];
+        typename std::remove_const<T>::type sum = arr[0];
 		for (int i = 1; i < size; ++i)
 		{
 			sum += arr[i];
@@ -214,13 +214,14 @@ namespace bdsp
 	template <typename T>
 	T arraySum(juce::Array<T> arr)
 	{
-		std::remove_const<T>::type sum = arr[0];
+        typename std::remove_const<T>::type sum = arr[0];
 		for (int i = 1; i < arr.size(); ++i)
 		{
 			sum += arr[i];
 		}
 		return sum;
 	}
+
 
 	/**
 	 * Checks if each element in a given array is unique within the array 
@@ -242,3 +243,4 @@ namespace bdsp
 	}
 
 } // namespace bdsp
+

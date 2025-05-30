@@ -16,7 +16,9 @@
 #define BDSP_FONT_HEIGHT_SCALING 0.8
 #endif
 
-
+#ifndef FLT_MIN
+#include <float.h>
+#endif
 
 
 #include "Containers/Lazy_Load/bdsp_LazyLoad.h"
