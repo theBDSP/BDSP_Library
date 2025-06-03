@@ -14,7 +14,7 @@ namespace bdsp
 		pixelFormat.stencilBufferBits = 8;
 		context.setPixelFormat(pixelFormat);
 
-		context.setSwapInterval(1);
+		context.setSwapInterval(0);
 
 #if DEBUG
 		context.setOpenGLVersionRequired(juce::OpenGLContext::openGL4_3);

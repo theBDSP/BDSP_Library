@@ -12,6 +12,19 @@ namespace bdsp
 			source = sourceToUse;
 			numBuffers = numOfBuffers;
 			bufferSize = sourceToUse->getBuffer().getNumSamples();
+            
+            auto prev = sourceToUse->onSizeSet;
+            
+            sourceToUse->onSizeSet=[=]()
+            {
+                if(prev.operator bool())
+                {
+                    prev();
+                }
+                
+                bufferSize = sourceToUse->getBuffer().getNumSamples();
+                initArrays(bufferSize);
+            };
 		}
 		void setColors(const NamedColorsIdentifier& newColor)
 		{
@@ -64,7 +77,7 @@ namespace bdsp
 	class LissajousMeter : public OpenGlComponentWrapper<LissajousMeterInternal<SampleType>>
 	{
 	public:
-		LissajousMeter(GUI_Universals* universalsToUse, dsp::SampleSource<SampleType>* sourceToUse)
+        LissajousMeter(GUI_Universals* universalsToUse, dsp::SampleSource<SampleType>* sourceToUse)
 			:OpenGlComponentWrapper<LissajousMeterInternal<SampleType>>(universalsToUse, sourceToUse)
 		{
 

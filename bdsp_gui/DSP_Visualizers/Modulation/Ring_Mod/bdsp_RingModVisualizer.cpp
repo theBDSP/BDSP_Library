@@ -21,7 +21,7 @@ namespace bdsp
 		setBipolar(true);
 		setJointType(-1, OpenGLLineRenderer::JointType::Rounded);
 		setCapType(-1, OpenGLLineRenderer::CapType::Round);
-
+        setEndpoint(1.0f);
 	}
 
 

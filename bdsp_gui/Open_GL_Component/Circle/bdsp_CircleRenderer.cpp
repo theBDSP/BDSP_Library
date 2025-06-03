@@ -5,11 +5,7 @@ namespace bdsp
 		:OpenGLComponent(universalsToUse),
 		circleVertexBuffer(8)
 	{
-		for (int i = 0; i < maxCircles; ++i)
-		{
-			circleIndexBuffer.add(i);
-		}
-		circleVertexBuffer.init(maxCircles);
+        initArrays(maxCircles);
 	}
 
 
@@ -191,5 +187,15 @@ namespace bdsp
 		viewportUniform = std::make_unique<juce::OpenGLShaderProgram::Uniform>(*circleShaderProgram.get(), "u_viewport");
 		viewportUniform->set(vpBounds.getWidth(), vpBounds.getHeight());
 	}
+
+    void OpenGLCircleRenderer::initArrays(int maxCircles)
+    {
+        circleIndexBuffer.clear();
+        for (int i = 0; i < maxCircles; ++i)
+        {
+            circleIndexBuffer.add(i);
+        }
+        circleVertexBuffer.init(maxCircles);
+    }
 
 } //namespace bdsp

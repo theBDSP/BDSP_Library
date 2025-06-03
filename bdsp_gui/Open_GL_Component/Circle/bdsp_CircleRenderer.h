@@ -31,7 +31,7 @@ namespace bdsp
 		void createVertexAttributes() override;
 		void removeVertexAttributes() override;
 
-
+        void initArrays(int maxCircles);
 		VertexArray circleVertexBuffer;
 		IndexArray circleIndexBuffer;
 

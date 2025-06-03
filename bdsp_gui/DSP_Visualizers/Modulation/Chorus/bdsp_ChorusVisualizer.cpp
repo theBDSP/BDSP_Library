@@ -12,7 +12,7 @@ namespace bdsp
 		lookup = lookupsToUse;
 
 		int numPoints = 50;
-		subClasses.add(new OpenGLLineRenderer(universals, 2 * numPoints)); // dry
+		subClasses.add(new OpenGLLineRenderer(universals,1, 2 * numPoints)); // dry
 		dry = dynamic_cast<OpenGLLineRenderer*>(subClasses.getLast());
 
 		dry->lineVertexBuffer.getFirst()->init(2 * numPoints);
