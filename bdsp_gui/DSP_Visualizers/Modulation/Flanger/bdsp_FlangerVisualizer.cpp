@@ -15,7 +15,7 @@ namespace bdsp
 			dryPoints.set(i, { x,sin(numEchos * PI * abs(x)) });
 		}
 
-		subClasses.add(new OpenGLLineRenderer(universals, numSamplePoints)); //dry
+		subClasses.add(new OpenGLLineRenderer(universals,1, numSamplePoints)); //dry
 		dry = dynamic_cast<OpenGLLineRenderer*>(subClasses.getLast());
 
 

@@ -81,7 +81,7 @@ namespace bdsp
 					stretch[c]->setTransposeSemitones(pitchAmt[c]->getCurrentValue());
 					stretch[c]->process(inputBridge, numSamples, outputBridge, numSamples);
 
-					juce::FloatVectorOperations::copy(BaseProcessingUnit<SampleType>::internalWetBlock.getChannelPointer(0), outputBridge.data(), BaseProcessingUnit<SampleType>::internalWetBlock.getNumSamples());
+					juce::FloatVectorOperations::copy(BaseProcessingUnit<SampleType>::internalWetBlock.getChannelPointer(c), outputBridge.data(), BaseProcessingUnit<SampleType>::internalWetBlock.getNumSamples());
 				}
 
 				latencyComp.mixWithLatencyCompensation(*BaseProcessingUnit<SampleType>::internalContext.get(), BaseProcessingUnit<SampleType>::smoothedDryMix, BaseProcessingUnit<SampleType>::smoothedWetMix);

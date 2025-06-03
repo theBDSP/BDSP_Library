@@ -57,7 +57,7 @@ namespace bdsp
 		void PitchShifter<SampleType>::setSmoothingTime(SampleType timeInSeconds)
 		{
 			BaseProcessingUnit<SampleType>::setSmoothingTime(timeInSeconds);
-			for (auto& p : pitchAmt)
+			for (auto* p : pitchAmt)
 			{
 				p->reset(BaseProcessingUnit<SampleType>::sampleRate, timeInSeconds);
 			}

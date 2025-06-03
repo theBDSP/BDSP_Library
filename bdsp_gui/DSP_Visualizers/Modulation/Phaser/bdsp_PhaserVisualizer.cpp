@@ -13,7 +13,7 @@ namespace bdsp
 
 		int numPoints = 50;
 
-		subClasses.add(new OpenGLLineRenderer(universals, 2 * numPoints));
+		subClasses.add(new OpenGLLineRenderer(universals,1, 2 * numPoints));
 		dry = dynamic_cast<OpenGLLineRenderer*>(subClasses.getLast());
 
 

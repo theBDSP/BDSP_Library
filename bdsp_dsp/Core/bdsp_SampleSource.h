@@ -33,6 +33,11 @@ namespace bdsp
 			{
 				buffer.setSize(spec.numChannels, spec.maximumBlockSize);
 				bufferPTR = 0;
+                
+                if(onSizeSet.operator bool())
+                {
+                    onSizeSet();
+                }
 			}
 
 
@@ -97,7 +102,7 @@ namespace bdsp
 				return buffer;
 			}
 
-			std::function<void()> onBufferFilled;
+			std::function<void()> onBufferFilled, onSizeSet;
 		protected:
 
 			juce::AudioBuffer<SampleType> buffer;

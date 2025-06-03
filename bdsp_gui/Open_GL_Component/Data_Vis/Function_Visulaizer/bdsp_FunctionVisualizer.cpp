@@ -2,7 +2,7 @@
 namespace bdsp
 {
 	OpenGLFunctionVisualizer::OpenGLFunctionVisualizer(GUI_Universals* universalsToUse, bool shouldHaveZeroLine, bool shouldRenderAreaUnderCurve, int numOfSamplePoints)
-		:OpenGLLineRenderer(universalsToUse, numOfSamplePoints),
+		:OpenGLLineRenderer(universalsToUse, 1,numOfSamplePoints),
 		lineColor(universalsToUse, this),
 		zeroLine(universalsToUse, this),
 		topCurve(universalsToUse, this),
