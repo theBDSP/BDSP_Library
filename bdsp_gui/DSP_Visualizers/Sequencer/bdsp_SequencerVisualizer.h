@@ -62,6 +62,7 @@ namespace bdsp
 		float numbersProportion = 0.5f;
 	private:
 		NamedColorsIdentifier dividerColor;
+		void setValueFromMouse(const juce::MouseEvent& e);
 
 		// Inherited via Listener
 		void GUI_UniversalsChanged() override

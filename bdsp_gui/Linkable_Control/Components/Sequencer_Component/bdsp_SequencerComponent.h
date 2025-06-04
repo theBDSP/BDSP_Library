@@ -5,7 +5,7 @@ constexpr int BDSP_SEQUENCER_STEPS = 16;
 namespace bdsp
 {
 
-	enum SequencerShapes :int { Empty, SawDown, SinDown, SawUp, SinUp, SquareFull, SquareHalf, Triangle, NUM };
+	enum SequencerShapes :int { Empty, SawDown, AccDown, DecDown, SawUp, AccUp, DecUp, SquareFull, SquareHalf, Triangle, NUM };
 
 	class SequencerParameterListener
 	{
