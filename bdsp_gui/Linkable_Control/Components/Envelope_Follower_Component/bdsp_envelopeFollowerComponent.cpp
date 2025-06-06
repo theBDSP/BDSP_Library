@@ -1,4 +1,4 @@
-#include "bdsp_EnvelopeFollowerComponent.h"
+#include "bdsp_envelopeFollowerComponent.h"
 
 namespace bdsp
 {
