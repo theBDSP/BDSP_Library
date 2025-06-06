@@ -6,8 +6,8 @@ namespace bdsp
 
 	template<typename SampleType>
 	LevelMeterController<SampleType>::LevelMeterController(dsp::SampleSource<SampleType>* sourceToTrack, SampleType attackMs, SampleType decayMs)
+		:source(sourceToTrack)
 	{
-		source = sourceToTrack;
 		filter.setLevelCalculationType(juce::dsp::BallisticsFilterLevelCalculationType::peak);
 		filter.setAttackTime(attackMs);
 		filter.setReleaseTime(decayMs);

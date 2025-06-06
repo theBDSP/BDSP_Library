@@ -44,7 +44,7 @@ namespace bdsp
 
 
 
-            BaseProcessingUnit<SampleType>::smoothTime = 0.15 * BaseProcessingUnit<SampleType>::sampleRate;
+			BaseProcessingUnit<SampleType>::smoothTime = 0.15 * BaseProcessingUnit<SampleType>::sampleRate;
 			reset();
 		}
 
@@ -89,7 +89,7 @@ namespace bdsp
 			readPos[(size_t)channel] = (readPos[(size_t)channel] + totalSize - 1) & (totalSize - 1);
 		}
 
-	
+
 		template<typename SampleType>
 		void DelayLineBase<SampleType>::setDelay(SampleType newValue)
 		{
@@ -102,7 +102,7 @@ namespace bdsp
 			return delayInt;
 		}
 
-	
+
 		template class DelayLineBase<float>;
 		template class DelayLineBase<double>;
 		//================================================================================================================================================================================================
@@ -131,7 +131,7 @@ namespace bdsp
 
 
 			initFeedback(0);
-            BaseProcessingUnit<SampleType>::initMix(1);
+			BaseProcessingUnit<SampleType>::initMix(1);
 			outputPanner.initPan(0);
 			initPongMix(0);
 
@@ -146,7 +146,7 @@ namespace bdsp
 			jassert(juce::isPositiveAndNotGreaterThan(targetDelay, DelayLineBase<SampleType>::totalSize - 1));
 
 
-			auto inc = (targetDelay - delay) / (BaseProcessingUnit<SampleType>::smoothTime); // calculates how much to increment the delay time this sample
+			auto inc = (targetDelay - delay) / (delaySmoothingTime * BaseProcessingUnit<SampleType>::sampleRate); // calculates how much to increment the delay time this sample
 			delay += inc;
 
 			DelayLineBase<SampleType>::delayInt = static_cast<int> (std::floor(delay));
@@ -214,7 +214,7 @@ namespace bdsp
 			//Fewer multiplication of: norm * (1-pongMix) + pong * pongMix
 			// norm + pongMix * (pong-norm)
 
-			return StereoSample<SampleType>(poppedSample.left + smoothedPongMix.getCurrentValue() * (poppedSample.right - poppedSample.left), 
+			return StereoSample<SampleType>(poppedSample.left + smoothedPongMix.getCurrentValue() * (poppedSample.right - poppedSample.left),
 				poppedSample.right + smoothedPongMix.getCurrentValue() * (poppedSample.left - poppedSample.right));
 		}
 
@@ -224,7 +224,7 @@ namespace bdsp
 		{
 			auto out = pingPongPop();
 			DelayLineBase<SampleType>::updateReadPointer(0);
-            DelayLineBase<SampleType>::updateReadPointer(1);
+			DelayLineBase<SampleType>::updateReadPointer(1);
 			return out;
 		}
 
@@ -235,7 +235,7 @@ namespace bdsp
 		}
 
 
-	
+
 		template<typename SampleType, typename DelayType, typename InterpolationType>
 		void DelayLine<SampleType, DelayType, InterpolationType>::setFeedback(SampleType newValue)
 		{
@@ -298,6 +298,12 @@ namespace bdsp
 			smoothedPongMix.reset(DelayLineBase<SampleType>::sampleRate, timeInSeconds);
 
 			outputPanner.setSmoothingTime(timeInSeconds);
+		}
+
+		template<typename SampleType, typename DelayType, typename InterpolationType>
+		void DelayLine<SampleType, DelayType, InterpolationType>::setDelaySmoothingTime(SampleType timeInSeconds)
+		{
+			delaySmoothingTime = timeInSeconds;
 		}
 
 

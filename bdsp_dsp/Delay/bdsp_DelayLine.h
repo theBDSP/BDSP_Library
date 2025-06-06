@@ -228,6 +228,7 @@ namespace bdsp
 			void updateSmoothedVariables() override;
 
 			void setSmoothingTime(SampleType timeInSeconds) override;
+			void setDelaySmoothingTime(SampleType timeInSeconds);
 
 			//================================================================================================================================================================================================
 
@@ -597,7 +598,7 @@ namespace bdsp
 
 
 			/**
-			 * PingPong 
+			 * PingPong
 			 * Delays each channel, inter-mixes the resulting channels, pushes the results back into the buffer, and outputs the results to the same channel
 			 */
 
@@ -621,6 +622,8 @@ namespace bdsp
 			DSP_Universals<SampleType>* lookup;
 			SampleType delay = 0.0, delayFrac = 0.0, targetDelay = 0;
 			std::vector<SampleType> v;
+
+			SampleType delaySmoothingTime = 0.25;
 
 			SampleType prevOutL = 0, prevOutR = 0, interpolatedSample;
 			SampleType  alpha = 0.0; // for Thiran

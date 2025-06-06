@@ -11,6 +11,7 @@ namespace bdsp
 	{
 	public:
 		EnvelopeFollowerParameterListener()
+			:currentSource(nullptr)
 		{
 
 			outputBuffer.setSize(1, 1);

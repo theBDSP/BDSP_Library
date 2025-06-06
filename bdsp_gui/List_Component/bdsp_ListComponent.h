@@ -44,6 +44,7 @@ namespace bdsp
 		int getCols();
 		void renameItem(int idx, const juce::String& newText);
 		virtual void clearItems();
+		virtual void setItems(const juce::StringArray& items, const juce::Array<int>& returnValues = juce::Array<int>());
 
 		void setMaxText(const juce::String& newText);
 
