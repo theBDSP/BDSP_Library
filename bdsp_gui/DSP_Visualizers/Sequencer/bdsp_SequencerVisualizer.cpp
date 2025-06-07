@@ -196,7 +196,7 @@ namespace bdsp
 
 	bool SequencerVisualizerInternal::shapeStartsVertical(SequencerShapes shape)
 	{
-		return shape == SequencerShapes::SawDown || shape == SequencerShapes::SinDown || shape == SequencerShapes::SquareFull || shape == SequencerShapes::SquareHalf;
+		return shape == SequencerShapes::SawDown || shape == SequencerShapes::AccDown || shape == SequencerShapes::DecDown || shape == SequencerShapes::SquareFull || shape == SequencerShapes::SquareHalf;
 	}
 
 

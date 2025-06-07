@@ -18,11 +18,11 @@ namespace bdsp
 
 		inputSource = std::make_unique<dsp::SampleSource<float>>("Input");
 		envelopeSourceList.add(inputSource.get());
-		
+
 		sidechainSource = std::make_unique<dsp::SampleSource<float>>("Side-Chain");
 		envelopeSourceList.add(sidechainSource.get());
 		sidechainExists = hasSidechain;
-		
+
 		suspendProcessing(true);
 
 
@@ -866,14 +866,20 @@ namespace bdsp
 			case SequencerShapes::SawDown:
 				seqShapeNames.add("Saw Down");
 				break;
+			case SequencerShapes::AccDown:
+				seqShapeNames.add("Accelerate Down");
+				break;
+			case SequencerShapes::DecDown:
+				seqShapeNames.add("Decelerate Down");
+				break;
 			case SequencerShapes::SawUp:
 				seqShapeNames.add("Saw Up");
 				break;
-			case SequencerShapes::SinDown:
-				seqShapeNames.add("Sin Down");
+			case SequencerShapes::AccUp:
+				seqShapeNames.add("Accelerate Up");
 				break;
-			case SequencerShapes::SinUp:
-				seqShapeNames.add("Sin Up");
+			case SequencerShapes::DecUp:
+				seqShapeNames.add("Decelerate Up");
 				break;
 			case SequencerShapes::SquareFull:
 				seqShapeNames.add("Square Full");
@@ -968,7 +974,7 @@ namespace bdsp
 	const juce::String Processor::getName() const
 	{
 		return JucePlugin_Name;
-}
+	}
 
 	bool Processor::acceptsMidi() const
 	{
@@ -1035,4 +1041,4 @@ namespace bdsp
 
 
 
-}// namnepace bdsp
+	}// namnepace bdsp
