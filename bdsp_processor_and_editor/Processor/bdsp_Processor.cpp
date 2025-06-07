@@ -855,7 +855,6 @@ namespace bdsp
 		}
 
 		juce::StringArray seqShapeNames;
-
 		for (int i = 0; i < SequencerShapes::NUM; ++i)
 		{
 			switch (SequencerShapes(i))
@@ -866,14 +865,20 @@ namespace bdsp
 			case SequencerShapes::SawDown:
 				seqShapeNames.add("Saw Down");
 				break;
+			case SequencerShapes::AccDown:
+				seqShapeNames.add("Accelerate Down");
+				break;
+			case SequencerShapes::DecDown:
+				seqShapeNames.add("Decelerate Down");
+				break;
 			case SequencerShapes::SawUp:
 				seqShapeNames.add("Saw Up");
 				break;
-			case SequencerShapes::SinDown:
-				seqShapeNames.add("Sin Down");
+			case SequencerShapes::AccUp:
+				seqShapeNames.add("Accelerate Up");
 				break;
-			case SequencerShapes::SinUp:
-				seqShapeNames.add("Sin Up");
+			case SequencerShapes::DecUp:
+				seqShapeNames.add("Decelerate Up");
 				break;
 			case SequencerShapes::SquareFull:
 				seqShapeNames.add("Square Full");

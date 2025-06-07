@@ -33,26 +33,32 @@ namespace bdsp
 		case Empty:
 			return 0;
 			break;
-		case Triangle:
-			return lookups->waveLookups->lookupTri(0.5, proportion, false);
-			break;
 		case SawDown:
 			return lookups->waveLookups->lookupTri(0, proportion, false);
+			break;
+		case AccDown:
+			return 1.0f - proportion * proportion;
+			break;
+		case DecDown:
+			return (1.0f - proportion) * (1.0f - proportion);
 			break;
 		case SawUp:
 			return lookups->waveLookups->lookupTri(1, proportion, false);
 			break;
-		case SinDown:
-			return lookups->waveLookups->lookupSin(0, proportion, false);
+		case AccUp:
+			return proportion * proportion;
 			break;
-		case SinUp:
-			return lookups->waveLookups->lookupSin(1, proportion, false);
+		case DecUp:
+			return 1.0f - (1.0f - proportion) * (1.0f - proportion);
 			break;
 		case SquareFull:
 			return 1;
 			break;
 		case SquareHalf:
 			return lookups->waveLookups->lookupSqr(0.5, 1.0 - proportion, false);
+			break;
+		case Triangle:
+			return lookups->waveLookups->lookupTri(0.5, proportion, false);
 			break;
 
 		}
@@ -229,7 +235,7 @@ namespace bdsp
 
 
 		auto square = titleRect.withWidth(titleRect.getHeight());
-		auto rateBounds = juce::Rectangle<float>(0, 0, 3 * square.getWidth(), square.getHeight());
+		auto rateBounds = juce::Rectangle<float>(0, 0, 4 * square.getWidth(), square.getHeight());
 
 		auto rightRect = titleRect.withTrimmedLeft(getWidth() - rateBounds.getRight());
 		auto transferBounds = rightRect.getProportion(juce::Rectangle<float>(0, 0, 1.0 / 3.0, 1));
@@ -323,10 +329,7 @@ namespace bdsp
 			juce::String hintText;
 
 			juce::Path p;
-			juce::Path sine;
-			static const unsigned char sinePathData[] = { 110,109,167,229,78,69,75,28,139,68,98,240,227,78,69,75,28,139,68,57,226,78,69,200,27,139,68,131,224,78,69,85,27,139,68,98,204,222,78,69,210,26,139,68,215,220,78,69,220,25,139,68,32,219,78,69,230,24,139,68,98,105,217,78,69,240,23,139,68,179,215,78,69, 111,22,139,68,252,213,78,69,247,20,139,68,98,69,212,78,69,3,19,139,68,142,210,78,69,137,17,139,68,216,208,78,69,24,15,139,68,98,33,207,78,69,28,13,139,68,106,205,78,69,180,10,139,68,180,203,78,69,192,7,139,68,98,189,201,78,69,81,5,139,68,8,200,78,69, 92,2,139,68,81,198,78,69,108,255,138,68,98,154,196,78,69,254,251,138,68,228,194,78,69,15,249,138,68,45,193,78,69,36,245,138,68,98,118,191,78,69,182,241,138,68,192,189,78,69,204,237,138,68,9,188,78,69,225,233,138,68,98,82,186,78,69,242,229,138,68,156, 184,78,69,12,226,138,68,166,182,78,69,163,221,138,68,98,239,180,78,69,63,217,138,68,57,179,78,69,211,212,138,68,130,177,78,69,107,208,138,68,98,203,175,78,69,133,203,138,68,21,174,78,69,160,198,138,68,94,172,78,69,186,193,138,68,98,167,170,78,69,213, 188,138,68,241,168,78,69,239,183,138,68,58,167,78,69,11,179,138,68,98,131,165,78,69,167,173,138,68,205,163,78,69,193,168,138,68,216,161,78,69,95,163,138,68,98,33,160,78,69,251,157,138,68,106,158,78,69,154,152,138,68,180,156,78,69,54,147,138,68,98,253, 154,78,69,210,141,138,68,70,153,78,69,113,136,138,68,144,151,78,69,13,131,138,68,98,217,149,78,69,171,125,138,68,35,148,78,69,72,120,138,68,108,146,78,69,230,114,138,68,98,181,144,78,69,5,109,138,68,192,142,78,69,162,103,138,68,10,141,78,69,64,98,138, 68,98,83,139,78,69,221,92,138,68,156,137,78,69,123,87,138,68,230,135,78,69,149,82,138,68,98,47,134,78,69,49,77,138,68,121,132,78,69,208,71,138,68,194,130,78,69,233,66,138,68,98,11,129,78,69,134,61,138,68,85,127,78,69,161,56,138,68,158,125,78,69,188,51, 138,68,98,231,123,78,69,215,46,138,68,242,121,78,69,241,41,138,68,59,120,78,69,136,37,138,68,98,132,118,78,69,163,32,138,68,206,116,78,69,59,28,138,68,23,115,78,69,81,24,138,68,98,96,113,78,69,236,19,138,68,170,111,78,69,128,15,138,68,243,109,78,69,149, 11,138,68,98,60,108,78,69,166,7,138,68,134,106,78,69,192,3,138,68,207,104,78,69,82,0,138,68,98,216,102,78,69,228,252,137,68,35,101,78,69,119,249,137,68,108,99,78,69,135,246,137,68,98,181,97,78,69,25,243,137,68,255,95,78,69,167,240,137,68,72,94,78,69, 183,237,137,68,98,145,92,78,69,72,235,137,68,219,90,78,69,209,232,137,68,36,89,78,69,95,230,137,68,98,109,87,78,69,99,228,137,68,183,85,78,69,111,226,137,68,0,84,78,69,252,224,137,68,98,9,82,78,69,8,223,137,68,84,80,78,69,19,222,137,68,157,78,78,69,152, 220,137,68,98,230,76,78,69,162,219,137,68,48,75,78,69,31,219,137,68,121,73,78,69,41,218,137,68,98,194,71,78,69,166,217,137,68,12,70,78,69,166,217,137,68,85,68,78,69,166,217,137,68,108,85,68,78,69,81,28,139,68,101,0,0 };
 
-			sine.loadPathFromData(sinePathData, sizeof(sinePathData));
 
 			switch (SequencerShapes(i))
 			{
@@ -337,21 +340,37 @@ namespace bdsp
 				p.lineTo(1, 0);
 				hintText = "Saw Down";
 				break;
+			case AccDown:
+				p.startNewSubPath(0, 0);
+				p.lineTo(0, -10);
+				p.quadraticTo(5, -10, 10, 0);
+				hintText = "Accelerate Down";
+				break;	
+			case DecDown:
+				p.startNewSubPath(0, 0);
+				p.lineTo(0, -10);
+				p.quadraticTo(5, 0, 10, 0);
+				hintText = "Decelerate Down";
+				break;
 			case SawUp:
 				p.startNewSubPath(0, 0);
 				p.lineTo(1, -1);
 				p.lineTo(1, 0);
 				hintText = "Saw Up";
 				break;
-			case SinDown:
-				p = sine;
-				hintText = "Sine Down";
+			case AccUp:
+				p.startNewSubPath(0, 0);
+				p.quadraticTo(5, 0, 10, -10);
+				p.lineTo(10, 0);
+				hintText = "Accelerate Up";
 				break;
-			case SinUp:
-				p = sine;
-				p.applyTransform(juce::AffineTransform(-1, 0, 0, 0, 1, 0));
-				hintText = "Sine Up";
+			case DecUp:
+				p.startNewSubPath(0, 0);
+				p.quadraticTo(5, -10, 10, -10);
+				p.lineTo(10, 0);
+				hintText = "Decelerate Up";
 				break;
+
 			case SquareFull:
 				p.startNewSubPath(0, 0);
 				p.lineTo(0, -1);
