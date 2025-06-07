@@ -165,12 +165,16 @@ namespace bdsp
 		int getSelectedShape();
 		void colorsChanged() override;
 
+		void setVertical(bool sholdBeVertical);
+
 	private:
 		juce::OwnedArray<SequencerComponent> Sequencers;
 		juce::OwnedArray<Component> SequencerHolders;
 		juce::OwnedArray<PathButton> shapeButtons;
 
 		juce::Rectangle<float> buttonRect;
+
+		bool isVertical = true;
 
 	};
 

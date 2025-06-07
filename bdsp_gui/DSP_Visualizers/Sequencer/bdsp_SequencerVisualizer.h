@@ -23,7 +23,7 @@ namespace bdsp
 		void paintOverChildren(juce::Graphics& g) override
 		{
 			auto rect1 = getLocalBounds().toFloat().getProportion(juce::Rectangle<float>(endPointVal, 0, 1 - endPointVal, 1 - numbersProportion));
-			auto rect2 = getLocalBounds().toFloat().getProportion(juce::Rectangle<float>(endPointVal, 1 - numbersProportion, 1 - endPointVal, numbersProportion)).reduced(1);
+			auto rect2 = getLocalBounds().toFloat().getProportion(juce::Rectangle<float>(endPointVal, 1 - numbersProportion, 1 - endPointVal, numbersProportion));// .reduced(1);
 
 			auto c = getBackgroundColor().getColor(isEnabled()).withMultipliedAlpha(1 - universals->disabledAlpha);
 

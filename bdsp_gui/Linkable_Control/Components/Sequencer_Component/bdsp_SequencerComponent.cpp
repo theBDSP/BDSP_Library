@@ -398,22 +398,43 @@ namespace bdsp
 
 	void SequencerSection::resized()
 	{
-
-		float buttonH = 0.1;
-		buttonRect = getLocalBounds().toFloat().withHeight(getHeight() * buttonH).reduced(universals->rectThicc);
-		auto reduced = getLocalBounds().toFloat().withTop(buttonRect.getBottom()).reduced(universals->rectThicc);
-
-
-		for (int i = 0; i < shapeButtons.size(); ++i)
+		if (isVertical)
 		{
-			shapeButtons[i]->setBounds(shrinkRectangleToInt(buttonRect.getProportion(juce::Rectangle<float>((float)i / (shapeButtons.size()), 0, 1.0f / (shapeButtons.size()), 1))).reduced(universals->rectThicc));
+			float buttonH = 0.1;
+			buttonRect = getLocalBounds().toFloat().withHeight(getHeight() * buttonH).reduced(universals->rectThicc);
+			auto reduced = getLocalBounds().toFloat().withTop(buttonRect.getBottom()).reduced(universals->rectThicc);
+
+
+			for (int i = 0; i < shapeButtons.size(); ++i)
+			{
+				shapeButtons[i]->setBounds(shrinkRectangleToInt(buttonRect.getProportion(juce::Rectangle<float>((float)i / (shapeButtons.size()), 0, 1.0f / (shapeButtons.size()), 1))).reduced(universals->rectThicc));
+			}
+
+			auto h = 1.0 / Sequencers.size();
+			for (int i = 0; i < Sequencers.size(); ++i)
+			{
+				SequencerHolders[i]->setBounds(shrinkRectangleToInt(reduced.getProportion(juce::Rectangle<float>(0, i * h, 1, h))));
+				Sequencers[i]->setBounds(SequencerHolders[i]->getLocalBounds().reduced(0, universals->rectThicc));
+			}
 		}
-
-		auto h = 1.0 / Sequencers.size();
-		for (int i = 0; i < Sequencers.size(); ++i)
+		else
 		{
-			SequencerHolders[i]->setBounds(shrinkRectangleToInt(reduced.getProportion(juce::Rectangle<float>(0, i * h, 1, h))));
-			Sequencers[i]->setBounds(SequencerHolders[i]->getLocalBounds().reduced(0, universals->rectThicc));
+			float buttonW = 0.1;
+			buttonRect = getLocalBounds().toFloat().withWidth(getWidth() * buttonW).reduced(universals->rectThicc);
+			auto reduced = getLocalBounds().toFloat().withLeft(buttonRect.getRight()).reduced(universals->rectThicc);
+
+
+			for (int i = 0; i < shapeButtons.size(); ++i)
+			{
+				shapeButtons[i]->setBounds(shrinkRectangleToInt(buttonRect.getProportion(juce::Rectangle<float>(0, (float)i / (shapeButtons.size()), 1, 1.0f / (shapeButtons.size())))).reduced(universals->rectThicc));
+			}
+
+			auto w = 1.0 / Sequencers.size();
+			for (int i = 0; i < Sequencers.size(); ++i)
+			{
+				SequencerHolders[i]->setBounds(shrinkRectangleToInt(reduced.getProportion(juce::Rectangle<float>(i * w, 0, w, 1))));
+				Sequencers[i]->setBounds(SequencerHolders[i]->getLocalBounds().reduced(0, universals->rectThicc));
+			}
 		}
 	}
 
@@ -424,11 +445,23 @@ namespace bdsp
 		g.setColour(getColor(BDSP_COLOR_DARK));
 		g.fillRoundedRectangle(buttonRect, universals->roundedRectangleCurve);
 
-		for (int i = 0; i < shapeButtons.size() - 1; ++i)
+		if (isVertical)
 		{
-			float x = (shapeButtons[i]->getRight() + shapeButtons[i + 1]->getX()) / 2.0f;
+			for (int i = 0; i < shapeButtons.size() - 1; ++i)
+			{
+				float x = (shapeButtons[i]->getRight() + shapeButtons[i + 1]->getX()) / 2.0f;
 
-			drawDivider(g, juce::Line<float>(x, buttonRect.getY(), x, buttonRect.getBottom()), getColor(BDSP_COLOR_MID), universals->dividerSize);
+				drawDivider(g, juce::Line<float>(x, buttonRect.getY(), x, buttonRect.getBottom()), getColor(BDSP_COLOR_MID), universals->dividerSize);
+			}
+		}
+		else
+		{
+			for (int i = 0; i < shapeButtons.size() - 1; ++i)
+			{
+				float y = (shapeButtons[i]->getBottom() + shapeButtons[i + 1]->getY()) / 2.0f;
+
+				drawDivider(g, juce::Line<float>(buttonRect.getX(), y, buttonRect.getRight(), y), getColor(BDSP_COLOR_MID), universals->dividerSize);
+			}
 		}
 	}
 
@@ -472,6 +505,12 @@ namespace bdsp
 				vis->getVis()->cutoutColor = background;
 			}
 		}
+	}
+
+	void SequencerSection::setVertical(bool sholdBeVertical)
+	{
+		isVertical = sholdBeVertical;
+		resized();
 	}
 
 
