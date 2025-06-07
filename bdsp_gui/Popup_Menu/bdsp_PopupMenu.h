@@ -49,7 +49,7 @@ namespace bdsp
 			void resized() override;
 
 			void addItem(const juce::String& text, int returnValue);
-			void setItems(const juce::StringArray& items, const juce::Array<int>& returnValues = juce::Array<int>());
+			void setItems(const juce::StringArray& items, const juce::Array<int>& returnValues = juce::Array<int>()) override;
 
 
 

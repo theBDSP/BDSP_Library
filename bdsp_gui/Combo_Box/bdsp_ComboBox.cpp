@@ -70,8 +70,7 @@ namespace bdsp
 
 	void ComboBox::setItems(const juce::StringArray& items, const juce::StringArray& dispNames)
 	{
-		dynamic_cast<PopupMenu::MenuList*>(List)->setItems(items);
-
+		List->setItems(items);
 
 		if (!dispNames.isEmpty())
 		{

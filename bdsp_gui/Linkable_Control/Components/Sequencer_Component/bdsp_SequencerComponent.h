@@ -5,7 +5,7 @@ constexpr int BDSP_SEQUENCER_STEPS = 16;
 namespace bdsp
 {
 
-	enum SequencerShapes :int { Empty, SawDown, AccDown, DecDown, SawUp, AccUp, DecUp, SquareFull, SquareHalf, Triangle, NUM };
+	enum SequencerShapes :int { Empty, SawDown, SinDown, SawUp, SinUp, SquareFull, SquareHalf, Triangle, NUM };
 
 	class SequencerParameterListener
 	{
@@ -165,12 +165,16 @@ namespace bdsp
 		int getSelectedShape();
 		void colorsChanged() override;
 
+		void setVertical(bool sholdBeVertical);
+
 	private:
 		juce::OwnedArray<SequencerComponent> Sequencers;
 		juce::OwnedArray<Component> SequencerHolders;
 		juce::OwnedArray<PathButton> shapeButtons;
 
 		juce::Rectangle<float> buttonRect;
+
+		bool isVertical = true;
 
 	};
 

@@ -168,7 +168,7 @@ namespace bdsp
 
 
 
-		void createSyncParameters(juce::AudioProcessorValueTreeState::ParameterLayout& layout, juce::String baseID, const juce::String& baseName, int denominator = 16,int minBeats = 1, int maxBeats = 256, bool ranged = true, bool createLockParameter = false, juce::Array<int> includedDivisions = juce::Array<int>(), int versionHint = 1, int snapVersionHint = -1);
+		void createSyncParameters(juce::AudioProcessorValueTreeState::ParameterLayout& layout, juce::String baseID, const juce::String& baseName, int denominator = 16, int minBeats = 1, int maxBeats = 256, bool ranged = true, bool createLockParameter = false, juce::Array<int> includedDivisions = juce::Array<int>(), int versionHint = 1, int snapVersionHint = -1);
 		void createSyncParameters(juce::AudioProcessorValueTreeState::ParameterLayout& layout, juce::String baseID, const juce::String& baseName, float defaultMsTime, float defaultFrac, int defaultDivision, int denominator = 16, int minBeats = 1, int maxBeats = 256, bool ranged = true, bool createLockParameter = false, juce::Array<int> includedDivisions = juce::Array<int>(), int versionHint = 1, int snapVersionHint = -1);
 
 		void createSyncRateParameters(juce::AudioProcessorValueTreeState::ParameterLayout& layout, juce::String baseID, const juce::String& baseName, int minBeats = 1, int maxBeats = 256, bool ranged = true, bool createLockParameter = false, juce::Array<int> includedDivisions = juce::Array<int>(), int versionHint = 1, int snapVersionHint = -1);
@@ -255,7 +255,7 @@ namespace bdsp
 		GenericParameterAttributes parameterAttributes;
 
 		dsp::SampleSourceList<float> envelopeSourceList;
-		bdsp::dsp::SampleSource<float>* inputSource, * sidechainSource;
+		std::unique_ptr<bdsp::dsp::SampleSource<float>> inputSource, sidechainSource;
 
 		juce::Array<DSPComponent*> dspComps;
 

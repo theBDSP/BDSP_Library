@@ -93,9 +93,26 @@ namespace bdsp
 
 	void SequencerVisualizerInternal::mouseDown(const juce::MouseEvent& e)
 	{
-		universals->undoManager->beginNewTransaction();
-	
-		setValueFromMouse(e);
+		int step = floor(BDSP_SEQUENCER_STEPS * e.position.x / getWidth());
+		step = juce::jlimit(0, BDSP_SEQUENCER_STEPS - 1, step);
+		auto* shapeParam = controller->getShapeParameter(step);
+		shapeParam->beginChangeGesture();
+		if (e.mods.testFlags(universals->bindings[SingleClickReset]) || e.mods.isRightButtonDown())
+		{
+			shapeParam->setValueNotifyingHost(0);
+		}
+		else
+		{
+			shapeParam->setValueNotifyingHost(shapeParam->convertTo0to1(parentComponent->getParentSection()->getSelectedShape()));
+		}
+
+		shapeParam->endChangeGesture();
+
+		auto* amtParam = controller->getAmtParameter(step);
+		amtParam->beginChangeGesture();
+		amtParam->setValueNotifyingHost(juce::jmap(1.0f - e.position.y / getHeight(), 1.0f - numbersProportion, 1.0f, 0.0f, 1.0f));
+		amtParam->endChangeGesture();
+
 
 		lastMousePos = e.position;
 	}
@@ -109,7 +126,7 @@ namespace bdsp
 		while (isBetweenInclusive(x, lastMousePos.x, e.position.x))
 		{
 			juce::MouseEvent me = e.withNewPosition(juce::Point<float>(x, e.position.y));
-			setValueFromMouse(me);
+			mouseDown(me);
 
 			x += stepW * dir;
 		}
@@ -136,29 +153,6 @@ namespace bdsp
 			vertexBuffer.set(4 * i + 2, { right,1,r,g,b,a });
 			vertexBuffer.set(4 * i + 3, { right,bot,r,g,b,a });
 		}
-	}
-
-	void SequencerVisualizerInternal::setValueFromMouse(const juce::MouseEvent& e)
-	{
-		int step = floor(BDSP_SEQUENCER_STEPS * e.position.x / getWidth());
-		step = juce::jlimit(0, BDSP_SEQUENCER_STEPS - 1, step);
-		auto* shapeParam = controller->getShapeParameter(step);
-		shapeParam->beginChangeGesture();
-		if (e.mods.testFlags(universals->bindings[SingleClickReset]) || e.mods.isRightButtonDown())
-		{
-			shapeParam->setValueNotifyingHost(0);
-		}
-		else
-		{
-			shapeParam->setValueNotifyingHost(shapeParam->convertTo0to1(parentComponent->getParentSection()->getSelectedShape()));
-		}
-
-		shapeParam->endChangeGesture();
-
-		auto* amtParam = controller->getAmtParameter(step);
-		amtParam->beginChangeGesture();
-		amtParam->setValueNotifyingHost(juce::jmap(1.0f - e.position.y / getHeight(), 1.0f - numbersProportion, 1.0f, 0.0f, 1.0f));
-		amtParam->endChangeGesture();
 	}
 
 	void SequencerVisualizerInternal::renderWithoutGenerating()
@@ -202,7 +196,7 @@ namespace bdsp
 
 	bool SequencerVisualizerInternal::shapeStartsVertical(SequencerShapes shape)
 	{
-		return shape == SequencerShapes::SawDown || shape == SequencerShapes::AccDown ||shape == SequencerShapes::DecDown || shape == SequencerShapes::SquareFull || shape == SequencerShapes::SquareHalf;
+		return shape == SequencerShapes::SawDown || shape == SequencerShapes::SinDown || shape == SequencerShapes::SquareFull || shape == SequencerShapes::SquareHalf;
 	}
 
 

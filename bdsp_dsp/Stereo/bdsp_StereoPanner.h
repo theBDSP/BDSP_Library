@@ -36,7 +36,7 @@ namespace bdsp
 			 */
 			StereoSample<SampleType> processSampleStereo(const StereoSample<SampleType>& inputSample) noexcept override
 			{
-				SampleType pan = smoothedPan.getCurrentValue();
+				SampleType pan = juce::jlimit(SampleType(-1.0), SampleType(1.0), smoothedPan.getCurrentValue());
 
 				left = (inputSample.left * lookup->panningLookups->getPanLL(pan) + inputSample.right * lookup->panningLookups->getPanRL(pan));
 				right = (inputSample.left * lookup->panningLookups->getPanLR(pan) + inputSample.right * lookup->panningLookups->getPanRR(pan));

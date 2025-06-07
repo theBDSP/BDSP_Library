@@ -16,11 +16,13 @@ namespace bdsp
 		hiddenDummyProcessor(this)
 	{
 
-		envelopeSourceList.add(new dsp::SampleSource<float>("Input"));
-		inputSource = envelopeSourceList.getLast();
-		envelopeSourceList.add(new dsp::SampleSource<float>("Side-Chain"));
-		sidechainSource = envelopeSourceList.getLast();
+		inputSource = std::make_unique<dsp::SampleSource<float>>("Input");
+		envelopeSourceList.add(inputSource.get());
+		
+		sidechainSource = std::make_unique<dsp::SampleSource<float>>("Side-Chain");
+		envelopeSourceList.add(sidechainSource.get());
 		sidechainExists = hasSidechain;
+		
 		suspendProcessing(true);
 
 
@@ -215,6 +217,10 @@ namespace bdsp
 		subBlockSpec->sampleRate = spec.sampleRate;
 		subBlockSpec->maximumBlockSize = subBlockTarget + 1;
 		subBlockSpec->numChannels = spec.numChannels;
+
+		inputSource->prepare(*subBlockSpec.get());
+		sidechainSource->prepare(*subBlockSpec.get());
+
 		for (auto c : controlObjects)
 		{
 			auto Env = dynamic_cast<EnvelopeFollowerControllerObject<float>*>(c);
@@ -407,6 +413,8 @@ namespace bdsp
 		{
 			if (subBlockCounter > subBlockTarget)
 			{
+				inputSource->trackBuffer(subBlockBuffer);
+				sidechainSource->trackBuffer(sideChainSubBlockBuffer);
 				subBlockCounter = 0;
 				for (auto c : sampleRateLinkableControls)
 				{
@@ -841,9 +849,9 @@ namespace bdsp
 
 
 		juce::StringArray envelopeSourceNames;
-		for (const auto& src : envelopeSourceList)
+		for (auto& src : envelopeSourceList)
 		{
-			envelopeSourceNames.add(src->getName());
+			envelopeSourceNames.add(src.get()->getName());
 		}
 
 		juce::StringArray seqShapeNames;
@@ -858,20 +866,14 @@ namespace bdsp
 			case SequencerShapes::SawDown:
 				seqShapeNames.add("Saw Down");
 				break;
-			case SequencerShapes::AccDown:
-				seqShapeNames.add("Accelerate Down");
-				break;
-			case SequencerShapes::DecDown:
-				seqShapeNames.add("Decelerate Down");
-				break;
 			case SequencerShapes::SawUp:
 				seqShapeNames.add("Saw Up");
 				break;
-			case SequencerShapes::AccUp:
-				seqShapeNames.add("Accelerate Up");
+			case SequencerShapes::SinDown:
+				seqShapeNames.add("Sin Down");
 				break;
-			case SequencerShapes::DecUp:
-				seqShapeNames.add("Decelerate Up");
+			case SequencerShapes::SinUp:
+				seqShapeNames.add("Sin Up");
 				break;
 			case SequencerShapes::SquareFull:
 				seqShapeNames.add("Square Full");
@@ -966,7 +968,7 @@ namespace bdsp
 	const juce::String Processor::getName() const
 	{
 		return JucePlugin_Name;
-	}
+}
 
 	bool Processor::acceptsMidi() const
 	{
@@ -1033,4 +1035,4 @@ namespace bdsp
 
 
 
-	}// namnepace bdsp
+}// namnepace bdsp

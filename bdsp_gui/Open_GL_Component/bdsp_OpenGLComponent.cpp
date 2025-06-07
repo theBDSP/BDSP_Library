@@ -453,9 +453,9 @@ namespace bdsp
 
 
 	SpectrogramController::SpectrogramController(dsp::SampleSource<float>* sourceToTrack, dsp::DSP_Universals<float>* lookupsToUse, int order)
-		:window(quickPow2(order + 1), juce::dsp::WindowingFunction<float>::blackman)
+		:window(quickPow2(order + 1), juce::dsp::WindowingFunction<float>::blackman),
+		source(sourceToTrack)
 	{
-		source = sourceToTrack;
 		source.get()->onBufferFilled = [=]() {newBufferCreated(); };
 		fft = lookupsToUse->getFFT(order);
 

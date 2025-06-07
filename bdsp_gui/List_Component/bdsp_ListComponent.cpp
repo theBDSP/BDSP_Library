@@ -183,6 +183,17 @@ namespace bdsp
 		maxText = juce::String();
 	}
 
+	void ListComponent::setItems(const juce::StringArray& items, const juce::Array<int>& returnValues)
+	{
+		clearItems();
+		bool customReturns = !returnValues.isEmpty();
+
+		for (int i = 0; i < items.size(); ++i)
+		{
+			List.add(new ListItem(this, i, customReturns ? returnValues[i] : i));
+		}
+	}
+
 	void ListComponent::setMaxText(const juce::String& newText)
 	{
 		auto font = universals->Fonts[getFontIndex()].getFont().withHeight(1);

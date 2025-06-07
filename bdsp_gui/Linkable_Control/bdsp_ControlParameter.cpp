@@ -63,6 +63,10 @@ namespace bdsp
 
 	float ControlParameter::getSlotInfluence(int idx)
 	{
+        if(controlObjects.size()<=idx || influenceParameterValues.size()<=idx)
+        {
+            return 0.0f;
+        }
 		return controlObjects.getUnchecked(idx)->value * influenceParameterValues.getUnchecked(idx);
 	}
 

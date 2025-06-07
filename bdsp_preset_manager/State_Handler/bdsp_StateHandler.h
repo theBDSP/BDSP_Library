@@ -149,8 +149,8 @@ namespace bdsp
 					auto fillXML = [&](juce::String tagName, juce::StringPairArray& arr)
 					{
 						auto newChild = xmlState.createNewChildElement(tagName);
-						auto keys = arr.getAllKeys();
-						auto values = arr.getAllValues();
+						auto& keys = arr.getAllKeys();
+						auto& values = arr.getAllValues();
 						for (int i = 0; i < keys.size(); ++i)
 						{
 							newChild->setAttribute(keys[i], values[i]);
@@ -165,8 +165,8 @@ namespace bdsp
 					fillXML(MacroNamesXMLTag, macroNames);
 
 					auto APVTS = xmlState.createNewChildElement("APVTS");
-					auto keys = parameters.getAllKeys();
-					auto values = parameters.getAllValues();
+					auto& keys = parameters.getAllKeys();
+					auto& values = parameters.getAllValues();
 					for (int i = 0; i < keys.size(); ++i)
 					{
 						auto child = APVTS->createNewChildElement("PARAM");
@@ -177,8 +177,8 @@ namespace bdsp
 					auto hiddenAPVTS = xmlState.createNewChildElement("APVTSHidden");
 					if (hiddenAPVTS != nullptr)
 					{
-						auto hiddenKeys = hiddenParameters.getAllKeys();
-						auto hiddenValues = hiddenParameters.getAllValues();
+						auto& hiddenKeys = hiddenParameters.getAllKeys();
+						auto& hiddenValues = hiddenParameters.getAllValues();
 						for (int i = 0; i < hiddenKeys.size(); ++i)
 						{
 							auto child = hiddenAPVTS->createNewChildElement("PARAM");
@@ -192,8 +192,8 @@ namespace bdsp
 				{
 					xmlState = juce::XmlElement("APVTS");
 
-					auto keys = parameters.getAllKeys();
-					auto values = parameters.getAllValues();
+					auto& keys = parameters.getAllKeys();
+					auto& values = parameters.getAllValues();
 					for (int i = 0; i < keys.size(); ++i)
 					{
 						auto child = xmlState.createNewChildElement("PARAM");
@@ -213,8 +213,8 @@ namespace bdsp
 					auto fillTree = [&](juce::String tagName, juce::StringPairArray& arr)
 					{
 						auto newChild = out.getOrCreateChildWithName(tagName, nullptr);
-						auto keys = arr.getAllKeys();
-						auto values = arr.getAllValues();
+						auto& keys = arr.getAllKeys();
+						auto& values = arr.getAllValues();
 						for (int i = 0; i < keys.size(); ++i)
 						{
 							newChild.setProperty(keys[i], juce::var(values[i]), nullptr);
@@ -229,8 +229,8 @@ namespace bdsp
 					fillTree(MacroNamesXMLTag, macroNames);
 
 					auto APVTS = out.getOrCreateChildWithName("APVTS", nullptr);
-					auto keys = parameters.getAllKeys();
-					auto values = parameters.getAllValues();
+					auto& keys = parameters.getAllKeys();
+					auto& values = parameters.getAllValues();
 					for (int i = 0; i < keys.size(); ++i)
 					{
 						juce::ValueTree child("PARAM");
@@ -239,8 +239,8 @@ namespace bdsp
 						APVTS.appendChild(child, nullptr);
 					}
 					auto hiddenAPVTS = out.getOrCreateChildWithName("APVTSHidden", nullptr);
-					auto hiddenKeys = hiddenParameters.getAllKeys();
-					auto hiddenValues = hiddenParameters.getAllValues();
+					auto& hiddenKeys = hiddenParameters.getAllKeys();
+					auto& hiddenValues = hiddenParameters.getAllValues();
 					for (int i = 0; i < hiddenKeys.size(); ++i)
 					{
 						juce::ValueTree child("PARAM");
@@ -254,8 +254,8 @@ namespace bdsp
 				{
 					juce::ValueTree out("APVTS");
 
-					auto keys = parameters.getAllKeys();
-					auto values = parameters.getAllValues();
+					auto& keys = parameters.getAllKeys();
+					auto& values = parameters.getAllValues();
 					for (int i = 0; i < keys.size(); ++i)
 					{
 						juce::ValueTree child("PARAM");
@@ -270,8 +270,8 @@ namespace bdsp
 			{
 				auto mergeArray = [=](const juce::StringPairArray& base, juce::StringPairArray& arr)
 				{
-					auto keys = base.getAllKeys();
-					auto values = base.getAllValues();
+					auto& keys = base.getAllKeys();
+					auto& values = base.getAllValues();
 					for (int i = 0; i < keys.size(); ++i)
 					{
 						if (!arr.containsKey(keys[i]))

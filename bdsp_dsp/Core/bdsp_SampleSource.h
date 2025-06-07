@@ -32,12 +32,13 @@ namespace bdsp
 			void prepare(const juce::dsp::ProcessSpec& spec)
 			{
 				buffer.setSize(spec.numChannels, spec.maximumBlockSize);
+				buffer.clear();
 				bufferPTR = 0;
-                
-                if(onSizeSet.operator bool())
-                {
-                    onSizeSet();
-                }
+
+				if (onSizeSet.operator bool())
+				{
+					onSizeSet();
+				}
 			}
 
 
@@ -125,6 +126,10 @@ namespace bdsp
 		template<typename SampleType>
 		struct SampleSourceWeakReference
 		{
+			SampleSourceWeakReference(SampleSource<SampleType>* newObject)
+			{
+				ref = newObject;
+			}
 
 			/** Copies another pointer to this one. */
 			SampleSourceWeakReference& operator= (SampleSource<SampleType>* newObject)
@@ -147,14 +152,15 @@ namespace bdsp
 			 * If the internal weak reference points to a valid sample source it simply returns that source's buffer. If it doesn't point to a valid sample source it returns an empty buffer of a specified size.
 			 * @param expectedNumChannels The number of channels to make the empty buffer if necessary
 			 * @param expectedNumSamples The number of samples to make the empty buffer if necessary
-			 * @return 
+			 * @return
 			 */
 
 			const juce::AudioBuffer<SampleType>& getBuffer(const int& expectedNumChannels, const int& expectedNumSamples)
 			{
 				if (get() == nullptr)
 				{
-					emptyBuffer.setSize(expectedNumChannels, expectedNumSamples, true, false, true);
+					emptyBuffer.setSize(expectedNumChannels, expectedNumSamples, true, true, true);
+					emptyBuffer.clear();
 					return emptyBuffer;
 				}
 				else
@@ -169,7 +175,7 @@ namespace bdsp
 
 		};
 		template <typename SampleType>
-		using SampleSourceList = juce::OwnedArray <SampleSource<SampleType>>;
+		using SampleSourceList = juce::Array <SampleSourceWeakReference<SampleType>>;
 
 	} // namespace dsp
 
