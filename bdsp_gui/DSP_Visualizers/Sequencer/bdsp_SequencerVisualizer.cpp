@@ -218,7 +218,7 @@ namespace bdsp
 		g.setColour(getColor(vis->cutoutColor));
 		g.fillRect(getLocalBounds());
 
-		auto visRect = getLocalBounds().toFloat().withHeight(vis->getHeight() * vis->numbersProportion + universals->roundedRectangleCurve);
+		auto visRect = getLocalBounds().toFloat().withHeight(vis->getHeight() * (1 - vis->numbersProportion) + universals->roundedRectangleCurve);
 
 		drawOutlinedRoundedRectangle(g, visRect, CornerCurves::top, universals->roundedRectangleCurve, universals->dividerSize, vis->getBackgroundColor().getColor(isEnabled()), getColor(outlineColor));
 

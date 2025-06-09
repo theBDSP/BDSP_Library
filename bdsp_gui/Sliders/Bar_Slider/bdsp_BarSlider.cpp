@@ -127,10 +127,26 @@ namespace bdsp
 	}
 	void BarSlider::paint(juce::Graphics& g)
 	{
+		switch (visStyle)
+		{
+		case bdsp::BarSlider::Standard:
+			paintStandard(g);
+			break;
+		case bdsp::BarSlider::Protuded:
+			paintProtruded(g);
+			break;
+		default:
+			break;
+		}
+
+	}
+
+	void BarSlider::paintStandard(juce::Graphics& g)
+	{
 		auto bounds = getLocalBounds().toFloat();
 
-		auto sliderPos = getNormalisableRange().convertTo0to1(getValue());
-		auto actualSliderPos = getNormalisableRange().convertTo0to1(getActualValue());
+		auto sliderPos = valueToProportionOfLength(getValue());
+		auto actualSliderPos = valueToProportionOfLength(getActualValue());
 
 
 
@@ -263,6 +279,117 @@ namespace bdsp
 		g.fillPath(knob);
 	}
 
+	void BarSlider::paintProtruded(juce::Graphics& g)
+	{
+		bool isVertical = juce::Slider::isVertical();
+
+		auto sliderPos = valueToProportionOfLength(getValue());
+		auto actualSliderPos = valueToProportionOfLength(getActualValue());
+
+		float relativeTrackSize = isHovering() ? 0.25f : 0.15f;
+		juce::Rectangle<float>track, thumb;
+		g.setColour(getColor(valueTrackColor));
+
+		if (isVertical)
+		{
+			track = getLocalBounds().toFloat().getProportion(juce::Rectangle<float>((1 - relativeTrackSize) / 2, 0, relativeTrackSize, 1));
+			g.fillRect(track);
+
+			thumb = juce::Rectangle<float>(getWidth(), track.getWidth());
+		}
+		else
+		{
+			track = getLocalBounds().toFloat().getProportion(juce::Rectangle<float>(0, (1 - relativeTrackSize) / 2, 1, relativeTrackSize));
+			g.fillRect(track);
+
+
+
+			thumb = juce::Rectangle<float>(track.getHeight(), getHeight());
+		}
+
+		if (getType() == BaseSlider::CenterMirrored)
+		{
+			auto delta = actualSliderPos / 2.0;
+			if (isVertical)
+			{
+				g.setColour(getColor(valueColor));
+				g.fillRect(track.getProportion(juce::Rectangle<float>().leftTopRightBottom(0, 0.5 - delta, 1, 0.5 + delta)));
+
+			}
+			else
+			{
+				g.setColour(getColor(valueColor));
+				g.fillRect(track.getProportion(juce::Rectangle<float>().leftTopRightBottom(0.5 - delta, 0, 0.5 + delta, 1)));
+
+			}
+		}
+		else if (getType() == BaseSlider::CenterZero)
+		{
+			if (isVertical)
+			{
+				g.setColour(getColor(valueColor));
+				g.fillRect(track.getProportion(juce::Rectangle<float>().leftTopRightBottom(0, juce::jmin(1 - actualSliderPos, 0.5), 1, juce::jmax(1 - actualSliderPos, 0.5))));
+
+			}
+			else
+			{
+				g.setColour(getColor(valueColor));
+				g.fillRect(track.getProportion(juce::Rectangle<float>().leftTopRightBottom(juce::jmin(actualSliderPos, 0.5), 0, juce::jmax(actualSliderPos, 0.5), 1)));
+
+			}
+		}
+		else
+		{
+			if (isVertical)
+			{
+				g.setColour(getColor(valueColor));
+				g.fillRect(track.getProportion(juce::Rectangle<float>().leftTopRightBottom(0, (1 - actualSliderPos), 1, 1)));
+
+			}
+			else
+			{
+				g.setColour(getColor(valueColor));
+				g.fillRect(track.getProportion(juce::Rectangle<float>().leftTopRightBottom(0, 0, actualSliderPos, 1)));
+
+			}
+		}
+
+		g.setColour(getColor(knobColor));
+		if (getType() == BaseSlider::CenterMirrored)
+		{
+			auto delta = sliderPos / 2.0;
+			if (isVertical)
+			{
+				g.fillRect(thumb.withCentre(juce::Point<float>(getWidth() / 2.0f, (0.5 - delta) * getHeight())));
+				g.fillRect(thumb.withCentre(juce::Point<float>(getWidth() / 2.0f, (0.5 + delta) * getHeight())));
+			}
+			else
+			{
+				g.fillRect(thumb.withCentre(juce::Point<float>((0.5 - delta) * getWidth(), getHeight() / 2.0f)));
+				g.fillRect(thumb.withCentre(juce::Point<float>((0.5 + delta) * getWidth(), getHeight() / 2.0f)));
+			}
+		}
+		else
+		{
+			if (isVertical)
+			{
+				g.fillRect(thumb.withCentre(juce::Point<float>(getWidth() / 2.0f, (1 - sliderPos) * getHeight())));
+			}
+			else
+			{
+				g.fillRect(thumb.withCentre(juce::Point<float>(sliderPos * getWidth(), getHeight() / 2.0f)));
+			}
+		}
+
+
+
+
+
+
+
+
+	}
+
 	void BarSlider::parentHierarchyChanged()
 	{
 
@@ -281,6 +408,12 @@ namespace bdsp
 		}
 
 
+	}
+
+	void BarSlider::setVisualStyle(VisualStyles newStyle)
+	{
+		visStyle = newStyle;
+		repaint();
 	}
 
 

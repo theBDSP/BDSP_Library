@@ -704,6 +704,12 @@ namespace bdsp
 
 		bool hasMS = includedDivisions.contains(0) || includedDivisions.isEmpty();
 
+
+		if (denominator < 0)
+		{
+			denominator = BDSP_RATE_MIN < 0 ? quickPow2(-BDSP_RATE_MIN) : 1;
+		}
+
 		auto att = parameterAttributes.getFloatAttribute("Time Fraction " + juce::String(denominator));
 		att.range.start = (float)minBeats / denominator;
 		att.range.end = (float)maxBeats / denominator;
@@ -763,12 +769,12 @@ namespace bdsp
 		layout.add(std::make_unique<juce::AudioParameterChoice>(juce::ParameterID(baseID + "DivisionID", versionHint), baseName + " Division", divisionNames, defaultDivision));
 	}
 
-	void bdsp::Processor::createSyncRateParameters(juce::AudioProcessorValueTreeState::ParameterLayout& layout, juce::String baseID, const juce::String& baseName, int minBeats, int maxBeats, bool ranged, bool createLockParameter, juce::Array<int> includedDivisions, int versionHint, int snapVersionHint)
+	void bdsp::Processor::createSyncRateParameters(juce::AudioProcessorValueTreeState::ParameterLayout& layout, juce::String baseID, const juce::String& baseName, int minBeats, int maxBeats, int denominator, bool ranged, bool createLockParameter, juce::Array<int> includedDivisions, int versionHint, int snapVersionHint)
 	{
-		createSyncRateParameters(layout, baseID, baseName, 1.0f, 1.0f / 4.0f, 1, minBeats, maxBeats, ranged, createLockParameter, includedDivisions, versionHint, snapVersionHint);
+		createSyncRateParameters(layout, baseID, baseName, 1.0f, 1.0f / 4.0f, 1, minBeats, maxBeats, denominator, ranged, createLockParameter, includedDivisions, versionHint, snapVersionHint);
 	}
 
-	void Processor::createSyncRateParameters(juce::AudioProcessorValueTreeState::ParameterLayout& layout, juce::String baseID, const juce::String& baseName, float defaultHzRate, float defaultFrac, int defaultDivision, int minBeats, int maxBeats, bool ranged, bool createLockParameter, juce::Array<int> includedDivisions, int versionHint, int snapVersionHint)
+	void Processor::createSyncRateParameters(juce::AudioProcessorValueTreeState::ParameterLayout& layout, juce::String baseID, const juce::String& baseName, float defaultHzRate, float defaultFrac, int defaultDivision, int minBeats, int maxBeats, int denominator, bool ranged, bool createLockParameter, juce::Array<int> includedDivisions, int versionHint, int snapVersionHint)
 	{
 		baseID = baseID.upToLastOccurrenceOf("ID", false, false);
 
@@ -776,7 +782,10 @@ namespace bdsp
 
 		bool hasHz = includedDivisions.contains(0) || includedDivisions.isEmpty();
 
-		auto denominator = BDSP_RATE_MIN < 0 ? quickPow2(-BDSP_RATE_MIN) : 1;
+		if (denominator < 0)
+		{
+			denominator = BDSP_RATE_MIN < 0 ? quickPow2(-BDSP_RATE_MIN) : 1;
+		}
 
 		auto att = parameterAttributes.getFloatAttribute("Rate Fraction");
 		att.range.start = (float)minBeats / denominator;
@@ -904,7 +913,7 @@ namespace bdsp
 			}
 			else if (linkableControlIDs[i].startsWith("LFO"))
 			{
-				createSyncRateParameters(layout, baseID + "Rate", linkableControlNames[i] + " Rate", 1, 16 * denominator, true, true, juce::Array<int>(), versionHints[i]);
+				createSyncRateParameters(layout, baseID + "Rate", linkableControlNames[i] + " Rate", 1, 16 * denominator, denominator, true, true, juce::Array<int>(), versionHints[i]);
 				layout.add(std::make_unique <ControlParameter>(&parameterAttributes, layout, linkableControlIDs, linkableControlNames, baseID + "ShapeID", linkableControlNames[i] + " Shape", 0, shapeAttribute, versionHints[i]));
 				layout.add(std::make_unique <ControlParameter>(&parameterAttributes, layout, linkableControlIDs, linkableControlNames, baseID + "SkewID", linkableControlNames[i] + " Skew", 0, "Center Zero Percent", versionHints[i]));
 				layout.add(std::make_unique <ControlParameter>(&parameterAttributes, layout, linkableControlIDs, linkableControlNames, baseID + "AmplitudeID", linkableControlNames[i] + " Amplitude", 1, percentAttribute, versionHints[i]));
@@ -921,7 +930,7 @@ namespace bdsp
 			}
 			else if (linkableControlIDs[i].startsWith("Sequencer"))
 			{
-				createSyncRateParameters(layout, baseID + "Rate", linkableControlNames[i] + " Rate", 1, 1 / 16.0f, 0, 1, denominator, true, false, juce::Array<int>(1, 2), versionHints[i]);
+				createSyncRateParameters(layout, baseID + "Rate", linkableControlNames[i] + " Rate", 1, 1 / 16.0f, 0, 1, 16, 16, true, false, juce::Array<int>(1, 2), versionHints[i]);
 
 				for (int j = 0; j < BDSP_SEQUENCER_STEPS; ++j)
 				{
@@ -1041,4 +1050,4 @@ namespace bdsp
 
 
 
-	}// namnepace bdsp
+}// namnepace bdsp

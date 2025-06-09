@@ -28,6 +28,7 @@ namespace bdsp
 		 */
 		void setColor(const NamedColorsIdentifier& newLineColor, const NamedColorsIdentifier& newZeroLineColor = NamedColorsIdentifier(), const NamedColorsIdentifier& newTopCurveColor = NamedColorsIdentifier(), const NamedColorsIdentifier& newBotCurveColor = NamedColorsIdentifier(), const NamedColorsIdentifier& newPosColor = NamedColorsIdentifier());
 		void setScaling(float newXScalingFactor, float newYScalingFactor = 0);
+		juce::Point<float> getScaling();
 		void generateZeroLine();
 
 		void renderWithoutGenerating() override;
