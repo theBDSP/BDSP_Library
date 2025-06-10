@@ -196,7 +196,7 @@ namespace bdsp
 
 	bool SequencerVisualizerInternal::shapeStartsVertical(SequencerShapes shape)
 	{
-		return shape == SequencerShapes::SawDown || shape == SequencerShapes::SinDown || shape == SequencerShapes::SquareFull || shape == SequencerShapes::SquareHalf;
+		return shape == SequencerShapes::SawDown || shape == SequencerShapes::AccDown || shape == SequencerShapes::DecDown || shape == SequencerShapes::SquareFull || shape == SequencerShapes::SquareHalf;
 	}
 
 
@@ -218,7 +218,7 @@ namespace bdsp
 		g.setColour(getColor(vis->cutoutColor));
 		g.fillRect(getLocalBounds());
 
-		auto visRect = getLocalBounds().toFloat().withHeight(vis->getHeight() * vis->numbersProportion + universals->roundedRectangleCurve);
+		auto visRect = getLocalBounds().toFloat().withHeight(vis->getHeight() * (1 - vis->numbersProportion) + universals->roundedRectangleCurve);
 
 		drawOutlinedRoundedRectangle(g, visRect, CornerCurves::top, universals->roundedRectangleCurve, universals->dividerSize, vis->getBackgroundColor().getColor(isEnabled()), getColor(outlineColor));
 

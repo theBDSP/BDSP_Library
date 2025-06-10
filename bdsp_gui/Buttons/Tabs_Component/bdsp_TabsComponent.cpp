@@ -180,25 +180,7 @@ namespace bdsp
 		{
 
 			CornerCurves buttonCurves = CornerCurves::all;
-			//if (i == 0)
-			//{
-			//	buttonCurves = CornerCurves(CornerCurves::topLeft & corners);
-			//}
-			//else if (i == buttons.size() - 1)
-			//{
-			//	if (isVertical)
-			//	{
-			//		buttonCurves = CornerCurves(CornerCurves::bottomLeft & corners);
-			//	}
-			//	else
-			//	{
-			//		buttonCurves = CornerCurves(CornerCurves::topRight & corners);
-			//	}
-			//}
-			//else
-			//{
-			//	buttonCurves = CornerCurves(0);
-			//}
+
 
 			if (buttons[i]->getToggleState())
 			{
@@ -227,11 +209,11 @@ namespace bdsp
 
 				if (isVertical)
 				{
-					buttonBounds = buttonBounds.withTrimmedRight(-universals->roundedRectangleCurve);
+					buttonBounds = buttonBounds.withTrimmedRight(-2*universals->roundedRectangleCurve);
 				}
 				else
 				{
-					buttonBounds = buttonBounds.withTrimmedBottom(-universals->roundedRectangleCurve);
+					buttonBounds = buttonBounds.withTrimmedBottom(-2*universals->roundedRectangleCurve);
 				}
 
 				auto buttonPath = getRoundedRectangleFromCurveBools(buttonBounds, buttonCurves, universals->roundedRectangleCurve - outlineW);
@@ -246,7 +228,7 @@ namespace bdsp
 
 		g.setColour(getColor(bkgd));
 		g.fillPath(p);
-	}
+	} 
 
 
 

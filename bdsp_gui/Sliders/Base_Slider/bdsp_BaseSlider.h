@@ -79,6 +79,8 @@ namespace bdsp
 		std::function<double()> getValueFunction;
 		std::function<juce::Path(double)> pathFromValueFunction;
 
+		std::function<double(double)> valueToProportionFunction, proportionToValueFunction;
+
 		juce::Path labelPath;
 		bool paintPointer = true;
 
@@ -168,6 +170,8 @@ namespace bdsp
 
 
 
+		double valueToProportionOfLength(double value) override;
+		double proportionOfLengthToValue(double proportion) override;
 
 
 
@@ -191,6 +195,7 @@ namespace bdsp
 
 		// Inherited via Listener
 		void sliderValueChanged(juce::Slider* slider) override;
+
 };
 
 }// namnepace bdsp

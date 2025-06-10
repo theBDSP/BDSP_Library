@@ -166,6 +166,11 @@ namespace bdsp
 		{
 			rateFrac->setFracColors(BDSP_COLOR_PURE_BLACK, c, BDSP_COLOR_KNOB, BDSP_COLOR_BLACK, NamedColorsIdentifier());
 		}
+
+		if (stepsSlider != nullptr)
+		{
+			stepsSlider->setSliderColors(BDSP_COLOR_KNOB, c);
+		}
 	}
 
 
@@ -203,9 +208,22 @@ namespace bdsp
 		addAndMakeVisible(rateFrac.get());
 		rateFrac->setCorners(CornerCurves::all);
 
-		stepsSlider = std::make_unique<NumberSlider>(universals, numStepsParam->paramID.upToLastOccurrenceOf("ID", false, false));
+		stepsSlider = std::make_unique<BarSlider>(universals, numStepsParam->paramID.upToLastOccurrenceOf("ID", false, false));
+		stepsSlider->setVertical(false);
+		stepsSlider->disableLabels();
+		stepsSlider->setVisualStyle(BarSlider::VisualStyles::Protuded);
+		stepsSlider->setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
+		stepsSlider->setHintBarText("Number of steps in the sequence");
+
+		stepsSlider->valueToProportionFunction = [=](double v)
+		{
+			return juce::jmap(stepsSlider->getNormalisableRange().convertTo0to1(v), 1.0 / BDSP_SEQUENCER_STEPS, 1.0);
+		};
+		stepsSlider->proportionToValueFunction = [=](double p)
+		{
+			return juce::jmap(p, 1.0 / BDSP_SEQUENCER_STEPS, 1.0, stepsSlider->getRange().getStart(), stepsSlider->getRange().getEnd());
+		};
 		addAndMakeVisible(stepsSlider.get());
-		stepsSlider->numbers.setJustificationType(juce::Justification::centred);
 
 
 		attach();
@@ -223,8 +241,9 @@ namespace bdsp
 		GeneralControlComponent::resized();
 
 
-		float visH = 0.7;
-		auto visArea = getLocalBounds().toFloat().getProportion(juce::Rectangle<float>(0, 1 - visH, 1, visH));
+		float visH = 0.6;
+		float stepsH = 0.125;
+		auto visArea = getLocalBounds().toFloat().getProportion(juce::Rectangle<float>(0, 1 - visH - stepsH, 1, visH));
 
 
 		visualizer->setBounds(shrinkRectangleToInt(visArea));
@@ -237,19 +256,21 @@ namespace bdsp
 		auto square = titleRect.withWidth(titleRect.getHeight());
 		auto rateBounds = juce::Rectangle<float>(0, 0, 4 * square.getWidth(), square.getHeight());
 
-		auto rightRect = titleRect.withTrimmedLeft(getWidth() - rateBounds.getRight());
-		auto transferBounds = rightRect.getProportion(juce::Rectangle<float>(0, 0, 1.0 / 3.0, 1));
-		auto dragBounds = rightRect.getProportion(juce::Rectangle<float>(1.0 / 3.0, 0, 1.0 / 3.0, 1));
-		auto stepBounds = rightRect.getProportion(juce::Rectangle<float>(2.0 / 3.0, 0, 1.0 / 3.0, 1));
+		auto rightRect = titleRect.withTrimmedLeft(getWidth() - 2.5 * square.getWidth());
+		auto transferBounds = rightRect.getProportion(juce::Rectangle<float>(0, 0, 0.5, 1));
+		auto dragBounds = rightRect.getProportion(juce::Rectangle<float>(0.5, 0, 0.5, 1));
+
+		auto visScaling = 1.0 - (visualizer->getVis()->getScaling().x + 1.0) / 2.0;
+		auto stepBounds = juce::Rectangle<float>().leftTopRightBottom(visualizer->getX() + visualizer->getVis()->getX() + visScaling * visualizer->getVis()->getWidth(), visualizer->getBottom(), visualizer->getX() + visualizer->getVis()->getX() + (1 - visScaling) * visualizer->getVis()->getWidth(), getHeight());
 
 		rateFrac->setBounds(shrinkRectangleToInt(rateBounds.withTrimmedRight(universals->rectThicc)));
 
 		transferComp.setBounds(shrinkRectangleToInt(transferBounds).reduced(universals->rectThicc));
 		dragComp.setBounds(shrinkRectangleToInt(dragBounds).reduced(universals->rectThicc));
-		stepsSlider->setBounds(shrinkRectangleToInt(stepBounds).reduced(universals->rectThicc, 0));
+		//stepsSlider->setBounds(shrinkRectangleToInt(stepBounds).reduced(universals->rectThicc, 0));
+		stepsSlider->setBounds(shrinkRectangleToInt(stepBounds));
 
-		auto inset = juce::jmax(rateBounds.getRight(), getWidth() - dragBounds.getX());
-		titleRect = titleRect.withSizeKeepingCentre(getWidth() - 2 * inset, titleRect.getHeight());
+		titleRect = titleRect.withLeft(rateBounds.getRight() + universals->rectThicc).withRight(transferBounds.getX() - universals->rectThicc);
 		title->setBounds(shrinkRectangleToInt(titleRect));
 	}
 
@@ -257,8 +278,7 @@ namespace bdsp
 	{
 		g.setColour(getColor(BDSP_COLOR_PURE_BLACK));
 		g.fillRoundedRectangle(titleRect, universals->roundedRectangleCurve);
-		auto stepsRect = juce::Rectangle<float>(titleRect.getHeight(), titleRect.getHeight()).withCentre(stepsSlider->getBounds().toFloat().getCentre());
-		g.fillRoundedRectangle(stepsRect, universals->roundedRectangleCurve);
+
 	}
 
 
@@ -345,7 +365,7 @@ namespace bdsp
 				p.lineTo(0, -10);
 				p.quadraticTo(5, -10, 10, 0);
 				hintText = "Accelerate Down";
-				break;	
+				break;
 			case DecDown:
 				p.startNewSubPath(0, 0);
 				p.lineTo(0, -10);
@@ -397,7 +417,7 @@ namespace bdsp
 			juce::PathStrokeType(p.getBounds().getWidth() * 0.05).createStrokedPath(p, p);
 
 			shapeButtons.getLast()->setPath(p);
-			shapeButtons.getLast()->setColor(BDSP_COLOR_WHITE, NamedColorsIdentifier(BDSP_COLOR_WHITE).withMultipliedAlpha(universals->lowOpacity));
+			shapeButtons.getLast()->setColor(BDSP_COLOR_WHITE, NamedColorsIdentifier(BDSP_COLOR_WHITE).withMultipliedAlpha(universals->midOpacity));
 
 			shapeButtons.getLast()->setHintBarText(hintText);
 		}
@@ -417,18 +437,36 @@ namespace bdsp
 
 	void SequencerSection::resized()
 	{
-		if (isVertical)
+		float shapeRatio = 0.175;
+		juce::Rectangle<float> reduced;
+		if (areShapesVertical)
 		{
-			float buttonH = 0.1;
-			buttonRect = getLocalBounds().toFloat().withHeight(getHeight() * buttonH).reduced(universals->rectThicc);
-			auto reduced = getLocalBounds().toFloat().withTop(buttonRect.getBottom()).reduced(universals->rectThicc);
+			float buttonW = !isVertical ? shapeRatio / (Sequencers.size() + shapeRatio) : shapeRatio;
+			buttonRect = juce::Rectangle<float>().leftTopRightBottom(universals->rectThicc, 0, getWidth() * buttonW, getHeight()).reduced(0, universals->rectThicc);
+
+			buttonRect = getLocalBounds().toFloat().withWidth(getWidth() * buttonW).reduced(universals->rectThicc);
+			reduced = getLocalBounds().toFloat().withLeft(buttonRect.getRight()).reduced(universals->rectThicc);
+
+
+			for (int i = 0; i < shapeButtons.size(); ++i)
+			{
+				shapeButtons[i]->setBounds(shrinkRectangleToInt(buttonRect.getProportion(juce::Rectangle<float>(0, (float)i / (shapeButtons.size()), 1, 1.0f / (shapeButtons.size())))).reduced(universals->rectThicc));
+			}
+		}
+		else
+		{
+			float buttonH = isVertical ? shapeRatio / (Sequencers.size() + shapeRatio) : shapeRatio;
+			buttonRect = juce::Rectangle<float>().leftTopRightBottom(0, universals->rectThicc, getWidth(), buttonH * getHeight()).reduced(universals->rectThicc, 0);
+			reduced = getLocalBounds().toFloat().withTop(buttonRect.getBottom()).reduced(universals->rectThicc);
 
 
 			for (int i = 0; i < shapeButtons.size(); ++i)
 			{
 				shapeButtons[i]->setBounds(shrinkRectangleToInt(buttonRect.getProportion(juce::Rectangle<float>((float)i / (shapeButtons.size()), 0, 1.0f / (shapeButtons.size()), 1))).reduced(universals->rectThicc));
 			}
-
+		}
+		if (isVertical)
+		{
 			auto h = 1.0 / Sequencers.size();
 			for (int i = 0; i < Sequencers.size(); ++i)
 			{
@@ -438,16 +476,6 @@ namespace bdsp
 		}
 		else
 		{
-			float buttonW = 0.1;
-			buttonRect = getLocalBounds().toFloat().withWidth(getWidth() * buttonW).reduced(universals->rectThicc);
-			auto reduced = getLocalBounds().toFloat().withLeft(buttonRect.getRight()).reduced(universals->rectThicc);
-
-
-			for (int i = 0; i < shapeButtons.size(); ++i)
-			{
-				shapeButtons[i]->setBounds(shrinkRectangleToInt(buttonRect.getProportion(juce::Rectangle<float>(0, (float)i / (shapeButtons.size()), 1, 1.0f / (shapeButtons.size())))).reduced(universals->rectThicc));
-			}
-
 			auto w = 1.0 / Sequencers.size();
 			for (int i = 0; i < Sequencers.size(); ++i)
 			{
@@ -461,10 +489,9 @@ namespace bdsp
 	{
 		TexturedContainerComponent::paint(g);
 
-		g.setColour(getColor(BDSP_COLOR_DARK));
-		g.fillRoundedRectangle(buttonRect, universals->roundedRectangleCurve);
+		drawOutlinedRoundedRectangle(g, buttonRect.expanded(universals->dividerSize), CornerCurves::all, universals->roundedRectangleCurve, universals->dividerSize, getColor(buttonBackground), getColor(BDSP_COLOR_MID));
 
-		if (isVertical)
+		if (!areShapesVertical)
 		{
 			for (int i = 0; i < shapeButtons.size() - 1; ++i)
 			{
@@ -482,6 +509,7 @@ namespace bdsp
 				drawDivider(g, juce::Line<float>(buttonRect.getX(), y, buttonRect.getRight(), y), getColor(BDSP_COLOR_MID), universals->dividerSize);
 			}
 		}
+
 	}
 
 
@@ -526,9 +554,11 @@ namespace bdsp
 		}
 	}
 
-	void SequencerSection::setVertical(bool sholdBeVertical)
+	void SequencerSection::setVertical(bool shouldBeVertical, bool shouldShapesBeVertical)
 	{
-		isVertical = sholdBeVertical;
+
+		isVertical = shouldBeVertical;
+		areShapesVertical = shouldShapesBeVertical;
 		resized();
 	}
 

@@ -658,6 +658,24 @@ namespace bdsp
 		}
 	}
 
+	double BaseSlider::valueToProportionOfLength(double value)
+	{
+		if (valueToProportionFunction.operator bool())
+		{
+			return valueToProportionFunction(value);
+		}
+		return juce::Slider::valueToProportionOfLength(value);
+	}
+
+	double BaseSlider::proportionOfLengthToValue(double proportion)
+	{
+		if (proportionToValueFunction.operator bool())
+		{
+			return proportionToValueFunction(proportion);
+		}
+		return juce::Slider::proportionOfLengthToValue(proportion);
+	}
+
 
 
 

@@ -133,7 +133,7 @@ namespace bdsp
 		std::unique_ptr<SequencerVisualizer> visualizer;
 
 		std::unique_ptr<RangedContainerSyncFraction> rateFrac;
-		std::unique_ptr<NumberSlider> stepsSlider;
+		std::unique_ptr<BarSlider> stepsSlider;
 
 		// Inherited via LinkableControlComponent
 		juce::Array<juce::WeakReference<HoverableComponent>> getComponentsThatShareHover() override;
@@ -164,6 +164,8 @@ namespace bdsp
 
 		int getSelectedShape();
 		void colorsChanged() override;
+		void setVertical(bool shouldBeVertical, bool shouldShapesBeVertical = false);
+		NamedColorsIdentifier buttonBackground = BDSP_COLOR_DARK;
 
 	private:
 		juce::OwnedArray<SequencerComponent> Sequencers;
@@ -171,7 +173,8 @@ namespace bdsp
 		juce::OwnedArray<PathButton> shapeButtons;
 
 		juce::Rectangle<float> buttonRect;
-
+		bool isVertical = true;
+		bool areShapesVertical = false;
 	};
 
 

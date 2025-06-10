@@ -2,7 +2,7 @@
 namespace bdsp
 {
 	OpenGLFunctionVisualizer::OpenGLFunctionVisualizer(GUI_Universals* universalsToUse, bool shouldHaveZeroLine, bool shouldRenderAreaUnderCurve, int numOfSamplePoints)
-		:OpenGLLineRenderer(universalsToUse, 1,numOfSamplePoints),
+		:OpenGLLineRenderer(universalsToUse, 1, numOfSamplePoints),
 		lineColor(universalsToUse, this),
 		zeroLine(universalsToUse, this),
 		topCurve(universalsToUse, this),
@@ -108,6 +108,11 @@ namespace bdsp
 		baseScalingY = newYScalingFactor == 0 ? newXScalingFactor : newYScalingFactor;
 
 		resized();
+	}
+
+	juce::Point<float> OpenGLFunctionVisualizer::getScaling()
+	{
+		return juce::Point<float>(scalingX, scalingY);
 	}
 
 	void OpenGLFunctionVisualizer::generateZeroLine()

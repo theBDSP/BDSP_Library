@@ -11,6 +11,7 @@ namespace bdsp
 	class BarSlider : public BaseSlider
 	{
 	public:
+
 		BarSlider(GUI_Universals* universalsToUse, const juce::String& baseName);
 		BarSlider(const BarSlider& other);
 
@@ -25,7 +26,7 @@ namespace bdsp
 
 		void lookAndFeelChanged() override;
 
-		void setSliderColors(const NamedColorsIdentifier& knob, const NamedColorsIdentifier& value, const NamedColorsIdentifier& valueTrack = NamedColorsIdentifier(), const NamedColorsIdentifier& valueTrackInside=NamedColorsIdentifier(), const NamedColorsIdentifier& text = NamedColorsIdentifier(), const NamedColorsIdentifier& textHighlight = NamedColorsIdentifier(), const NamedColorsIdentifier& textEdit = NamedColorsIdentifier(), const NamedColorsIdentifier& caret = NamedColorsIdentifier(), const NamedColorsIdentifier& highlight = NamedColorsIdentifier()) override;
+		void setSliderColors(const NamedColorsIdentifier& knob, const NamedColorsIdentifier& value, const NamedColorsIdentifier& valueTrack = NamedColorsIdentifier(), const NamedColorsIdentifier& valueTrackInside = NamedColorsIdentifier(), const NamedColorsIdentifier& text = NamedColorsIdentifier(), const NamedColorsIdentifier& textHighlight = NamedColorsIdentifier(), const NamedColorsIdentifier& textEdit = NamedColorsIdentifier(), const NamedColorsIdentifier& caret = NamedColorsIdentifier(), const NamedColorsIdentifier& highlight = NamedColorsIdentifier()) override;
 
 
 
@@ -34,14 +35,19 @@ namespace bdsp
 
 		void paint(juce::Graphics& g) override;
 
+		void paintStandard(juce::Graphics& g);
+		void paintProtruded(juce::Graphics& g);
 
 		void parentHierarchyChanged() override;
 
+		enum VisualStyles { Standard, Protuded };
+		void setVisualStyle(VisualStyles newStyle);
 
 		Label label;
 
 	protected:
 		int labelBottom = 0;
+		VisualStyles visStyle = Standard;
 	};
 
 
