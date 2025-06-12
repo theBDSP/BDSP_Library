@@ -137,15 +137,15 @@ namespace bdsp
 		g.setColour(getColor(divider));
 		if (colSplits.isEmpty())
 		{
-			for (int i = 1; i < List.size(); ++i)
+			for (int i = 1; i < rows; ++i)
 			{
-				auto y = (List[i - 1]->getBottom() + List[i]->getY()) / 2.0f;
-				g.fillRect(juce::Rectangle<float>(List[i]->getX(), y - (universals->dividerSize / 2), List[i]->getWidth(), universals->dividerSize));
+				auto y = (List[(i - 1) * cols]->getBottom() + List[i * cols]->getY()) / 2.0f;
+				g.fillRect(juce::Rectangle<float>(insideBorder.getX(), y - (universals->dividerSize / 2), insideBorder.getWidth(), universals->dividerSize));
 			}
 			for (int i = 1; i < cols; ++i)
 			{
-				auto x = i / (float)cols * getWidth();
-				g.fillRect(juce::Rectangle<float>(x - (universals->dividerSize / 2), 2 * insideBorder.getY(), universals->dividerSize, getHeight() - 4 * insideBorder.getY()));
+				auto x = (List[(i - 1)]->getRight() + List[i]->getX()) / 2.0f;
+				g.fillRect(juce::Rectangle<float>(x - (universals->dividerSize / 2), insideBorder.getY(), universals->dividerSize, insideBorder.getHeight()));
 			}
 		}
 		else
@@ -223,7 +223,7 @@ namespace bdsp
 		{
 			if (List[idx]->isEnabled())
 			{
-
+				SelectedIndex = idx;
 
 				highlightItem(idx);
 				if (onSelect.operator bool() && sendUpdate)
@@ -255,6 +255,11 @@ namespace bdsp
 	int ListComponent::getHighlightedIndex()
 	{
 		return HighlightedIndex;
+	}
+
+	int ListComponent::getSelectedIndex()
+	{
+		return SelectedIndex;
 	}
 
 	void ListComponent::scroll(bool up, int num)

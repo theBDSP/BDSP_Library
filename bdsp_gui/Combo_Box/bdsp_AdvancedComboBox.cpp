@@ -3,16 +3,16 @@ namespace bdsp
 {
 	AdvancedComboBox::AdvancedComboBox(juce::AudioParameterChoice* param, GUI_Universals* universalsToUse, const juce::Array<juce::Path>& paths, const juce::StringArray& dispNames, const std::function<void(int)>& changFunc)
 		:ComboBoxBase(param, universalsToUse, dispNames, changFunc),
-		AdvancedList(this),
 		iconPlacement(juce::RectanglePlacement::xLeft | juce::RectanglePlacement::yMid),
 		textJustification(juce::Justification::centred)
 	{
 		pathStorage = paths;
 
 		ListHolder = std::make_unique<DesktopComponent>(universals);
-		List = &AdvancedList;
+		advancedList = std::make_unique<AdvancedList>(this);
+		List = advancedList.get();
 
-		ListHolder->addAndMakeVisible(AdvancedList);
+		ListHolder->addAndMakeVisible(advancedList.get());
 		initMenuComponents();
 	}
 
@@ -66,7 +66,7 @@ namespace bdsp
 
 	void AdvancedComboBox::setItems(const juce::StringArray& items, const juce::Array<juce::Path>& shapes, const juce::StringArray& dispNames)
 	{
-		AdvancedList.setItems(items, shapes);
+		advancedList->setItems(items, shapes);
 
 		if (!dispNames.isEmpty())
 		{
@@ -251,15 +251,12 @@ namespace bdsp
 		{
 			g.fillRect(getLocalBounds());
 		}
-		/*g.setColour(getColor(BDSP_COLOR_PURE_BLACK));
-		g.fillRoundedRectangle(pathBounds, universals->roundedRectangleCurve);*/
 
 
 
+		g.setColour(getHoverColor(getColor(textHighlightedColor), getColor(textColor), isHighlighted(), isMouseOver(), universals->hoverMixAmt).withMultipliedAlpha(alpha));
 
-		g.setColour(getColor(isHighlighted() ? textHighlightedColor : textColor).withMultipliedAlpha(alpha));
-
-		auto Font = universals->Fonts[getFontIndex()].getFont();
+		auto Font = getFont();
 
 		g.setFont(resizeFontToFit(Font, textBounds.getWidth() * 0.9f, textBounds.getHeight() * 0.95f, parent->maxText));
 

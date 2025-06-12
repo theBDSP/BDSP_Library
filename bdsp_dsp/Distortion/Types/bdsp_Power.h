@@ -24,7 +24,9 @@ namespace bdsp
 				{
 					T a = 9 * amt + 1;
 					T sign = signum(in);
-					return (-sign * pow(abs(in - sign), a) + sign) * (isScaled ? DistortionTypeBase<T>::CompensationGain.processSample(amt) : 1);
+					T unbounded = (-sign * pow(abs(in - sign), a) + sign);
+					T bounded = juce::jlimit(T(-1), T(1), unbounded);
+					return  bounded * (isScaled ? DistortionTypeBase<T>::CompensationGain.processSample(amt) : 1);
 				}
 
 				inline static const juce::String Name{ "Power" };

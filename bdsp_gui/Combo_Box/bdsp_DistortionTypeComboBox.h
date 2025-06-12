@@ -48,11 +48,14 @@ namespace bdsp
 	};
 
 
-	class DistortionTypeSelectorGrid : public IncrementalComboBox<>, public juce::ComponentListener
+	class DistortionTypeSelectorGrid : public IncrementalComboBox<AdvancedComboBox>, public juce::ComponentListener
 	{
 	public:
-		DistortionTypeSelectorGrid(juce::AudioParameterChoice* param, GUI_Universals* universalsToUse, Component* newGridSibling);
+		DistortionTypeSelectorGrid(juce::AudioParameterChoice* param, GUI_Universals* universalsToUse, Component* newGridSibling, const juce::Array<juce::Path>& paths, const juce::StringArray& dispNames = juce::StringArray());
 		~DistortionTypeSelectorGrid();
+
+
+		void attach(juce::RangedAudioParameter* param, juce::UndoManager* undo = nullptr) override;
 
 		void colorsChanged() override;
 
@@ -66,7 +69,7 @@ namespace bdsp
 		void paint(juce::Graphics& g) override;
 	private:
 
-		class Grid : public ListComponent
+		class Grid : public AdvancedList
 		{
 		public:
 
@@ -74,34 +77,21 @@ namespace bdsp
 			void paint(juce::Graphics& g) override;
 			void resized() override;
 
+			void mouseEnter(const juce::MouseEvent& e) override;
+			void mouseMove(const juce::MouseEvent& e) override;
+			void mouseExit(const juce::MouseEvent& e) override;
+
 			juce::String label;
 			bool showIcon;
-		private:
-			class Item : public ListItem
-			{
-			public:
-				Item(ListComponent* parentList, const juce::String& name, juce::Path path, int idx, int retValue = -1);
-
-				void resized() override;
-				void paint(juce::Graphics& g) override;
-
-				void mouseEnter(const juce::MouseEvent& e) override;
-				void mouseExit(const juce::MouseEvent& e) override;
-
-			private:
-				juce::Path p;
-				juce::Rectangle<float> pathBounds;
-			};
 
 
 		};
-		std::unique_ptr<Grid> grid;
 
 
 		void componentMovedOrResized(juce::Component& component, bool wasMoved, bool wasResized) override;
 		void parameterChanged(int idx) override;
 		Component* gridSibling = nullptr;
-		Shape icon;
+		//Shape icon;
 		juce::String funcName;
 	};
 

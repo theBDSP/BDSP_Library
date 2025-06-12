@@ -270,7 +270,7 @@ namespace bdsp
 
 	void ComboBoxBase::setColorSchemeMinimal(const NamedColorsIdentifier& newMenuBkgd, const NamedColorsIdentifier& newBkgd, const NamedColorsIdentifier& newBorder, const juce::Array<NamedColorsIdentifier>& newText, const NamedColorsIdentifier& newDivider, float nonHighlightedAlpha)
 	{
-		backgroundUp = backgroundDown = newMenuBkgd;
+		backgroundUp = backgroundDown = newBkgd;
 
 		if (newText.size() == 1)
 		{
@@ -281,7 +281,7 @@ namespace bdsp
 			definedTextColorUp = definedTextColorDown = NamedColorsIdentifier();
 		}
 
-		List->setColorSchemeMinimal(newBkgd, newBorder, newText, newDivider, nonHighlightedAlpha);
+		List->setColorSchemeMinimal(newMenuBkgd, newBorder, newText, newDivider, nonHighlightedAlpha);
 		pushNewColors();
 	}
 
@@ -353,6 +353,7 @@ namespace bdsp
 	{
 		jassert(iconsToAdd.size() == getNumItems());
 		//icons.addArray(iconsToAdd);
+		icons.clear();
 		for (int i = 0; i < iconsToAdd.size(); ++i)
 		{
 			icons.add(new juce::Path(iconsToAdd[i]));

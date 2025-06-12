@@ -101,7 +101,7 @@ namespace bdsp
 		juce::Colour Highlight;
 
 
-		CornerCurves curvesVal = CornerCurves(topLeft | topRight | bottomLeft | bottomRight); // defualt all curves
+		CornerCurves curvesVal = CornerCurves::all; // defualt all curves
 
 
 

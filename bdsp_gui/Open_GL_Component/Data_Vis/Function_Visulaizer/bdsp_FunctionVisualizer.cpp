@@ -302,9 +302,9 @@ namespace bdsp
 
 	void OpenGLFunctionVisualizer::setEndpoint(float newEndpoint)
 	{
-		newEndpoint = (scalingX * (2 * newEndpoint - 1) + 1) / 2;
 		if (newEndpoint != endPointVal)
 		{
+			newEndpoint = (scalingX * (2 * newEndpoint - 1) + 1) / 2;
 			endPointVal = newEndpoint;
 			endpoint->set(endPointVal);
 			repaintThreadChecked();

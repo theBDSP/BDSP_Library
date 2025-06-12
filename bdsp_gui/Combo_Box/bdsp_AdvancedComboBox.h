@@ -59,7 +59,8 @@ namespace bdsp
 			bool keyPressed(const juce::KeyPress& key) override;
 
 
-		}AdvancedList;
+		};
+		std::unique_ptr<AdvancedList> advancedList;
 		juce::Array<juce::Path> pathStorage;
 		juce::RectanglePlacement iconPlacement;
 		juce::Justification textJustification;

@@ -111,28 +111,22 @@ namespace bdsp
 	//================================================================================================================================================================================================
 
 
-	DistortionTypeSelectorGrid::DistortionTypeSelectorGrid(juce::AudioParameterChoice* param, GUI_Universals* universalsToUse, Component* newGridSibling)
-		:IncrementalComboBox<>(param, universalsToUse)
+	DistortionTypeSelectorGrid::DistortionTypeSelectorGrid(juce::AudioParameterChoice* param, GUI_Universals* universalsToUse, Component* newGridSibling, const juce::Array<juce::Path>& paths, const juce::StringArray& dispNames)
+		:IncrementalComboBox<AdvancedComboBox>(param, universalsToUse, paths, dispNames)
 	{
 
-		icon = Shape(juce::Path(), NamedColorsIdentifier(), juce::Rectangle<float>(0.1, 0.1, 0.8, 0.8), textDown, 0.1);
-		icon.fillOff = textUp;
+		//icon = Shape(juce::Path(), NamedColorsIdentifier(), juce::Rectangle<float>(0.1, 0.1, 0.8, 0.8), textDown, 0.1);
+		//icon.fillOff = textUp;
 
 		setInterceptsMouseClicks(true, true);
 		setGridSibling(newGridSibling);
-		grid = std::make_unique<Grid>(this);
 
 
 		ListHolder = std::make_unique<DesktopComponent>(universals);
-		ListHolder->addAndMakeVisible(grid.get());
+		advancedList = std::make_unique<Grid>(this);
+		List = advancedList.get();
 
-		ListHolder->onShow = [=]()
-		{
-			resized();
-		};
-
-		List = grid.get();
-
+		ListHolder->addAndMakeVisible(advancedList.get());
 		initMenuComponents();
 
 	}
@@ -146,17 +140,34 @@ namespace bdsp
 
 	}
 
+	void DistortionTypeSelectorGrid::attach(juce::RangedAudioParameter* param, juce::UndoManager* undo)
+	{
+		IncrementalComboBox<AdvancedComboBox>::attach(param, undo);
+
+		icons.ensureStorageAllocated(parameter->choices.size());
+		for (int i = 0; i < parameter->choices.size(); ++i)
+		{
+			auto name = parameter->choices[i];
+
+			auto type = dynamic_cast<Processor*>(&universals->APVTS->processor)->lookups.distortionLookups->nameToDistortionType(name);
+			auto path = type->getIcon(false);
+
+			juce::PathStrokeType(path.getBounds().getWidth() * 0.05).createStrokedPath(path, path);
+			icons.set(i, new juce::Path(path));
+		}
+	}
+
 	void DistortionTypeSelectorGrid::colorsChanged()
 	{
-		IncrementalComboBox<>::colorsChanged();
-		icon.outline = textDown;
+		IncrementalComboBox<AdvancedComboBox>::colorsChanged();
+		//icon.outline = textDown;
 		repaint();
 	}
 
 
 	void DistortionTypeSelectorGrid::setRowsAndCols(int rows, int cols)
 	{
-		grid->setRowsAndCols(rows, cols);
+		advancedList->setRowsAndCols(rows, cols);
 	}
 
 	void DistortionTypeSelectorGrid::setGridSibling(Component* newGridSibling)
@@ -170,14 +181,14 @@ namespace bdsp
 		if (newGridSibling != nullptr)
 		{
 			newGridSibling->addComponentListener(this);
-			newGridSibling->getParentComponent()->addAndMakeVisible(grid.get());
+			newGridSibling->getParentComponent()->addAndMakeVisible(advancedList.get());
 
 		}
 	}
 
 	void DistortionTypeSelectorGrid::resized()
 	{
-		IncrementalComboBox<>::resized();
+		IncrementalComboBox<AdvancedComboBox>::resized();
 
 		if (gridSibling == nullptr)
 		{
@@ -199,14 +210,14 @@ namespace bdsp
 
 	void DistortionTypeSelectorGrid::paint(juce::Graphics& g)
 	{
-		IncrementalComboBox<>::paint(g);
-		icon.draw(g, getLocalBounds().toFloat().withSizeKeepingCentre(getHeight(), getHeight()), !isListVisible(), isMouseOver(), universals, isEnabled() ? 1.0f : universals->disabledAlpha);
+		IncrementalComboBox<AdvancedComboBox>::paint(g);
+		//icon.draw(g, getLocalBounds().toFloat().withSizeKeepingCentre(getHeight(), getHeight()), !isListVisible(), isMouseOver(), universals, isEnabled() ? 1.0f : universals->disabledAlpha);
 	}
 
 	void DistortionTypeSelectorGrid::componentMovedOrResized(juce::Component& component, bool wasMoved, bool wasResized)
 	{
 		ListHolder->setBounds(gridSibling->getBoundsRelativeToDesktopManager());
-		grid->setBoundsRelative(0, 0, 1, 1);
+		advancedList->setBoundsRelative(0, 0, 1, 1);
 	}
 
 
@@ -216,13 +227,11 @@ namespace bdsp
 
 		auto name = parameter->choices[idx];
 
-		auto type = dynamic_cast<Processor*>(&universals->APVTS->processor)->lookups.distortionLookups->nameToDistortionType(name);
-		auto path = type->getIcon(false);
-
-		icon.path = path;
+		auto grid = dynamic_cast<Grid*>(advancedList.get());
 
 		grid->label = name;
-		IncrementalComboBox<>::parameterChanged(idx);
+		grid->repaint();
+		IncrementalComboBox<AdvancedComboBox>::parameterChanged(idx);
 	}
 
 
@@ -230,7 +239,7 @@ namespace bdsp
 
 
 	DistortionTypeSelectorGrid::Grid::Grid(DistortionTypeSelectorGrid* p)
-		:ListComponent(p)
+		:AdvancedList(p)
 	{
 		for (int i = 0; i < p->parameter->choices.size(); i++)
 		{
@@ -238,9 +247,8 @@ namespace bdsp
 			auto type = dynamic_cast<Processor*>(&universals->APVTS->processor)->lookups.distortionLookups->nameToDistortionType(name);
 			auto path = type->getIcon(false);
 
-			List.add(new Item(this, name, path, i));
-			List.getLast()->highlightColor = BDSP_COLOR_PURE_BLACK;
-			List.getLast()->textColor = NamedColorsIdentifier(BDSP_COLOR_PURE_BLACK).withMultipliedAlpha(universals->midOpacity);
+			List.add(new AdvancedListItem(this, name, path, i));
+			addAndMakeVisible(List.getLast());
 		}
 
 
@@ -248,20 +256,27 @@ namespace bdsp
 
 	void DistortionTypeSelectorGrid::Grid::paint(juce::Graphics& g)
 	{
-		g.setColour(getColor(BDSP_COLOR_KNOB));
-		g.fillRoundedRectangle(getLocalBounds().toFloat(), universals->roundedRectangleCurve);
+		juce::Path p = getRoundedRectangleFromCurveBools(getLocalBounds().toFloat().reduced(insideBorder.getX()), CornerCurves::all, universals->roundedRectangleCurve);
+
+
+		dropShadow.render(g, p);
+
+
+		g.setColour(getColor(background));
+		g.fillPath(p);
 
 		auto c = getColor(List[getHighlightedIndex()]->textColor);
 
 		g.setColour(c);
 
-		auto textRect = getLocalBounds().withTop(List.getLast()->getBottom() + insideBorder.getY());
-		juce::Path rect;
-		rect.addRoundedRectangle(textRect.getX(), textRect.getY(), textRect.getWidth(), textRect.getHeight(), universals->roundedRectangleCurve, universals->roundedRectangleCurve, false, false, true, true);
-		g.fillPath(rect);
+		auto textRect = juce::Rectangle<float>().leftTopRightBottom(insideBorder.getX(), List.getLast()->getBottom() + insideBorder.getX(), insideBorder.getRight(), getHeight() - insideBorder.getX());
+		juce::Path rect = getRoundedRectangleFromCurveBools(textRect, CornerCurves::bottom, universals->roundedRectangleCurve);
+		//g.fillPath(rect);
+		g.drawHorizontalLine(textRect.getY(), textRect.getX(), textRect.getRight());
 
-		g.setColour(getColor(List[getHighlightedIndex()]->highlightColor));
-		drawText(g, universals->Fonts[getFontIndex()].getFont().withHeight(textRect.getHeight() * 0.8), label, textRect);
+
+		//g.setColour(getColor(background));
+		drawText(g, getFont().withHeight(textRect.getHeight() * 0.8), label, textRect);
 
 	}
 
@@ -269,58 +284,52 @@ namespace bdsp
 	{
 		if (!getBounds().isEmpty())
 		{
-			auto reduced = confineToAspectRatio(getLocalBounds().toFloat(), BDSP_DISTORTION_TYPE_GRID_ASPECT_RATIO);
+			auto reduced = confineToAspectRatio(getLocalBounds().toFloat(), BDSP_DISTORTION_TYPE_GRID_ASPECT_RATIO, juce::RectanglePlacement::xMid | juce::RectanglePlacement::yTop);
 			insideBorder = reduced.withHeight(reduced.getWidth()).reduced(reduced.getWidth() * BDSP_POPUP_MENU_OUTLINE_RATIO);// .getProportion(juce::Rectangle<float>(0.05, 0.05, 0.9, 0.9));
+			dropShadow.setRadius(insideBorder.getY());
 
 			postionItemsWithinRectangle(insideBorder);
 		}
 	}
 
-
-	//================================================================================================================================================================================================
-
-
-	DistortionTypeSelectorGrid::Grid::Item::Item(ListComponent* parentList, const juce::String& name, juce::Path path, int idx, int retValue)
-		:ListItem(parentList, idx)
+	void DistortionTypeSelectorGrid::Grid::mouseEnter(const juce::MouseEvent& e)
 	{
-		p = path;
-		setText(name);
+		mouseMove(e);
 	}
 
-	void DistortionTypeSelectorGrid::Grid::Item::resized()
+	void DistortionTypeSelectorGrid::Grid::mouseMove(const juce::MouseEvent& e)
 	{
-		forceAspectRatio(1);
-		pathBounds = getLocalBounds().toFloat().reduced(universals->roundedRectangleCurve);
-		scaleToFit(p, pathBounds);
+		int idx = -1;
+		auto pos = e.getEventRelativeTo(this).position;
+		for (int i = 0; i < List.size(); ++i)
+		{
+			if (List[i]->getBounds().translated(insideBorder.getX(), insideBorder.getY()).toFloat().contains(pos))
+			{
+				idx = i;
+				break;
+			}
+		}
+
+
+		if (idx > -1)
+		{
+			label = List[idx]->getText();
+			repaint();
+		}
+		else
+		{
+			//mouseExit(e);
+		}
 	}
 
-	void DistortionTypeSelectorGrid::Grid::Item::paint(juce::Graphics& g)
+	void DistortionTypeSelectorGrid::Grid::mouseExit(const juce::MouseEvent& e)
 	{
-
-		g.setColour(getColor(highlightColor));
-
-
-
-		auto c = getColor(isHighlighted() ? highlightColor : textColor);
-
-		g.setColour(c);
-		g.strokePath(p, juce::PathStrokeType(getWidth() * 0.05));
-
-
+		if (SelectedIndex > -1)
+		{
+			label = List[SelectedIndex]->getText();
+			repaint();
+		}
 	}
-
-	void DistortionTypeSelectorGrid::Grid::Item::mouseEnter(const juce::MouseEvent& e)
-	{
-		dynamic_cast<DistortionTypeSelectorGrid::Grid*>(parent)->label = getText();
-	}
-
-	void DistortionTypeSelectorGrid::Grid::Item::mouseExit(const juce::MouseEvent& e)
-	{
-		auto grandparent = dynamic_cast<DistortionTypeSelectorGrid*>(parent->parent);
-		dynamic_cast<DistortionTypeSelectorGrid::Grid*>(parent)->label = grandparent->parameter->choices[grandparent->getIndex()];
-
-	}
-
 
 
 

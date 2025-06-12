@@ -37,6 +37,7 @@ namespace bdsp
 		void highlightItem(int idx);
 		void clearHighlights();
 		int getHighlightedIndex();
+		int getSelectedIndex();
 		void scroll(bool up, int num = 1);
 
 		int getNum();
@@ -83,6 +84,7 @@ namespace bdsp
 		juce::Array<std::pair<juce::Range<int>, int>> colSplits;
 		juce::Rectangle<float> insideBorder;
 		int HighlightedIndex = -1;
+		int SelectedIndex = -1;
 
 		std::function<void(int)> newItemColorAssigner;
 
