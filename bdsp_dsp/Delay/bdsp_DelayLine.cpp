@@ -23,7 +23,7 @@ namespace bdsp
 		template<typename SampleType>
 		void DelayLineBase<SampleType>::setMaxDelay(int numSamples)
 		{
-			totalSize = juce::nextPowerOfTwo(juce::jmax(4, numSamples + 1));
+			totalSize = juce::jmax(4, numSamples + 1);
 			bufferData.setSize(bufferData.getNumChannels(), totalSize);
 			reset();
 		}
@@ -41,6 +41,7 @@ namespace bdsp
 
 			writePos.resize(spec.numChannels);
 			readPos.resize(spec.numChannels);
+			delayInt.resize(spec.numChannels);
 
 
 
@@ -61,8 +62,7 @@ namespace bdsp
 		SampleType DelayLineBase<SampleType>::popSample(int channel)
 		{
 			//interpolatedSample = interpolateSample(channel);
-
-			int index = (readPos[(size_t)channel] + delayInt) & (totalSize - 1);
+			int index = (readPos[(size_t)channel] + delayInt[(size_t)channel]) % totalSize;
 
 			return bufferData.getSample(channel, index);
 		}
@@ -80,26 +80,26 @@ namespace bdsp
 		{
 			jassert(isfinite(smp));
 			bufferData.setSample(channel, writePos[(size_t)channel], smp);
-			writePos[(size_t)channel] = (writePos[(size_t)channel] + totalSize - 1) & (totalSize - 1);
+			writePos[(size_t)channel] = (writePos[(size_t)channel] + totalSize - 1) % totalSize;
 		}
 
 		template<typename SampleType>
 		void DelayLineBase<SampleType>::updateReadPointer(int channel)
 		{
-			readPos[(size_t)channel] = (readPos[(size_t)channel] + totalSize - 1) & (totalSize - 1);
+			readPos[(size_t)channel] = (readPos[(size_t)channel] + totalSize - 1) % totalSize;
 		}
 
 
 		template<typename SampleType>
-		void DelayLineBase<SampleType>::setDelay(SampleType newValue)
+		void DelayLineBase<SampleType>::setDelay(int channel, SampleType newValue)
 		{
-			delayInt = static_cast<int>(newValue);
+			delayInt[(size_t)channel] = static_cast<int>(newValue);
 		}
 
 		template<typename SampleType>
-		int DelayLineBase<SampleType>::getDelayInt()
+		int DelayLineBase<SampleType>::getDelayInt(int channel)
 		{
-			return delayInt;
+			return delayInt[(size_t)channel];
 		}
 
 
@@ -133,6 +133,7 @@ namespace bdsp
 			initFeedback(0);
 			BaseProcessingUnit<SampleType>::initMix(1);
 			outputPanner.initPan(0);
+			outputPanner.initGain(1);
 			initPongMix(0);
 
 		}
@@ -141,17 +142,20 @@ namespace bdsp
 		template <typename SampleType, typename DelayType, typename InterpolationType>
 		void DelayLine<SampleType, DelayType, InterpolationType>::updateDelay()
 		{
+			for (size_t c = 0; c < targetDelay.size(); ++c)
+			{
 
-			// Negative delay time or delay time greater than the max delay time wouldn't make sense
-			jassert(juce::isPositiveAndNotGreaterThan(targetDelay, DelayLineBase<SampleType>::totalSize - 1));
+				// Negative delay time or delay time greater than the max delay time wouldn't make sense
+				jassert(juce::isPositiveAndNotGreaterThan(targetDelay[c], DelayLineBase<SampleType>::totalSize - 1));
 
 
-			auto inc = (targetDelay - delay) / (delaySmoothingTime * BaseProcessingUnit<SampleType>::sampleRate); // calculates how much to increment the delay time this sample
-			delay += inc;
+				auto inc = (targetDelay[c] - delay[c]) / (delaySmoothingTime * BaseProcessingUnit<SampleType>::sampleRate); // calculates how much to increment the delay time this sample
+				delay[c] += inc;
 
-			DelayLineBase<SampleType>::delayInt = static_cast<int> (std::floor(delay));
-			delayFrac = delay - (SampleType)DelayLineBase<SampleType>::delayInt;
+				DelayLineBase<SampleType>::delayInt[c] = static_cast<int> (std::floor(delay[c]));
+				delayFrac[c] = delay[c] - (SampleType)DelayLineBase<SampleType>::delayInt[c];
 
+			}
 
 			updateInternalVariables(); // calculate other necessary variables depending on the smoothing type being used
 		}
@@ -159,16 +163,16 @@ namespace bdsp
 
 
 		template<typename SampleType, typename DelayType, typename InterpolationType>
-		SampleType DelayLine<SampleType, DelayType, InterpolationType>::getDelay() const
+		SampleType DelayLine<SampleType, DelayType, InterpolationType>::getDelay(int channel) const
 		{
-			return delay;
+			return delay[(size_t)channel];
 		}
 
 
 		template<typename SampleType, typename DelayType, typename InterpolationType>
-		SampleType DelayLine<SampleType, DelayType, InterpolationType>::getTargetDelay() const
+		SampleType DelayLine<SampleType, DelayType, InterpolationType>::getTargetDelay(int channel) const
 		{
-			return targetDelay;
+			return targetDelay[(size_t)channel];
 		}
 
 
@@ -180,6 +184,16 @@ namespace bdsp
 			v.resize(spec.numChannels);
 
 			DelayLineBase<SampleType>::prepare(spec);
+			delay.resize(spec.numChannels);
+			delayFrac.resize(spec.numChannels);
+			targetDelay.resize(spec.numChannels);
+			alpha.resize(spec.numChannels);
+
+
+
+
+			reversePos.resize(spec.numChannels);
+			reverseOffset.resize(spec.numChannels);
 
 			reset();
 		}
@@ -190,6 +204,10 @@ namespace bdsp
 			DelayLineBase<SampleType>::reset();
 
 			std::fill(v.begin(), v.end(), static_cast<SampleType> (0));
+			std::fill(reversePos.begin(), reversePos.end(), static_cast<SampleType> (0));
+			std::fill(reverseOffset.begin(), reverseOffset.end(), static_cast<SampleType> (0));
+
+			std::fill(alpha.begin(), alpha.end(), static_cast<SampleType> (0));
 		}
 
 
@@ -198,9 +216,9 @@ namespace bdsp
 		template <typename SampleType, typename DelayType, typename InterpolationType>
 		SampleType DelayLine<SampleType, DelayType, InterpolationType>::popSampleUpdateRead(int channel)
 		{
-			interpolatedSample = interpolateSample(channel);
+			interpolatedSample = popSample(channel);
 
-			DelayLineBase<SampleType>::updateReadPointer(channel);
+			updateReadPointer(channel);
 
 			return interpolatedSample;
 		}
@@ -223,8 +241,8 @@ namespace bdsp
 		StereoSample<SampleType> DelayLine<SampleType, DelayType, InterpolationType>::pingPongPopUpdateRead()
 		{
 			auto out = pingPongPop();
-			DelayLineBase<SampleType>::updateReadPointer(0);
-			DelayLineBase<SampleType>::updateReadPointer(1);
+			updateReadPointer(0);
+			updateReadPointer(1);
 			return out;
 		}
 
@@ -249,16 +267,38 @@ namespace bdsp
 		}
 
 		template<typename SampleType, typename DelayType, typename InterpolationType>
-		void DelayLine<SampleType, DelayType, InterpolationType>::setDelay(SampleType newValue)
+		void DelayLine<SampleType, DelayType, InterpolationType>::setDelay(int channel, SampleType newValue)
 		{
-			targetDelay = newValue;
+			if (channel < 0)
+			{
+				for (int c = 0; c < targetDelay.size(); ++c)
+				{
+					setDelay(c, newValue);
+				}
+			}
+			else
+			{
+				targetDelay[(size_t)channel] = newValue;
+			}
+
 		}
 
 		template<typename SampleType, typename DelayType, typename InterpolationType>
-		void DelayLine<SampleType, DelayType, InterpolationType>::snapDelay(SampleType newValue)
+		void DelayLine<SampleType, DelayType, InterpolationType>::snapDelay(int channel, SampleType newValue)
 		{
-			targetDelay = newValue;
-			delay = newValue;
+
+			if (channel < 0)
+			{
+				for (int c = 0; c < targetDelay.size(); ++c)
+				{
+					snapDelay(c, newValue);
+				}
+			}
+			else
+			{
+				targetDelay[(size_t)channel] = newValue;
+				delay[(size_t)channel] = newValue;
+			}
 		}
 
 
@@ -276,7 +316,39 @@ namespace bdsp
 			smoothedPongMix.setCurrentAndTargetValue(newValue);
 		}
 
+		template<typename SampleType, typename DelayType, typename InterpolationType>
+		void DelayLine<SampleType, DelayType, InterpolationType>::setReversed(bool shouldBeReversed)
+		{
+			reversed = shouldBeReversed;
+		}
 
+		template<typename SampleType, typename DelayType, typename InterpolationType>
+		SampleType DelayLine<SampleType, DelayType, InterpolationType>::getFeedback()
+		{
+			return smoothedFeedback.getCurrentValue();
+		}
+
+		template<typename SampleType, typename DelayType, typename InterpolationType>
+		SampleType DelayLine<SampleType, DelayType, InterpolationType>::getPongMix()
+		{
+			return smoothedPongMix.getCurrentValue();
+		}
+
+		template<typename SampleType, typename DelayType, typename InterpolationType>
+		bool DelayLine<SampleType, DelayType, InterpolationType>::getReversed()
+		{
+			return reversed;
+		}
+
+
+
+		template<typename SampleType, typename DelayType, typename InterpolationType>
+		void DelayLine<SampleType, DelayType, InterpolationType>::updateReadPointer(int channel)
+		{
+			DelayLineBase<SampleType>::updateReadPointer(channel);
+			reverseOffset[(size_t)channel] = (reverseOffset[(size_t)channel] + 2) % (juce::jmax(2 * DelayLineBase<SampleType>::delayInt[(size_t)channel], 1));
+			reversePos[(size_t)channel] = (readPos[(size_t)channel] + reverseOffset[(size_t)channel]) % totalSize;
+		}
 
 		template<typename SampleType, typename DelayType, typename InterpolationType>
 		void DelayLine<SampleType, DelayType, InterpolationType>::updateSmoothedVariables()

@@ -147,6 +147,9 @@ namespace bdsp
 //Delay
 #include "Delay/bdsp_DelayLine.h"
 
+#include "Delay/Multi_Tap_Delay/bdsp_MultiTapDelay.h"
+#include "Delay/Swing_Shuffle_Delay/bdsp_SwingShuffleDelay.h"
+
 #include "Stereo/bdsp_StereoWidener.h"
 
 //================================================================================================================================================================================================

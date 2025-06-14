@@ -14,7 +14,12 @@ namespace bdsp
 		class DynamicsBase : public BaseProcessingUnit<SampleType>
 		{
 		public:
-			DynamicsBase() = default;
+			DynamicsBase()
+				:BaseProcessingUnit<SampleType>(),
+				sideChain(nullptr)
+			{
+
+			}
 			virtual ~DynamicsBase() = default;
 
 			void setAttack(SampleType attackTimeMs)
@@ -55,6 +60,9 @@ namespace bdsp
 				envGain.reset();
 				postGain.reset();
 				envFilter.reset();
+
+				envGain.initGain(1);
+				postGain.initGain(1);
 			}
 
 

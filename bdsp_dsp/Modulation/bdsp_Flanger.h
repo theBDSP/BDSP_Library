@@ -19,8 +19,7 @@ namespace bdsp
 		{
 		public:
 			Flanger(DSP_Universals<SampleType>* lookupToUse)
-				:delayL(4, lookupToUse),
-				delayR(4, lookupToUse)
+				:delay(4, lookupToUse)
 			{
 				lookup = lookupToUse;
 
@@ -32,13 +31,10 @@ namespace bdsp
 
 			void prepare(const juce::dsp::ProcessSpec& spec) override
 			{
-				const juce::dsp::ProcessSpec monoSpec = { spec.sampleRate,spec.maximumBlockSize,1 };
-				delayL.prepare(monoSpec);
-				delayR.prepare(monoSpec);
+				delay.prepare(spec);
 
 				maxDelay = (BDSP_FLANGER_BASE_DELAY_MAX_MS + BDSP_FLANGER_DELAY_CHANGE_MAX_MS) / 1000.0 * spec.sampleRate + 1; // max delay in samples
-				delayL.setMaxDelay(maxDelay);
-				delayR.setMaxDelay(maxDelay);
+				delay.setMaxDelay(maxDelay);
 
 
 				BaseProcessingUnit<SampleType>::prepare(spec);
@@ -49,8 +45,7 @@ namespace bdsp
 
 			void reset() override
 			{
-				delayL.reset();
-				delayR.reset();
+				delay.reset();
 
 				BaseProcessingUnit<SampleType>::reset();
 
@@ -62,11 +57,11 @@ namespace bdsp
 
 			StereoSample<SampleType> processSampleStereo(const StereoSample<SampleType>& inputSample) noexcept override
 			{
-				auto l = delayL.popSampleUpdateRead(0);
-				auto r = delayR.popSampleUpdateRead(0);
+				auto l = delay.popSampleUpdateRead(0);
+				auto r = delay.popSampleUpdateRead(1);
 
-				delayL.pushSample(0, inputSample.left + l * feedback.getCurrentValue());
-				delayR.pushSample(0, inputSample.right + r * feedback.getCurrentValue());
+				delay.pushSample(0, inputSample.left + l * feedback.getCurrentValue());
+				delay.pushSample(1, inputSample.right + r * feedback.getCurrentValue());
 
 				return StereoSample<SampleType>(l, r);
 			}
@@ -122,21 +117,19 @@ namespace bdsp
 				auto depth = delayChangeMax.getCurrentValue();
 				modPhaseL = modf(modPhaseL + modInc, &tmp);
 				modValL = lookup->waveLookups->lookupSin(0.5, modPhaseL, false, depth);
-				delayL.snapDelay(BaseProcessingUnit<SampleType>::sampleRate / 1000 * (baseDelay.getCurrentValue() + modValL));
+				delay.snapDelay(0,BaseProcessingUnit<SampleType>::sampleRate / 1000 * (baseDelay.getCurrentValue() + modValL));
 
 				modPhaseR = modf(modPhaseL + stereoSpread.getCurrentValue() / 2, &tmp);
 				modValR = lookup->waveLookups->lookupSin(0.5, modPhaseR, false, depth);
-				delayR.snapDelay(BaseProcessingUnit<SampleType>::sampleRate / 1000 * ((baseDelay.getCurrentValue() + modValR) + stereoSpread.getCurrentValue() * (BDSP_FLANGER_DELAY_CHANGE_MAX_MS - depth) / 2));
+				delay.snapDelay(1,BaseProcessingUnit<SampleType>::sampleRate / 1000 * ((baseDelay.getCurrentValue() + modValR) + stereoSpread.getCurrentValue() * (BDSP_FLANGER_DELAY_CHANGE_MAX_MS - depth) / 2));
 
 
-				delayL.updateSmoothedVariables();
-				delayR.updateSmoothedVariables();
+				delay.updateSmoothedVariables();
 			}
 
 			void setSmoothingTime(SampleType timeInSeconds) override
 			{
-				delayL.setSmoothingTime(timeInSeconds);
-				delayR.setSmoothingTime(timeInSeconds);
+				delay.setSmoothingTime(timeInSeconds);
 
 				baseDelay.reset(BaseProcessingUnit<SampleType>::sampleRate, timeInSeconds);
 				delayChangeMax.reset(BaseProcessingUnit<SampleType>::sampleRate, timeInSeconds);
@@ -205,7 +198,7 @@ namespace bdsp
 
 			juce::dsp::Complex<SampleType> calculateResponseForNormalizedFrequency(int channel, SampleType normalizedFrequency)
 			{
-				SampleType d = channel == 0 ? delayL.getDelay() : delayR.getDelay();
+				SampleType d = delay.getDelay(channel);
 				juce::dsp::Complex<SampleType> jw = std::polar(SampleType(1), SampleType(-d * 2 * PI * normalizedFrequency));
 
 				return SampleType(1) / (SampleType(1) - (feedback.getCurrentValue() * jw));
@@ -227,7 +220,7 @@ namespace bdsp
 
 		protected:
 
-			DelayLine<SampleType, DelayTypes::Basic, DelayLineInterpolationTypes::Lagrange3rd> delayL, delayR;
+			DelayLine<SampleType, DelayTypes::Basic, DelayLineInterpolationTypes::Lagrange3rd> delay;
 
 
 			juce::SmoothedValue<SampleType> baseDelay, delayChangeMax, delayChangeRate;

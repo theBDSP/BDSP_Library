@@ -14,6 +14,11 @@ namespace bdsp
 		{
 		public:
 
+			Compressor()
+				:DynamicsBase<SampleType>()
+			{
+
+			}
 
 			void setThresholdDB(SampleType newThresholdDB)
 			{

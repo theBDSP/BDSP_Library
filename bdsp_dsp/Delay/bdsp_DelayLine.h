@@ -109,19 +109,19 @@ namespace bdsp
 			/**
 			 * Push a single sample to the buffer and update the write pointer
 			 */
-			void updateReadPointer(int channel);
+			virtual void updateReadPointer(int channel);
 
 			/**
 			 * Sets a new delay time in samples. This takes a float-type so that derived class that can handle fractional delay times can override this funciton
 			 */
-			virtual void setDelay(SampleType newValue);
+			virtual void setDelay(int channel, SampleType newValue);
 
 			/**
 			 * @returns The delay time in samples tuncated to an int
 			 */
-			int getDelayInt();
+			int getDelayInt(int channel);
 
-
+			
 			//==============================================================================
 
 			void processInternal(bool isBypassed) noexcept override
@@ -159,8 +159,8 @@ namespace bdsp
 		protected:
 
 			juce::AudioBuffer<SampleType> bufferData;
-			std::vector<int> writePos, readPos;
-			int delayInt = 0, totalSize = 4;
+			std::vector<int> writePos, readPos, delayInt;
+			int totalSize = 4;
 		};
 
 
@@ -186,12 +186,12 @@ namespace bdsp
 			/**
 			 * @return The current delay time in samples
 			 */
-			SampleType getDelay() const;
+			SampleType getDelay(int channel) const;
 
 			/**
 			 * @return The target delay time in samples to be reached after smoothing
 			 */
-			SampleType getTargetDelay() const;
+			SampleType getTargetDelay(int channel) const;
 
 
 
@@ -223,7 +223,7 @@ namespace bdsp
 
 
 
-
+			void updateReadPointer(int channel) override;
 
 			void updateSmoothedVariables() override;
 
@@ -234,17 +234,24 @@ namespace bdsp
 
 			void setFeedback(SampleType newValue);
 			void setPongMix(SampleType newValue);
-			void setDelay(SampleType newValue) override;
+			void setDelay(int channel, SampleType newValue) override;
 
 			/**
 			 *  Sets the delay without smoothing
 			 */
-			void snapDelay(SampleType newValue);
+			void snapDelay(int channel, SampleType newValue);
 
 
 
 			void initFeedback(SampleType newValue);
 			void initPongMix(SampleType newValue);
+
+			void setReversed(bool shouldBeReversed);
+
+
+			SampleType getFeedback();
+			SampleType getPongMix();
+			bool getReversed();
 
 			//================================================================================================================================================================================================
 
@@ -280,13 +287,18 @@ namespace bdsp
 
 			}
 
-		private:
-
+		protected:
 			/**
 			 * Grabs the next smoothed value of the delay and updates all the related variables to the new value
 			 */
-			void updateDelay();
+			virtual void updateDelay();
 
+			virtual int getChannel(int channel) const
+			{
+				return channel;
+			}
+
+		private:
 			//================================================================================================================================================================================================
 			// Interpolate Sample Implementations
 
@@ -297,9 +309,17 @@ namespace bdsp
 			typename std::enable_if <std::is_same <T, DelayLineInterpolationTypes::None>::value, SampleType>::type
 				interpolateSample(int channel) const
 			{
-				int index = (DelayLineBase<SampleType>::readPos[(size_t)channel] + DelayLineBase<SampleType>::delayInt) & (DelayLineBase<SampleType>::totalSize - 1);
+				int index;
+				if (reversed)
+				{
+					index = (reversePos[(size_t)channel] + DelayLineBase<SampleType>::delayInt[(size_t)channel]) % DelayLineBase<SampleType>::totalSize;
+				}
+				else
+				{
+					index = (DelayLineBase<SampleType>::readPos[(size_t)channel] + DelayLineBase<SampleType>::delayInt[(size_t)channel]) % DelayLineBase<SampleType>::totalSize;
+				}
 
-				return DelayLineBase<SampleType>::bufferData.getSample(channel, index);
+				return DelayLineBase<SampleType>::bufferData.getSample(getChannel(channel), index);
 			}
 
 			/**
@@ -310,17 +330,27 @@ namespace bdsp
 				interpolateSample(int channel) const
 			{
 
-				auto index1 = DelayLineBase<SampleType>::readPos[(size_t)channel] + DelayLineBase<SampleType>::delayInt;
+				int index1;
+				if (reversed)
+				{
+					index1 = reversePos[(size_t)channel] + DelayLineBase<SampleType>::delayInt[(size_t)channel];
+				}
+				else
+				{
+					index1 = DelayLineBase<SampleType>::readPos[(size_t)channel] + DelayLineBase<SampleType>::delayInt[(size_t)channel];
+				}
+
+
 				auto index2 = index1 + 1;
 
 
-				index1 = index1 & (DelayLineBase<SampleType>::totalSize - 1);
-				index2 = index2 & (DelayLineBase<SampleType>::totalSize - 1);
+				index1 = index1 % DelayLineBase<SampleType>::totalSize;
+				index2 = index2 % DelayLineBase<SampleType>::totalSize;
 
-				auto value1 = DelayLineBase<SampleType>::bufferData.getSample(channel, index1);
-				auto value2 = DelayLineBase<SampleType>::bufferData.getSample(channel, index2);
+				SampleType value1 = DelayLineBase<SampleType>::bufferData.getSample(getChannel(channel), index1);
+				SampleType value2 = DelayLineBase<SampleType>::bufferData.getSample(getChannel(channel), index2);
 
-				return value1 + delayFrac * (value2 - value1);
+				return value1 + delayFrac[(size_t)channel] * (value2 - value1);
 			}
 
 			/**
@@ -332,27 +362,35 @@ namespace bdsp
 			{
 
 
-				auto index1 = DelayLineBase<SampleType>::readPos[(size_t)channel] + DelayLineBase<SampleType>::delayInt;
+				int index1;
+				if (reversed)
+				{
+					index1 = reversePos[(size_t)channel] + DelayLineBase<SampleType>::delayInt[(size_t)channel];
+				}
+				else
+				{
+					index1 = DelayLineBase<SampleType>::readPos[(size_t)channel] + DelayLineBase<SampleType>::delayInt[(size_t)channel];
+				}
 				auto index2 = index1 + 1;
 				auto index3 = index2 + 1;
 				auto index4 = index3 + 1;
 
 
-				index1 = index1 & (DelayLineBase<SampleType>::totalSize - 1);
-				index2 = index2 & (DelayLineBase<SampleType>::totalSize - 1);
-				index3 = index3 & (DelayLineBase<SampleType>::totalSize - 1);
-				index4 = index4 & (DelayLineBase<SampleType>::totalSize - 1);
+				index1 = index1 % DelayLineBase<SampleType>::totalSize;
+				index2 = index2 % DelayLineBase<SampleType>::totalSize;
+				index3 = index3 % DelayLineBase<SampleType>::totalSize;
+				index4 = index4 % DelayLineBase<SampleType>::totalSize;
 
-				auto* samples = DelayLineBase<SampleType>::bufferData.getReadPointer(channel);
+				auto* samples = DelayLineBase<SampleType>::bufferData.getReadPointer(getChannel(channel));
 
 				auto value1 = samples[index1];
 				auto value2 = samples[index2];
 				auto value3 = samples[index3];
 				auto value4 = samples[index4];
 
-				auto d1 = delayFrac - 1.0f;
-				auto d2 = delayFrac - 2.0f;
-				auto d3 = delayFrac - 3.0f;
+				auto d1 = delayFrac[(size_t)channel] - 1.0f;
+				auto d2 = delayFrac[(size_t)channel] - 2.0f;
+				auto d3 = delayFrac[(size_t)channel] - 3.0f;
 
 
 				/*
@@ -372,7 +410,7 @@ namespace bdsp
 				auto c3 = -d1 * d32;
 
 
-				return value1 * c1 + delayFrac * (value2 * c2 + value3 * c3 + value4 * c4);
+				return value1 * c1 + delayFrac[(size_t)channel] * (value2 * c2 + value3 * c3 + value4 * c4);
 			}
 
 			/**
@@ -383,21 +421,29 @@ namespace bdsp
 				interpolateSample(int channel)
 			{
 
-				auto index1 = DelayLineBase<SampleType>::readPos[(size_t)channel] + DelayLineBase<SampleType>::delayInt;
+				int index1;
+				if (reversed)
+				{
+					index1 = reversePos[(size_t)channel] + DelayLineBase<SampleType>::delayInt[(size_t)channel];
+				}
+				else
+				{
+					index1 = DelayLineBase<SampleType>::readPos[(size_t)channel] + DelayLineBase<SampleType>::delayInt[(size_t)channel];
+				}
 				auto index2 = index1 + 1;
 
-				index1 = index1 & (DelayLineBase<SampleType>::totalSize - 1);
-				index2 = index2 & (DelayLineBase<SampleType>::totalSize - 1);
+				index1 = index1 % DelayLineBase<SampleType>::totalSize;
+				index2 = index2 % DelayLineBase<SampleType>::totalSize;
 
 
-				auto value1 = DelayLineBase<SampleType>::bufferData.getSample(channel, index1);
-				auto value2 = DelayLineBase<SampleType>::bufferData.getSample(channel, index2);
+				auto value1 = DelayLineBase<SampleType>::bufferData.getSample(getChannel(channel), index1);
+				auto value2 = DelayLineBase<SampleType>::bufferData.getSample(getChannel(channel), index2);
 
 				/*
 				* To avoid branching from the following, we replace the ternary operator with a few bool conversions and multiplies
 				* output = (delayFrac == 0) ? value1 : value2 + alpha * (value1 - v[(size_t)channel]);
 				*/
-				auto output = !delayFrac * value1 + !!delayFrac * (value2 + alpha * (value1 - v[(size_t)channel]));
+				auto output = !delayFrac[(size_t)channel] * value1 + !!delayFrac[(size_t)channel] * (value2 + alpha[(size_t)channel] * (value1 - v[(size_t)channel]));
 				v[(size_t)channel] = output;
 
 				return output;
@@ -411,16 +457,24 @@ namespace bdsp
 				interpolateSample(int channel) const
 			{
 
-				SampleType index = DelayLineBase<SampleType>::readPos[(size_t)channel] + DelayLineBase<SampleType>::delayInt;
+				SampleType index;
+				if (reversed)
+				{
+					index = (reversePos[(size_t)channel] + DelayLineBase<SampleType>::delayInt[(size_t)channel]);
+				}
+				else
+				{
+					index = (DelayLineBase<SampleType>::readPos[(size_t)channel] + DelayLineBase<SampleType>::delayInt[(size_t)channel]);
+				}
 				int a = lookup->trigLookups->getLanczosA();
 				SampleType L;
 				SampleType sum = 0;
 				int floorIndex = floor(index) + DelayLineBase<SampleType>::totalSize; // only used in modulo operation
 				for (int i = -a + 1; i <= a; ++i)
 				{
-					SampleType smp = DelayLineBase<SampleType>::bufferData.getSample(channel, (floorIndex + i) & (DelayLineBase<SampleType>::totalSize - 1));
+					SampleType smp = DelayLineBase<SampleType>::bufferData.getSample(getChannel(channel), (floorIndex + i) % DelayLineBase<SampleType>::totalSize);
 
-					L = lookup->trigLookups->lanczos(delayFrac + i);
+					L = lookup->trigLookups->lanczos(delayFrac[(size_t)channel] + i);
 
 					sum += smp * L;
 				}
@@ -456,8 +510,12 @@ namespace bdsp
 			typename std::enable_if <std::is_same <T, DelayLineInterpolationTypes::Lagrange3rd>::value, void>::type
 				updateInternalVariables()
 			{
-				delayFrac += (DelayLineBase<SampleType>::delayInt > 0);
-				DelayLineBase<SampleType>::delayInt -= (DelayLineBase<SampleType>::delayInt > 0);
+				for (size_t c = 0; c < delayFrac.size(); ++c)
+				{
+					delayFrac[c] += (DelayLineBase<SampleType>::delayInt[c] > 0);
+					DelayLineBase<SampleType>::delayInt[c] -= (DelayLineBase<SampleType>::delayInt[c] > 0);
+				}
+
 			}
 
 			/**
@@ -467,11 +525,14 @@ namespace bdsp
 			typename std::enable_if <std::is_same <T, DelayLineInterpolationTypes::Thiran>::value, void>::type
 				updateInternalVariables()
 			{
-				delayFrac += (delayFrac < (SampleType)0.618 && DelayLineBase<SampleType>::delayInt > 0);
-				DelayLineBase<SampleType>::delayInt -= (delayFrac < (SampleType)0.618 && DelayLineBase<SampleType>::delayInt > 0);
+				for (size_t c = 0; c < delayFrac.size(); ++c)
+				{
+					delayFrac[c] += (delayFrac[c] < (SampleType)0.618 && DelayLineBase<SampleType>::delayInt[c] > 0);
+					DelayLineBase<SampleType>::delayInt[c] -= (delayFrac[c] < (SampleType)0.618 && DelayLineBase<SampleType>::delayInt[c] > 0);
 
 
-				alpha = (1 - delayFrac) / (1 + delayFrac);
+					alpha[c] = (1 - delayFrac[c]) / (1 + delayFrac[c]);
+				}
 			}
 
 
@@ -620,13 +681,13 @@ namespace bdsp
 		protected:
 
 			DSP_Universals<SampleType>* lookup;
-			SampleType delay = 0.0, delayFrac = 0.0, targetDelay = 0;
+			std::vector<SampleType> delay, delayFrac, targetDelay;
 			std::vector<SampleType> v;
 
 			SampleType delaySmoothingTime = 0.25;
 
 			SampleType prevOutL = 0, prevOutR = 0, interpolatedSample;
-			SampleType  alpha = 0.0; // for Thiran
+			std::vector<SampleType>  alpha; // for Thiran
 			SampleType a = 0.25; // for LPFBCF
 			StereoSample<SampleType> inputSample, outputSample;
 
@@ -634,7 +695,9 @@ namespace bdsp
 			juce::SmoothedValue<SampleType> smoothedFeedback, smoothedPongMix;
 			StereoPanner<SampleType> outputPanner;
 
+			std::vector<int> reversePos, reverseOffset;
 
+			bool reversed = false;
 
 
 		private:
