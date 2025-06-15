@@ -78,6 +78,7 @@ namespace bdsp
 
 			std::function<float(float, float, float)> snapFunc = [=](float start, float end, float v)
 			{
+				jassert(denominator == 32);
 				return juce::jlimit(start, end, round(v * denominator) / float(denominator));
 			};
 			auto range = juce::NormalisableRange<float>(1 / float(denominator), maxNotes / float(denominator), from0To1Func, to0To1Func, snapFunc);
@@ -128,23 +129,25 @@ namespace bdsp
 		{
 			int idx = 0;
 			float minDiff = abs(v - rateSnapValues.getFirst().y);
-
-			for (int i = 1; i < rateSnapValues.size(); ++i)
+			if (!juce::approximatelyEqual(minDiff, 0.0f))
 			{
-				auto diff = abs(v - rateSnapValues[i].y);
 
-				if (diff < minDiff)
+				for (int i = 1; i < rateSnapValues.size(); ++i)
 				{
-					minDiff = diff;
-					idx = i;
-					if (juce::approximatelyEqual(diff, 0.0f))
+					auto diff = abs(v - rateSnapValues[i].y);
+
+					if (diff < minDiff)
 					{
-						break;
+						minDiff = diff;
+						idx = i;
+						if (juce::approximatelyEqual(diff, 0.0f))
+						{
+							break;
+						}
 					}
 				}
 			}
-
-			return rateSnapValues[idx].y;
+			return juce::jlimit(start, end, rateSnapValues[idx].y);
 		};
 		auto range = juce::NormalisableRange<float>(pow(2, BDSP_RATE_MIN), pow(2, BDSP_RATE_MAX), fromFunc, toFunc, snapFunc);
 
@@ -152,7 +155,7 @@ namespace bdsp
 		auto denominator = BDSP_RATE_MIN < 0 ? quickPow2(-BDSP_RATE_MIN) : 1;
 		std::function<juce::String(float, int)> rateLambda = [=](float value, int)
 		{
-			auto v = snapFunc(0, 0, value);
+			auto v = snapFunc(range.start, range.end, value);
 			return settings.get("Reduce Fractions", 1) ? reduceFraction(int(v * denominator), denominator, " / ", true) : juce::String(int(v * denominator)) + juce::String(" / ") + juce::String(denominator);
 		};
 

@@ -34,7 +34,7 @@ namespace bdsp
 				auto max = maxText.isEmpty() ? getText() : maxText;
 
 
-				g.setColour(findColour(juce::Label::backgroundColourId).withMultipliedAlpha(alpha));
+				g.setColour((backgroundColor.isEmpty() ? findColour(juce::Label::backgroundColourId) : getColor(backgroundColor)).withMultipliedAlpha(alpha));
 				g.fillRoundedRectangle(getLocalBounds().toFloat(), universals->roundedRectangleCurve);
 
 
@@ -44,7 +44,7 @@ namespace bdsp
 
 				if (!isBeingEdited())
 				{
-					g.setColour(universals->hoverAdjustmentFunc(findColour(juce::Label::textColourId), isHovering()).withMultipliedAlpha(alpha));
+					g.setColour(universals->hoverAdjustmentFunc(textColor.isEmpty() ? findColour(juce::Label::textColourId) : getColor(textColor), isHovering()).withMultipliedAlpha(alpha));
 
 					drawText(g, g.getCurrentFont(), getText(), getLocalBounds(), false, getJustificationType());
 
@@ -94,6 +94,8 @@ namespace bdsp
 			jassert(newRatio <= 1.0f && newRatio > 0);
 			heightRatio = newRatio;
 		}
+
+		NamedColorsIdentifier textColor, backgroundColor;
 
 	private:
 		juce::String maxText;

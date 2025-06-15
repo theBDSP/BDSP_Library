@@ -265,7 +265,7 @@ namespace bdsp
 		divisionCombo->setColorSchemeClassic(BDSP_COLOR_KNOB, NamedColorsIdentifier(), caret, highlight);
 
 
-		divisionLabel->setColour(juce::Label::textColourId, getColor(text));
+		divisionLabel->textColor = text;
 	}
 
 	template <class fracType>

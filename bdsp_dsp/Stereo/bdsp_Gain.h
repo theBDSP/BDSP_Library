@@ -10,7 +10,10 @@ namespace bdsp
 		class Gain : public BaseProcessingUnit<SampleType>
 		{
 		public:
-			Gain() = default;
+			Gain()
+			{
+				initGain(1);
+			}
 			~Gain() = default;
 
 			void prepare(const juce::dsp::ProcessSpec& spec) override

@@ -51,8 +51,8 @@ namespace bdsp
 		bdsp::CircleSlider& ms = *circleTime.get();
 
 
-
-
+		circleFrac->boundsPlacement = timeRectanglePlacement;
+		circleTime->boundsPlacement = timeRectanglePlacement;
 
 
 
